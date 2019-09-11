@@ -1,8 +1,8 @@
 # Locust Extensions
 
-This is a set of extensions for [locust](https://github.com/locustio/locust) 
+This is a set of extensions for [locust](https://github.com/locustio/locust). Check out the individual [files](locust_extensions/), or a look at the [example locustfile](examples/locustfile.py) to learn how to use them.
 
-Some extensions are particularly geared towards use with [locust-swarm](https://github.com/SvenskaSpel/locust-swarm), but they all work standalone.
+These extensions work well together with [locust-swarm](https://github.com/SvenskaSpel/locust-swarm), but they work standalone too.
 
 ## License
 
