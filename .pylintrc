@@ -1,0 +1,11 @@
+[FORMAT]
+max-line-length=300
+
+[BASIC]
+# only require really big functions to have docstrings. and we should never have this long functions.
+docstring-min-length=100
+# allow single letter variable names
+variable-rgx=[a-z0-9_]{1,30}$
+
+[MESSAGES CONTROL]
+disable=C0111,C0103,C0102,C0411,R0903,C0330,C0413,W1203,W0201,R0913,W1201,W0212,W0703

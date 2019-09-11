@@ -1,0 +1,11 @@
+{
+    "python.pythonPath": "/usr/local/opt/python/bin/python3.7",
+    "python.formatting.provider": "black",
+    "files.exclude": {
+        "**/env": true,
+        "**/__pycache__": true,
+        "**/locust_extensions.egg-info": true,
+        "**/pip-wheel-metadata": true
+    },
+    "python.linting.pylintEnabled": true
+}
