@@ -1,10 +1,10 @@
 if __name__ == "__main__":
-    from locust_extensions import enable_gevent_debugging
+    from locust_plugins import enable_gevent_debugging
 
     enable_gevent_debugging.setup_ptvsd()
 
-from locust_extensions import reporter, customer_reader, task_sets
-from locust_extensions import print_json_on_fail  # pylint: disable=unused-import
+from locust_plugins import reporter, customer_reader, task_sets
+from locust_plugins import print_json_on_fail  # pylint: disable=unused-import
 from locust import HttpLocust, task
 import os
 

@@ -4,7 +4,7 @@
     "files.exclude": {
         "**/env": true,
         "**/__pycache__": true,
-        "**/locust_extensions.egg-info": true,
+        "**/locust_plugins.egg-info": true,
         "**/pip-wheel-metadata": true,
         "**/build": true,
         "**/dist": true

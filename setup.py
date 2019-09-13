@@ -6,7 +6,7 @@ import re
 from setuptools import find_packages, setup
 
 _version_re = re.compile(r"__version__\s+=\s+(.*)")
-_init_file = "locust_extensions/__init__.py"
+_init_file = "locust_plugins/__init__.py"
 with open(_init_file, "rb") as f:
     version = str(ast.literal_eval(_version_re.search(f.read().decode("utf-8")).group(1)))
 
