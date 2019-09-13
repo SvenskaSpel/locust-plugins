@@ -34,8 +34,5 @@ setup(
     packages=find_packages(exclude=["examples"]),
     include_package_data=True,
     zip_safe=False,
-    install_requires=["locustio==locustio-custom", "psycogreen", "psycopg2"],
-    dependency_links=[
-        "git+https://github.com/cyberw/locust.git@allow-samples-with-None-response-time#egg=locustio-custom"
-    ],
+    install_requires=["locustio==0.11.1", "psycogreen", "psycopg2"],
 )
