@@ -11,9 +11,9 @@ with open(_init_file, "rb") as f:
     version = str(ast.literal_eval(_version_re.search(f.read().decode("utf-8")).group(1)))
 
 setup(
-    name="locust-extensions",
+    name="locust-plugins",
     version=version,
-    description="Useful extensions for Locust",
+    description="Useful plugins for Locust",
     long_description="""""",
     classifiers=[
         "Topic :: Software Development :: Testing :: Traffic Generation",
@@ -29,14 +29,13 @@ setup(
     keywords="",
     author="Lars Holmberg",
     author_email="lars.holmberg@svenskaspel.se",
-    url="https://github.com/SvenskaSpel/locust-extensions",
+    url="https://github.com/SvenskaSpel/locust-plugins",
     license="Apache-2.0",
     packages=find_packages(exclude=["examples"]),
     include_package_data=True,
     zip_safe=False,
-    install_requires=[
-        "locustio@git+https://github.com/cyberw/locust.git@allow-samples-with-None-response-time",
-        "psycogreen",
-        "psycopg2",
+    install_requires=["locustio==locustio-custom", "psycogreen", "psycopg2"],
+    dependency_links=[
+        "git+https://github.com/cyberw/locust.git@allow-samples-with-None-response-time#egg=locustio-custom"
     ],
 )

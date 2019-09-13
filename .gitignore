@@ -3,3 +3,4 @@ locust_extensions.egg-info
 pip-wheel-metadata
 build
 dist
+locust_plugins.egg-info
