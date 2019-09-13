@@ -5,7 +5,9 @@
         "**/env": true,
         "**/__pycache__": true,
         "**/locust_extensions.egg-info": true,
-        "**/pip-wheel-metadata": true
+        "**/pip-wheel-metadata": true,
+        "**/build": true,
+        "**/dist": true
     },
     "python.linting.pylintEnabled": true
 }
