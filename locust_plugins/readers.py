@@ -9,9 +9,10 @@ import psycopg2
 import os
 from contextlib import contextmanager
 from psycopg2 import pool, extras  # pylint: disable=unused-import
+import csv
 
 
-class CustomerReader:
+class PostgresReader:
     """
     A simple library to help locust get and lock test data from a postgres database.
     the approach is fairly naive, dont expect it to scale to huge databases or heavy concurrency.
@@ -63,3 +64,19 @@ class CustomerReader:
             yield conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         finally:
             self._pool.putconn(conn)
+
+
+class CSVReader:
+    "Read test data from csv file using an iterator"
+
+    def __init__(self, file):
+        self.file = file
+        self.reader = csv.reader(file)
+
+    def __next__(self):
+        try:
+            return next(self.reader)
+        except StopIteration:
+            # reuse file on EOF
+            self.file.seek(0, 0)
+            return next(self.reader)

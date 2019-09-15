@@ -1,30 +1,34 @@
+import locust_plugins.utils
+
 if __name__ == "__main__":
-    from locust_plugins import enable_gevent_debugging
+    locust_plugins.utils.setup_ptvsd()
 
-    enable_gevent_debugging.setup_ptvsd()
+locust_plugins.utils.print_json_on_fail()
 
-from locust_plugins import reporter, customer_reader, task_sets
-from locust_plugins import print_json_on_fail  # pylint: disable=unused-import
+import locust_plugins.readers
+import locust_plugins.tasksets
+import locust_plugins.listeners
+
 from locust import HttpLocust, task
 import os
 
-reporter.Reporter("example")
+locust_plugins.listeners.Timescale("example")
 
 rps = float(os.environ["LOCUST_RPS"])
 
-cr = customer_reader.CustomerReader("itp2")
+customer_reader = locust_plugins.readers.PostgresReader(os.environ["TEST_ENV"])
 
 
-class UserBehavior(task_sets.TaskSetRPS):
+class UserBehavior(locust_plugins.tasksets.TaskSetRPS):
     def on_start(self):
         self.client.verify = False  # disable ssl validation
 
     @task
     def get_results(self):
         self.rps_sleep(rps)
-        customer = cr.get()
+        customer = customer_reader.get()
         self.client.post("/", data={"ssn": customer["ssn"]})
-        cr.release(customer)
+        customer_reader.release(customer)
         if __name__ == "__main__":
             print("iteration complete!")
 

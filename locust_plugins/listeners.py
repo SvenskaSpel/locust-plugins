@@ -19,9 +19,9 @@ from dateutil import parser
 GRAFANA_URL = os.environ["LOCUST_GRAFANA_URL"]
 
 
-class Reporter:  # pylint: disable=R0902
+class Timescale:  # pylint: disable=R0902
     """
-    Reporter logs locust samples/events to a Postgres Timescale database.
+    Timescale logs locust samples/events to a Postgres Timescale database.
 
     It assumes you have a table like this set up:
     CREATE TABLE public.request

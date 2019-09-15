@@ -1,5 +1,6 @@
 from gevent import monkey
 import sys
+import json
 
 
 def setup_ptvsd(host="0.0.0.0", port=5678):
@@ -37,3 +38,13 @@ def setup_ptvsd(host="0.0.0.0", port=5678):
         ptvsd.enable_attach(address=(host, port), redirect_output=False)
     finally:
         sys.modules.update(saved_modules)
+
+
+def print_json_on_fail():
+    old_init = json.JSONDecodeError.__init__
+
+    def new_init(self, *k, **kw):
+        old_init(self, *k, **kw)
+        print(f'json was: "{k[1]}"')
+
+    json.JSONDecodeError.__init__ = new_init
