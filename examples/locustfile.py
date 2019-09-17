@@ -16,7 +16,7 @@ locust_plugins.listeners.Timescale("example")
 
 rps = float(os.environ["LOCUST_RPS"])
 
-customer_reader = locust_plugins.readers.PostgresReader(os.environ["TEST_ENV"])
+customer_reader = locust_plugins.readers.PostgresReader(os.environ["LOCUST_TEST_ENV"])
 
 
 class UserBehavior(locust_plugins.tasksets.TaskSetRPS):
