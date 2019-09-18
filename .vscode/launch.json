@@ -17,7 +17,8 @@
             ],
             "env": {
                 "LOCUST_RPS": "4"
-            }
+            },
+            "cwd": "${workspaceFolder}/examples"
         }
     ]
 }
