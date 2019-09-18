@@ -22,34 +22,11 @@ GRAFANA_URL = os.environ["LOCUST_GRAFANA_URL"]
 class Timescale:  # pylint: disable=R0902
     """
     Timescale logs locust samples/events to a Postgres Timescale database.
-
-    It assumes you have a table like this set up:
-    CREATE TABLE public.request
-    (
-        "time" timestamp with time zone NOT NULL,
-        run_id timestamp with time zone NOT NULL,
-        exception text COLLATE pg_catalog."default",
-        greenlet_id integer NOT NULL,
-        loadgen text COLLATE pg_catalog."default" NOT NULL,
-        name text COLLATE pg_catalog."default" NOT NULL,
-        request_type text COLLATE pg_catalog."default" NOT NULL,
-        response_length integer,
-        response_time double precision,
-        success smallint NOT NULL,
-        testplan text COLLATE pg_catalog."default"
-    )
-    WITH (
-        OIDS = FALSE
-    )
-    CREATE INDEX request_time_idx
-        ON public.request USING btree
-        ("time" DESC)
-        TABLESPACE pg_default;
-    CREATE TRIGGER ts_insert_blocker
-        BEFORE INSERT
-        ON public.request
-        FOR EACH ROW
-        EXECUTE PROCEDURE _timescaledb_internal.insert_blocker();
+    It relies on the standard postgres env vars (like PGHOST, PGPORT etc).
+    You need to set up a timescale table first, as described in timescale.sql
+    To visualize the data, use grafana and this dashboard: https://grafana.com/grafana/dashboards/10878
+    Timescale will automatically output a link to your dashboard using the env var LOCUST_GRAFANA_URL
+    (e.g. export LOCUST_GRAFANA_URL=https://my.grafana.host.com/d/qjIIww4Zz/locust?orgId=1)
     """
 
     def __init__(self, testplan, profile_name="", description=""):
