@@ -70,6 +70,10 @@ class CSVReader:
     "Read test data from csv file using an iterator"
 
     def __init__(self, file):
+        try:
+            file = open(file)
+        except TypeError:
+            pass  # "file" was already a pre-opened file-like object
         self.file = file
         self.reader = csv.reader(file)
 
