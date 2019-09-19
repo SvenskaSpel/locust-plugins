@@ -13,7 +13,7 @@ with open(_init_file, "rb") as f:
 setup(
     name="locust-plugins",
     version=version,
-    description="Useful plugins for Locust",
+    description="Useful plugins/extensions for Locust",
     long_description="""""",
     classifiers=[
         "Topic :: Software Development :: Testing :: Traffic Generation",
@@ -34,5 +34,5 @@ setup(
     packages=find_packages(exclude=["examples"]),
     include_package_data=True,
     zip_safe=False,
-    install_requires=["locustio==0.11.1", "psycogreen", "psycopg2"],
+    install_requires=["locustio==0.11.1", "psycogreen", "psycopg2", "websocket-client"],
 )

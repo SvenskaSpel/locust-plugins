@@ -1,14 +1,21 @@
 from gevent import monkey
 import sys
 import json
+import os
 
 
-def setup_ptvsd(host="0.0.0.0", port=5678):
+def gevent_debugger_patch(host="0.0.0.0", port=5678):
     """This is a workaround for gevent hanging during monkey patching when a debugger is attached
 
-    Make sure to call setup_ptvsd() before importing locust/anything else that relies on gevent
+    Make sure to call this function before importing locust/anything else that relies on gevent!
 
     Original code by ayzerar at https://github.com/Microsoft/PTVS/issues/2390"""
+
+    if sys.argv[0].endswith("locust") or os.getenv("TERM_PROGRAM") != "vscode":
+        # Dont do anything if we're running a full locust executable (because it breaks) or
+        # if vscode terminal is not active, because there probably is no debugger
+        # and we would just hang, waiting for it
+        return
 
     monkey.patch_all()
     saved_modules = {}
@@ -40,7 +47,7 @@ def setup_ptvsd(host="0.0.0.0", port=5678):
         sys.modules.update(saved_modules)
 
 
-def print_json_on_fail():
+def print_json_on_decode_fail():
     old_init = json.JSONDecodeError.__init__
 
     def new_init(self, *k, **kw):

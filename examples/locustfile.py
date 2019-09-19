@@ -1,36 +1,28 @@
+#!/usr/bin/env python3
+import os
 import locust_plugins.utils
 
-if __name__ == "__main__":
-    locust_plugins.utils.setup_ptvsd()
-
-locust_plugins.utils.print_json_on_fail()
-
-import locust_plugins.readers
-import locust_plugins.tasksets
-import locust_plugins.listeners
-
+locust_plugins.utils.gevent_debugger_patch()
+locust_plugins.utils.print_json_on_decode_fail()
+from locust_plugins.listeners import PrintListener, TimescaleListener
+from locust_plugins.readers import PostgresReader
+from locust_plugins.tasksets import TaskSetRPS
 from locust import HttpLocust, task
-import os
 
 locust_plugins.listeners.Timescale("example")
 
+customer_reader = PostgresReader(os.environ["LOCUST_TEST_ENV"])
 rps = float(os.environ["LOCUST_RPS"])
 
-customer_reader = locust_plugins.readers.PostgresReader(os.environ["LOCUST_TEST_ENV"])
 
-
-class UserBehavior(locust_plugins.tasksets.TaskSetRPS):
-    def on_start(self):
-        self.client.verify = False  # disable ssl validation
-
+class UserBehavior(TaskSetRPS):
     @task
-    def get_results(self):
+    def myTask(self):
         self.rps_sleep(rps)
+        self.client.get("/")
         customer = customer_reader.get()
         self.client.post("/", data={"ssn": customer["ssn"]})
         customer_reader.release(customer)
-        if __name__ == "__main__":
-            print("iteration complete!")
 
 
 class WebsiteUser(HttpLocust):
@@ -41,7 +33,7 @@ class WebsiteUser(HttpLocust):
         host = "http://example.com"
 
 
-# allow running as executable for debugging
+# allow running as executable, mainly to support attaching the debugger
 if __name__ == "__main__":
-    x = WebsiteUser()
-    x.run()
+    PrintListener()
+    WebsiteUser().run()

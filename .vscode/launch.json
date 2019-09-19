@@ -11,13 +11,18 @@
             "gevent": true,
             "program": "${workspaceFolder}/examples/locustfile.py",
             "console": "integratedTerminal",
-            "args": [
-                "-H",
-                "http://example.com",
-            ],
             "env": {
                 "LOCUST_RPS": "4"
             },
+            "cwd": "${workspaceFolder}/examples"
+        },
+        {
+            "name": "single webdriver locust",
+            "type": "python",
+            "request": "launch",
+            "gevent": true,
+            "program": "${workspaceFolder}/examples/webdriver.py",
+            "console": "integratedTerminal",
             "cwd": "${workspaceFolder}/examples"
         }
     ]

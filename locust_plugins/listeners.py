@@ -6,20 +6,21 @@ import psycogreen.gevent
 
 psycogreen.gevent.patch_psycopg()
 import psycopg2
-from datetime import datetime, timezone
-from locust import events
-import socket
-import greenlet
-import logging
 import atexit
+import logging
 import os
+import socket
 import sys
+from datetime import datetime, timezone
+
+import greenlet
 from dateutil import parser
+from locust import events
 
 GRAFANA_URL = os.environ["LOCUST_GRAFANA_URL"]
 
 
-class Timescale:  # pylint: disable=R0902
+class TimescaleListener:  # pylint: disable=R0902
     """
     Timescale logs locust samples/events to a Postgres Timescale database.
     It relies on the standard postgres env vars (like PGHOST, PGPORT etc).
@@ -167,6 +168,25 @@ class Timescale:  # pylint: disable=R0902
         if self._conn:
             self._cur.close()
             self._conn.close()
+
+
+class PrintListener:  # pylint: disable=R0902
+    """
+    Print every response (useful when debugging a single locust)
+    """
+
+    def __init__(self):
+        events.request_success += self.request_success
+        events.request_failure += self.request_failure
+
+    def request_success(self, request_type, name, response_time, response_length):
+        self._log_request(request_type, name, response_time, response_length, 1, None)
+
+    def request_failure(self, request_type, name, response_time, exception):
+        self._log_request(request_type, name, response_time, -1, 0, exception)
+
+    def _log_request(self, request_type, name, response_time, response_length, success, exception):
+        print(f"{request_type}\t{name}\t{response_time}\t{response_length}\t{success}\t{exception}")
 
 
 def is_slave():
