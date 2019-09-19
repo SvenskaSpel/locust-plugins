@@ -87,7 +87,9 @@ class SocketIOLocust(HttpLocust):
             else:
                 print(f"Received unexpected message: {message}")
                 continue
-
+            # Locust mail fail if no response time was detected (response_time = None)
+            # There is a small locust patch in my fork, install it like this:
+            # pip install -e git+https://github.com/cyberw/locust.git@allow-samples-with-None-response-time#egg=locustio
             request_success.fire(
                 request_type="WSR", name=name, response_time=response_time, response_length=len(message)
             )
