@@ -9,20 +9,20 @@ from locust_plugins.readers import PostgresReader
 from locust_plugins.tasksets import TaskSetRPS
 from locust import HttpLocust, task
 
-locust_plugins.listeners.Timescale("example")
+TimescaleListener("example")
 
-customer_reader = PostgresReader(os.environ["LOCUST_TEST_ENV"])
-rps = float(os.environ["LOCUST_RPS"])
+CUSTOMER_READER = PostgresReader(os.environ["LOCUST_TEST_ENV"])
+RPS = float(os.environ["LOCUST_RPS"])
 
 
 class UserBehavior(TaskSetRPS):
     @task
-    def myTask(self):
-        self.rps_sleep(rps)
+    def my_task(self):
+        self.rps_sleep(RPS)
         self.client.get("/")
-        customer = customer_reader.get()
+        customer = CUSTOMER_READER.get()
         self.client.post("/", data={"ssn": customer["ssn"]})
-        customer_reader.release(customer)
+        CUSTOMER_READER.release(customer)
 
 
 class WebsiteUser(HttpLocust):

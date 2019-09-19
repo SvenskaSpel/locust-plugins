@@ -89,7 +89,7 @@ class TimescaleListener:  # pylint: disable=R0902
 
     def quitting(self):
         self._finished = True
-        atexit._clear()  # make sure we dont capture additional ctrl-c:s
+        atexit._clear()  # make sure we dont capture additional ctrl-c:s # pylint: disable=protected-access
         self._background.join()
         self.exit()
 

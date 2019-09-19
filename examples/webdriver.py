@@ -22,7 +22,7 @@ class MyWebdriverTaskSet(TaskSet):
         self.client.implicitly_wait(10)
 
     @task
-    def myTask(self):
+    def my_task(self):
         # this is just an example, but it shows off some of the things you might want to do in a Webdriver test
         self.client.delete_all_cookies()
         start_at = time.time()

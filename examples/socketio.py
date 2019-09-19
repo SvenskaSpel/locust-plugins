@@ -11,7 +11,7 @@ import locust_plugins.listeners  # pylint: disable=ungrouped-imports
 
 class SportServiceTaskSet(TaskSet):
     @task
-    def myTask(self):
+    def my_task(self):
         # example of subscribe
         self.locust.send('42["subscribe",{"url":"/sport/matches/11995208/draws","sendInitialUpdate": true}]')
         # you can do http as well
