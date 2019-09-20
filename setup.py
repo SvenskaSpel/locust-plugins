@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# pylint: disable=invalid-name
 import ast
 import re
 
@@ -28,7 +29,6 @@ setup(
     ],
     keywords="",
     author="Lars Holmberg",
-    author_email="lars.holmberg@svenskaspel.se",
     url="https://github.com/SvenskaSpel/locust-plugins",
     license="Apache-2.0",
     packages=find_packages(exclude=["examples"]),
