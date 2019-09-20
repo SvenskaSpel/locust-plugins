@@ -11,8 +11,11 @@ The plugins are grouped by type:
 
 You can also have a look at the [example locustfiles](examples/) to learn how to use the plugins.
 
-
 These plugins work well together with [locust-swarm](https://github.com/SvenskaSpel/locust-swarm), but they work standalone too.
+
+# Installation
+
+```pip install locust-plugins```
 
 ## License
 
