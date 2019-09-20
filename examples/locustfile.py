@@ -25,7 +25,7 @@ class UserBehavior(TaskSetRPS):
         CUSTOMER_READER.release(customer)
 
 
-class WebsiteUser(HttpLocust):
+class MyHttpLocust(HttpLocust):
     task_set = UserBehavior
     min_wait = 0
     max_wait = 0
@@ -36,4 +36,4 @@ class WebsiteUser(HttpLocust):
 # allow running as executable, mainly to support attaching the debugger
 if __name__ == "__main__":
     PrintListener()
-    WebsiteUser().run()
+    MyHttpLocust().run()

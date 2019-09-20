@@ -16,7 +16,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException
 
 
-class MyWebdriverTaskSet(TaskSet):
+class UserBehaviour(TaskSet):
     def on_start(self):
         self.client.set_window_size(1400, 1000)
         self.client.implicitly_wait(10)
@@ -61,7 +61,7 @@ class MyWebdriverTaskSet(TaskSet):
 
 
 class MyWebdriverLocust(WebdriverLocust):
-    task_set = MyWebdriverTaskSet
+    task_set = UserBehaviour
     min_wait = 0
     max_wait = 0
 
