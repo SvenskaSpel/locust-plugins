@@ -1,6 +1,16 @@
 # Locust Plugins
 
-This is a set of plugins/extensions for [locust](https://github.com/locustio/locust). Check out the individual [files](locust_plugins/), or a look at the [example locustfile](examples/locustfile.py) to learn how to use them.
+This is a set of plugins/extensions for [locust](https://github.com/locustio/locust).
+
+The plugins are grouped by type:
+* [listeners](locust_plugins/listeners.py) (request logging & graphing)
+* [locusts](locust_plugins/locusts.py) (new protocols like websockets & selenium/webdriver)
+* [readers](locust_plugins/readers.py) (ways to get test data into your tests)
+* [tasksets](locust_plugins/tasksets.py) (different ways to run your tests, like RPS limiting)
+* [utils](locust_plugins/utils.py) (other stuff, like vs code debugging support)
+
+You can also have a look at the [example locustfiles](examples/) to learn how to use the plugins.
+
 
 These plugins work well together with [locust-swarm](https://github.com/SvenskaSpel/locust-swarm), but they work standalone too.
 
