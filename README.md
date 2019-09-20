@@ -15,7 +15,9 @@ These plugins work well together with [locust-swarm](https://github.com/SvenskaS
 
 # Installation
 
-```pip install locust-plugins```
+```
+pip install locust-plugins
+```
 
 ## License
 
