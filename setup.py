@@ -15,7 +15,7 @@ setup(
     name="locust-plugins",
     version=version,
     description="Useful plugins/extensions for Locust",
-    long_description="""""",
+    long_description="""https://github.com/SvenskaSpel/locust-plugins""",
     classifiers=[
         "Topic :: Software Development :: Testing :: Traffic Generation",
         "Development Status :: 4 - Beta",
