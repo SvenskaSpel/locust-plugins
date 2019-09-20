@@ -52,6 +52,9 @@ class TimescaleListener:  # pylint: disable=R0902
         else:
             # non-swarm runs need to generate the run id here
             self._run_id = datetime.now(timezone.utc)
+        logging.info(
+            f"Follow test run here: {GRAFANA_URL}&var-testplan={self._testplan}&from={int(self._run_id.timestamp()*1000)}&to=now\n"
+        )
         self._profile_name = profile_name
         self._rps = os.getenv("LOCUST_RPS", "0")
         self._description = description
