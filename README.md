@@ -1,12 +1,16 @@
 # Locust Plugins
 
-This is a set of plugins/extensions for [locust](https://github.com/locustio/locust).
+The purpose of this project is to gather a reasonably curated set of plugins/extensions for [Locust](https://github.com/locustio/locust). 
+
+Locust itself is quite a "bare bones" load generation software (compared to for example JMeter) and it is left to the user to build even basic functionality like reading test data from a database, or limiting the request rate to a certain value. Because Locust is very easy to extend, this is not such a bad thing, but forcing everyone to reinvent the wheel just to get started seems like a waste.
+
+So I decided to publish my code and hope that others (maybe you?) will contribute their solutions to common Locust use cases.
 
 The plugins are grouped by type:
 * [listeners](locust_plugins/listeners.py) (request logging & graphing)
 * [locusts](locust_plugins/locusts.py) (new protocols like websockets & selenium/webdriver)
 * [readers](locust_plugins/readers.py) (ways to get test data into your tests)
-* [tasksets](locust_plugins/tasksets.py) (different ways to run your tests, like RPS limiting)
+* [tasksets](locust_plugins/tasksets.py) (support for RPS limiting, and maybe other task sets in the future)
 * [utils](locust_plugins/utils.py) (other stuff, like vs code debugging support)
 
 You can also have a look at the [example locustfiles](examples/) to learn how to use the plugins.
@@ -18,6 +22,16 @@ These plugins work well together with [locust-swarm](https://github.com/SvenskaS
 ```
 pip install locust-plugins
 ```
+
+# Configuration
+
+Configuration is mostly done through environment variables. You will get an exception if one is missing, and they should either be self-explanatory, or explained in the code where they are used. I recommend setting them permanently in your bash profile, so you dont have to set them every time or make your command line super-long.
+
+# Contributions
+
+Contributions are very welcome! 😁
+
+For guidelines, see [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## License
 
