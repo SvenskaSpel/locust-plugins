@@ -1,21 +1,21 @@
 # Locust Plugins
 
-The purpose of this project is to gather a reasonably curated set of plugins/extensions for [Locust](https://github.com/locustio/locust). 
+The purpose of this project is to gather a curated set of plugins/extensions for [Locust](https://github.com/locustio/locust). 
 
-Locust itself is quite a "bare bones" load generation software (compared to for example JMeter) and it is left to the user to build even basic functionality like reading test data from a database, or limiting the request rate to a certain value. Because Locust is very easy to extend, this is not such a bad thing, but forcing everyone to reinvent the wheel just to get started seems like a waste.
+Locust itself is a "bare bones"/slimmed down load generation tool (compared to for example JMeter or Gatling) and it is left to the user to build even basic functionality (like reading test data from a database, or limiting the request rate to a certain value for example). Forcing everyone to reinvent the wheel is a big waste, and makes using Locust harder than it needs to be.
 
-So I decided to publish my code and hope that others (maybe you?) will contribute their solutions to common Locust use cases.
+So I decided to publish my own plugins and hope that others (maybe you?) will contribute their solutions to common Locust use cases.
 
 The plugins are grouped by type:
 * [listeners](locust_plugins/listeners.py) (request logging & graphing)
 * [locusts](locust_plugins/locusts.py) (new protocols like websockets & selenium/webdriver)
 * [readers](locust_plugins/readers.py) (ways to get test data into your tests)
 * [tasksets](locust_plugins/tasksets.py) (support for RPS limiting, and maybe other task sets in the future)
-* [utils](locust_plugins/utils.py) (other stuff, like vs code debugging support)
+* [utils](locust_plugins/utils.py) (other stuff, like VS Code debugging support)
 
 You can also have a look at the [example locustfiles](examples/) to learn how to use the plugins.
 
-These plugins work well together with [locust-swarm](https://github.com/SvenskaSpel/locust-swarm), but they work standalone too.
+These plugins work well together with [locust-swarm](https://github.com/SvenskaSpel/locust-swarm)
 
 # Installation
 
