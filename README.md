@@ -2,9 +2,11 @@
 
 The purpose of this project is to gather a curated set of plugins/extensions for [Locust](https://github.com/locustio/locust). 
 
-Locust itself is a "bare bones"/slimmed down load generation tool (compared to for example JMeter or Gatling) and it is left to the user to build even basic functionality (like reading test data from a database, or limiting the request rate to a certain value for example). Forcing everyone to reinvent the wheel is a big waste, and makes using Locust harder than it needs to be.
+Locust itself is a "bare bones" load generation tool (compared to for example JMeter or Gatling) and it is left to the user to build even basic functionality (like reading test data from a database, limiting the request rate to a certain value, etc). Forcing everyone to reinvent the wheel is a big waste, and makes using Locust harder than it needs to be.
 
 So I decided to publish my own plugins and hope that others (maybe you?) will contribute their solutions to common Locust use cases.
+
+Having this separate from "Locust core" allows the plugins to evolve faster (at the expense of being less mature), and avoids bloating Locust with functionality you might not be interested in.
 
 The plugins are grouped by type:
 * [listeners](locust_plugins/listeners.py) (request logging & graphing)
