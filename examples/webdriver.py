@@ -9,11 +9,16 @@ locust_plugins.utils.gevent_debugger_patch()
 
 from locust_plugins.locusts import WebdriverLocust
 from locust_plugins.listeners import PrintListener
+from locust_plugins.readers import PostgresReader
+
+import os
 import time
 from locust import TaskSet, task
 from locust.events import request_success
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException
+
+CUSTOMER_READER = PostgresReader(os.environ["LOCUST_TEST_ENV"])
 
 
 class UserBehaviour(TaskSet):
@@ -25,6 +30,9 @@ class UserBehaviour(TaskSet):
     def my_task(self):
         # this is just an example, but it shows off some of the things you might want to do in a Webdriver test
         self.client.delete_all_cookies()
+        customer = CUSTOMER_READER.get()
+        CUSTOMER_READER.release(customer)
+
         start_at = time.time()
         self.client.get("https://example.com/")
         try:
@@ -33,12 +41,10 @@ class UserBehaviour(TaskSet):
             pass  # dont really care about this
         self.client.find_element_by_css_selector(".js-nav-list-item-link-login").click()
         time.sleep(0.1)
-        self.client.find_element_by_xpath('//*[@id="bankidTab"]/div[2]/button[1]').click()
+        self.client.find_element_by_xpath('//*[@id="bankidTab"]/button[1]').click()
         time.sleep(0.1)
-        self.client.find_element_by_css_selector(
-            "body > div.js-modal-container.modal-container.modal-animate-start.modal-container-login.modal-animate-started"
-        )
-        ssn = "299901019999"
+        self.client.find_element_by_xpath('//*[@id="ssn"]')
+        ssn = customer["ssn"]
         ssn_input = self.client.switch_to.active_element
         # Sometimes send_keys has issues due to client side javascript. This is a workaround.
         self.client.execute_script(
@@ -46,14 +52,10 @@ class UserBehaviour(TaskSet):
         )
         ssn_input.send_keys(Keys.RETURN)
         try:
-            self.client.find_element_by_css_selector(
-                "body > div.fixed-top-content.js-fixed-top-content > nav > ul > li.nav-list-item.nav-list-item-user.js-nav-list-item-user.js-nav-list-item.js-logged-in > a"
-            ).click()
+            self.client.find_element_by_xpath('//*[@id="last-login-time"]/div/div[4]/a/span').click()
         except StaleElementReferenceException:
             # retry...
-            self.client.find_element_by_css_selector(
-                "body > div.fixed-top-content.js-fixed-top-content > nav > ul > li.nav-list-item.nav-list-item-user.js-nav-list-item-user.js-nav-list-item.js-logged-in > a"
-            ).click()
+            self.client.find_element_by_xpath('//*[@id="last-login-time"]/div/div[4]/a/span').click()
         time.sleep(0.1)
         request_success.fire(
             request_type="Selenium", name="Logged in", response_time=(time.time() - start_at) * 1000, response_length=0
@@ -64,6 +66,9 @@ class MyWebdriverLocust(WebdriverLocust):
     task_set = UserBehaviour
     min_wait = 0
     max_wait = 0
+
+    # def __init__(self):
+    #     super(MyWebdriverLocust, self).__init__(headless=False)
 
 
 if __name__ == "__main__":

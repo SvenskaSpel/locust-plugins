@@ -19,19 +19,15 @@ class WebdriverLocust(Locust):
     Represents an Webdriver client
     """
 
-    first_time = True
+    # kill old webdriver browser instances
+    subprocess.Popen(["killall", "chromedriver"])
+    subprocess.Popen(["pkill", "-f", " --test-type=webdriver"])
 
-    def __init__(self):
+    def __init__(self, headless=True):
         super(WebdriverLocust, self).__init__()
-
-        if WebdriverLocust.first_time:
-            # kill old webdriver browser instances
-            subprocess.Popen(["killall", "chromedriver"])
-            subprocess.Popen(["bash", "-c", "pgrep -f ' --test-type=webdriver' | xargs kill"])
-            WebdriverLocust.first_time = False
-
         chrome_options = Options()
-        chrome_options.add_argument("--headless")
+        if headless:
+            chrome_options.add_argument("--headless")
         self.client = webdriver.Remote(
             command_executor="http://127.0.0.1:4444/wd/hub", desired_capabilities=chrome_options.to_capabilities()
         )
