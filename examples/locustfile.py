@@ -11,26 +11,29 @@ from locust import HttpLocust, task
 
 TimescaleListener("example")
 
-CUSTOMER_READER = PostgresReader(os.environ["LOCUST_TEST_ENV"])
-RPS = float(os.environ["LOCUST_RPS"])
+customer_reader = PostgresReader(f"env='{os.environ['LOCUST_TEST_ENV']}'")
+
+rps = float(os.environ["LOCUST_RPS"])
 
 
 class UserBehavior(TaskSetRPS):
     @task
     def my_task(self):
-        self.rps_sleep(RPS)
+        if rps:
+            self.rps_sleep(rps)
         self.client.get("/")
-        customer = CUSTOMER_READER.get()
-        self.client.post("/", data={"ssn": customer["ssn"]})
-        CUSTOMER_READER.release(customer)
+        customer = customer_reader.get()
+        self.client.post(f"/?ssn={customer['ssn']}")
+        customer_reader.release(customer)
 
 
 class MyHttpLocust(HttpLocust):
     task_set = UserBehavior
     min_wait = 0
     max_wait = 0
+    host = "http://example.com"
     if __name__ == "__main__":
-        host = "http://example.com"
+        _catch_exceptions = False
 
 
 # allow running as executable, mainly to support attaching the debugger
