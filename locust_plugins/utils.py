@@ -11,10 +11,10 @@ def gevent_debugger_patch(host="0.0.0.0", port=5678):
 
     Original code by ayzerar at https://github.com/Microsoft/PTVS/issues/2390"""
 
-    if sys.argv[0].endswith("locust") or os.getenv("TERM_PROGRAM") != "vscode":
-        # Dont do anything if we're running a full locust executable (because it breaks) or
-        # if vscode terminal is not active, because there probably is no debugger
-        # and we would just hang, waiting for it
+    if sys.argv[0].endswith("locust") or not os.getenv("VSCODE_PID"):
+        # Dont patch if we're running a the full locust runtime (because it breaks) or
+        # if vs is not running (because then there probably is no debugger and
+        # we would just hang, waiting for it)
         return
 
     monkey.patch_all()
