@@ -18,7 +18,7 @@ from locust.events import request_success
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException
 
-CUSTOMER_READER = PostgresReader(os.environ["LOCUST_TEST_ENV"])
+customer_reader = PostgresReader(os.environ["LOCUST_TEST_ENV"])
 
 
 class UserBehaviour(TaskSet):
@@ -30,11 +30,14 @@ class UserBehaviour(TaskSet):
     def my_task(self):
         # this is just an example, but it shows off some of the things you might want to do in a Webdriver test
         self.client.delete_all_cookies()
-        customer = CUSTOMER_READER.get()
-        CUSTOMER_READER.release(customer)
+        customer = customer_reader.get()
+        # typically you would release the customer only after its task has finished,
+        # but in this case I dont care, and dont want to block another test run from using it
+        # (particularly if this test crashes)
+        customer_reader.release(customer)
 
         start_at = time.time()
-        self.client.get("https://example.com/")
+        self.client.get(f"https://spela.{os.environ['LOCUST_TEST_ENV']}.svenskaspel.se/")
         try:
             self.client.find_element_by_css_selector(".btn-inverted").click()
         except NoSuchElementException:
