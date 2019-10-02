@@ -8,7 +8,7 @@ psycogreen.gevent.patch_psycopg()
 import psycopg2
 import os
 from contextlib import contextmanager
-from psycopg2 import pool, extras  # pylint: disable=unused-import
+from psycopg2 import pool, extras, errors  # pylint: disable=unused-import
 import csv
 
 
@@ -34,34 +34,51 @@ class PostgresReader:
 
     def __init__(self, selection):
         """selection that will get appended to the where-clause, e.g. "some_column = 'some_value'" """
-        self._pool = psycopg2.pool.SimpleConnectionPool(1, 100, host=os.environ["PGHOST"], port="5432")
+        self._pool = psycopg2.pool.SimpleConnectionPool(
+            1, 100, host=os.environ["PGHOST"], port="5432", cursor_factory=psycopg2.extras.DictCursor
+        )
         self._selection = f" AND {selection}" if selection else ""
 
     def get(self):
         """Get and lock a customer by setting logged_in in an atomic db operation. Returns a dict."""
-        with self._getcursor() as cursor:
-            cursor.execute(
-                f"UPDATE customers SET logged_in=1, last_login=now() WHERE ssn=(SELECT ssn FROM customers WHERE logged_in=0{self._selection} ORDER BY last_login LIMIT 1 FOR UPDATE SKIP LOCKED){self._selection} RETURNING account_id,ssn"
-            )
-            resp = cursor.fetchone()
+        with self.db() as conn:
+            while True:
+                try:
+                    cursor = conn.cursor()
+                    cursor.execute(
+                        f"UPDATE customers SET logged_in=1, last_login=now() WHERE ssn=(SELECT ssn FROM customers WHERE logged_in=0{self._selection} ORDER BY last_login LIMIT 1 FOR UPDATE SKIP LOCKED){self._selection} RETURNING account_id, ssn, last_login"
+                    )
+                    resp = cursor.fetchone()
+                    cursor.close()
+                    conn.commit()
+                    break
+                except psycopg2.OperationalError:
+                    # it sucks that we have to do this, but Postgres doesnt guarantee isolation with FOR UPDATE unless we use
+                    # ISOLATION_LEVEL_SERIALIZABLE, and then we need to retry "manually" when there is an error.
+                    cursor.close()
+                    conn.rollback()
             return resp
 
     def release(self, customer):
         """Unlock customer in database (set logged_in to zero)"""
-        with self._getcursor() as cursor:
-            cursor.execute(
-                f"UPDATE customers SET logged_in=0 WHERE ssn='{customer['ssn']}'{self._selection} RETURNING ssn"
-            )
-            ssn = cursor.fetchone()[0]
-        if ssn != customer["ssn"]:
-            raise Exception(f"failed to unlock customer with ssn {ssn}")
+        with self.db() as conn:
+            while True:
+                try:
+                    cursor = conn.cursor()
+                    cursor.execute(f"UPDATE customers SET logged_in=0 WHERE ssn='{customer['ssn']}'{self._selection}")
+                    cursor.close()
+                    conn.commit()
+                    break
+                except psycopg2.OperationalError:
+                    cursor.close()
+                    conn.rollback()
 
     @contextmanager
-    def _getcursor(self):
+    def db(self):
         conn = self._pool.getconn()
-        conn.autocommit = True
+        conn.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_SERIALIZABLE)
         try:
-            yield conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+            yield conn
         finally:
             self._pool.putconn(conn)
 
