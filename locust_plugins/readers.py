@@ -10,6 +10,8 @@ import os
 from contextlib import contextmanager
 from psycopg2 import pool, extras, errors  # pylint: disable=unused-import
 import csv
+import time
+import logging
 
 
 class PostgresReader:
@@ -38,10 +40,12 @@ class PostgresReader:
             1, 100, host=os.environ["PGHOST"], port="5432", cursor_factory=psycopg2.extras.DictCursor
         )
         self._selection = f" AND {selection}" if selection else ""
+        self._delay_warning = 0.2
 
     def get(self):
         """Get and lock a customer by setting logged_in in an atomic db operation. Returns a dict."""
         with self.db() as conn:
+            start_at = time.time()
             while True:
                 try:
                     cursor = conn.cursor()
@@ -51,6 +55,11 @@ class PostgresReader:
                     resp = cursor.fetchone()
                     cursor.close()
                     conn.commit()
+                    if start_at + self._delay_warning < time.time():
+                        logging.warning(
+                            f"Getting a customer took more than {self._delay_warning} seconds (doubling warning threshold for next time)"
+                        )
+                        self._delay_warning *= 2
                     break
                 except psycopg2.OperationalError:
                     # it sucks that we have to do this, but Postgres doesnt guarantee isolation with FOR UPDATE unless we use
