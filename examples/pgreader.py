@@ -10,7 +10,7 @@ from locust import HttpLocust, task, TaskSet
 
 TimescaleListener("example")
 
-customer_reader = PostgresReader(f"env='{os.environ['LOCUST_TEST_ENV']}'")
+customer_reader = PostgresReader(f"env='{os.environ['LOCUST_TEST_ENV']}' AND tb=0 and lb=1")
 
 
 class UserBehavior(TaskSet):
