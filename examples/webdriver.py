@@ -18,7 +18,7 @@ from locust.events import request_success
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException
 
-customer_reader = PostgresReader(os.environ["LOCUST_TEST_ENV"])
+customer_reader = PostgresReader(f"env='{os.environ['LOCUST_TEST_ENV']}' AND tb=0 AND lb=1")
 
 
 class UserBehaviour(TaskSet):
