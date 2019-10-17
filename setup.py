@@ -27,6 +27,7 @@ setup(
         "Intended Audience :: Developers",
         "Intended Audience :: System Administrators",
     ],
+    python_requires=">=3.6, <4",
     keywords="",
     author="Lars Holmberg",
     url="https://github.com/SvenskaSpel/locust-plugins",

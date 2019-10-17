@@ -19,6 +19,24 @@ You can also have a look at the [example locustfiles](examples/) to learn how to
 
 These plugins work well together with [locust-swarm](https://github.com/SvenskaSpel/locust-swarm)
 
+# Prerequisites
+
+Many plugins use Postgres, and locust-plugins itself needs at least a Postgres *client* installed.
+
+RedHat/CentOS:
+
+```
+yum install python3-devel postgresql-devel
+```
+
+MacOS:
+
+```
+brew install postgres
+```
+
+You can use several plugins without actually using Postgres (so setting up a database is not strictly necessary), but some of the core components like PostgresReader and TimescaleListener use it.
+
 # Installation
 
 ```
