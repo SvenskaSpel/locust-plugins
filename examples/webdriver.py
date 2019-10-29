@@ -28,24 +28,22 @@ class UserBehaviour(TaskSet):
 
     @task
     def my_task(self):
+        short_sleep = 1 if __name__ == "__main__" else 0.1
         # this is just an example, but it shows off some of the things you might want to do in a Webdriver test
         self.client.delete_all_cookies()
         customer = customer_reader.get()
-        # typically you would release the customer only after its task has finished,
-        # but in this case I dont care, and dont want to block another test run from using it
-        # (particularly if this test crashes)
-        customer_reader.release(customer)
 
         start_at = time.time()
-        self.client.get(f"https://spela.{os.environ['LOCUST_TEST_ENV']}.svenskaspel.se/")
+        self.client.get(self.locust.host)
         try:
             self.client.find_element_by_css_selector(".btn-inverted").click()
         except NoSuchElementException:
             pass  # dont really care about this
+
         self.client.find_element_by_css_selector(".js-nav-list-item-link-login").click()
-        time.sleep(0.1)
+        time.sleep(short_sleep)
         self.client.find_element_by_xpath('//*[@id="bankidTab"]/button[1]').click()
-        time.sleep(0.1)
+        time.sleep(short_sleep)
         self.client.find_element_by_xpath('//*[@id="ssn"]')
         ssn = customer["ssn"]
         ssn_input = self.client.switch_to.active_element
@@ -53,27 +51,35 @@ class UserBehaviour(TaskSet):
         self.client.execute_script(
             "arguments[0].setAttribute('value', arguments[1])", ssn_input, ssn[:8] + "-" + ssn[-4:]
         )
+        time.sleep(short_sleep)
         ssn_input.send_keys(Keys.RETURN)
+        time.sleep(short_sleep)
         try:
             self.client.find_element_by_xpath('//*[@id="last-login-time"]/div/div[4]/a/span').click()
         except StaleElementReferenceException:
             # retry...
             self.client.find_element_by_xpath('//*[@id="last-login-time"]/div/div[4]/a/span').click()
-        time.sleep(0.1)
+        # typically you would release the customer only after its task has finished,
+        # but in this case I dont care, and dont want to block another test run from using it
+        # (particularly if this test crashes)
+        customer_reader.release(customer)
         request_success.fire(
-            request_type="Selenium", name="Logged in", response_time=(time.time() - start_at) * 1000, response_length=0
+            request_type="Selenium", name="Log in", response_time=(time.time() - start_at) * 1000, response_length=0
         )
+        time.sleep(short_sleep * 2)
 
 
 class MyWebdriverLocust(WebdriverLocust):
     task_set = UserBehaviour
     min_wait = 0
     max_wait = 0
+    host = f"https://spela.{os.environ['LOCUST_TEST_ENV']}.svenskaspel.se/"
 
-    # def __init__(self):
-    #     super(MyWebdriverLocust, self).__init__(headless=False)
+    def __init__(self):
+        super(MyWebdriverLocust, self).__init__(headless=(__name__ != "__main__"))
 
 
 if __name__ == "__main__":
     PrintListener()
+    MyWebdriverLocust._catch_exceptions = False
     MyWebdriverLocust().run()
