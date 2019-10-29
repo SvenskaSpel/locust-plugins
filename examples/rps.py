@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from locust_plugins.tasksets import TaskSetRPS
 from locust import HttpLocust, task
 
