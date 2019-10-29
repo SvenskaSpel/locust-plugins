@@ -9,7 +9,7 @@ locust_plugins.utils.gevent_debugger_patch()
 
 from locust_plugins.locusts import WebdriverLocust
 from locust_plugins.listeners import PrintListener
-from locust_plugins.readers import PostgresReader
+from locust_plugins.readers_nopool import PostgresReader
 
 import os
 import time

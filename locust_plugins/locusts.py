@@ -1,5 +1,3 @@
-# start selenium server first: https://www.seleniumhq.org/download/ (java -jar selenium-server-standalone-3.141.59.jar)
-
 import json
 import logging
 import re
@@ -16,7 +14,10 @@ from selenium.webdriver.chrome.options import Options
 
 class WebdriverLocust(Locust):
     """
-    Represents an Webdriver client
+    A locust that includes a Webdriver client.
+    Download & launch selenium server first:
+    https://www.seleniumhq.org/download/
+    java -jar selenium-server-standalone-3.141.59.jar
     """
 
     # kill old webdriver browser instances
