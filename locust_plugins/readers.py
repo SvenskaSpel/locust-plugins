@@ -19,13 +19,14 @@ class PostgresReader:
     A simple library to help locust get and lock test data from a postgres database.
     the approach is fairly naive, dont expect it to scale to huge databases or heavy concurrency.
 
-    This assumes you have a postgres database with a table similar to this: (using smallint instead of booleans for the logged_in flag is a historical accident). This may be all wrong, but maybe you can use it as a starting point.
+    This assumes you have a postgres database with a table similar to this: (using smallint instead of booleans for the logged_in flag is a historical accident). This may not be an optimal table layout, but maybe you can use it as a starting point.
     CREATE TABLE public.customers
     (
         account_id character(10) COLLATE pg_catalog."default",
         ssn character(12) COLLATE pg_catalog."default" NOT NULL,
         logged_in smallint NOT NULL DEFAULT '0'::smallint,
         last_login timestamp without time zone NOT NULL,
+        last_used_by character(12) COLLATE pg_catalog."default",
         CONSTRAINT customers_ssn UNIQUE (ssn)
     )
     CREATE INDEX customers_ssn_env_logged_in_last_login
@@ -50,7 +51,7 @@ class PostgresReader:
                 try:
                     cursor = conn.cursor()
                     cursor.execute(
-                        f"UPDATE customers SET logged_in=1, last_login=now() WHERE ssn=(SELECT ssn FROM customers WHERE logged_in=0{self._selection} ORDER BY last_login LIMIT 1 FOR UPDATE SKIP LOCKED){self._selection} RETURNING account_id, ssn, last_login"
+                        f"UPDATE customers SET logged_in=1, last_login=now(), last_used_by='{os.environ['USER']}' WHERE ssn=(SELECT ssn FROM customers WHERE logged_in=0{self._selection} ORDER BY last_login LIMIT 1 FOR UPDATE SKIP LOCKED){self._selection} RETURNING account_id, ssn, last_login"
                     )
                     resp = cursor.fetchone()
                     cursor.close()
@@ -74,7 +75,9 @@ class PostgresReader:
             while True:
                 try:
                     cursor = conn.cursor()
-                    cursor.execute(f"UPDATE customers SET logged_in=0 WHERE ssn='{customer['ssn']}'{self._selection}")
+                    cursor.execute(
+                        f"UPDATE customers SET logged_in=0, last_used_by='{os.environ['USER']}' WHERE ssn='{customer['ssn']}'{self._selection}"
+                    )
                     cursor.close()
                     conn.commit()
                     break
