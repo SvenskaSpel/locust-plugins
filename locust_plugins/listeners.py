@@ -30,7 +30,7 @@ class TimescaleListener:  # pylint: disable=R0902
     (e.g. export LOCUST_GRAFANA_URL=https://my.grafana.host.com/d/qjIIww4Zz/locust?orgId=1)
     """
 
-    def __init__(self, testplan, profile_name="", description=""):
+    def __init__(self, testplan, env, *, profile_name="", description=""):
         try:
             self._conn = psycopg2.connect(host=os.environ["PGHOST"])
         except Exception:
@@ -42,6 +42,8 @@ class TimescaleListener:  # pylint: disable=R0902
         self._cur = self._conn.cursor()
         assert testplan != ""
         self._testplan = testplan
+        assert env != ""
+        self._env = env
         self._hostname = socket.gethostname()
         self._samples = []
         self._finished = False
@@ -141,8 +143,8 @@ class TimescaleListener:  # pylint: disable=R0902
                 num_clients = sys.argv[index + 1]
 
         self._cur.execute(
-            "INSERT INTO testrun (id, testplan, profile_name, num_clients, rps, description) VALUES (%s,%s,%s,%s,%s,%s)",
-            (self._run_id, self._testplan, self._profile_name, num_clients, self._rps, self._description),
+            "INSERT INTO testrun (id, testplan, profile_name, num_clients, rps, description, env) VALUES (%s,%s,%s,%s,%s,%s,%s)",
+            (self._run_id, self._testplan, self._profile_name, num_clients, self._rps, self._description, self._env),
         )
 
         self._cur.execute(
