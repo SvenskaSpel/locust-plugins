@@ -184,12 +184,13 @@ class PrintListener:  # pylint: disable=R0902
     def __init__(self):
         events.request_success += self.request_success
         events.request_failure += self.request_failure
+        print("type\tname\ttime\tlength\tsuccess\texception")
 
     def request_success(self, request_type, name, response_time, response_length):
-        self._log_request(request_type, name, response_time, response_length, 1, None)
+        self._log_request(request_type, name, response_time, response_length, True, None)
 
     def request_failure(self, request_type, name, response_time, exception):
-        self._log_request(request_type, name, response_time, -1, 0, exception)
+        self._log_request(request_type, name, response_time, -1, False, exception)
 
     def _log_request(self, request_type, name, response_time, response_length, success, exception):
         print(f"{request_type}\t{name}\t{response_time}\t{response_length}\t{success}\t{exception}")
