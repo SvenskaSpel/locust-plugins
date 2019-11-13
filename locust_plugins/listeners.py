@@ -130,11 +130,11 @@ class TimescaleListener:  # pylint: disable=R0902
 
         self._samples.append(sample)
 
-    def request_success(self, request_type, name, response_time, response_length):
+    def request_success(self, request_type, name, response_time, response_length, **_kwargs):
         self._log_request(request_type, name, response_time, response_length, 1, None)
 
-    def request_failure(self, request_type, name, response_time, exception):
-        self._log_request(request_type, name, response_time, -1, 0, exception)
+    def request_failure(self, request_type, name, response_time, response_length, exception, **_kwargs):
+        self._log_request(request_type, name, response_time, response_length, 0, exception)
 
     def log_start_testrun(self):
         num_clients = 1
@@ -186,11 +186,11 @@ class PrintListener:  # pylint: disable=R0902
         events.request_failure += self.request_failure
         print("type\tname\ttime\tlength\tsuccess\texception")
 
-    def request_success(self, request_type, name, response_time, response_length):
+    def request_success(self, request_type, name, response_time, response_length, **_kwargs):
         self._log_request(request_type, name, response_time, response_length, True, None)
 
-    def request_failure(self, request_type, name, response_time, exception):
-        self._log_request(request_type, name, response_time, -1, False, exception)
+    def request_failure(self, request_type, name, response_time, response_length, exception, **_kwargs):
+        self._log_request(request_type, name, response_time, response_length, False, exception)
 
     def _log_request(self, request_type, name, response_time, response_length, success, exception):
         print(f"{request_type}\t{name}\t{response_time}\t{response_length}\t{success}\t{exception}")
