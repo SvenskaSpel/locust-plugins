@@ -2,7 +2,7 @@
 import os
 from locust_plugins.readers import PostgresReader
 from locust import HttpLocust, task, TaskSet
-
+from locust.wait_time import constant
 
 customer_reader = PostgresReader(f"env='{os.environ['LOCUST_TEST_ENV']}' AND tb=0 AND lb=1")
 
@@ -17,6 +17,5 @@ class UserBehavior(TaskSet):
 
 class MyHttpLocust(HttpLocust):
     task_set = UserBehavior
-    min_wait = 0
-    max_wait = 0
+    wait_time = constant(0)
     host = "http://example.com"

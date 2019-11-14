@@ -1,6 +1,7 @@
 from locust import task
 from locust.core import TaskSet
 from locust_plugins.locusts import SocketIOLocust
+from locust.wait_time import constant
 
 
 class UserBehaviour(TaskSet):
@@ -16,7 +17,6 @@ class UserBehaviour(TaskSet):
 
 class MySocketIOLocust(SocketIOLocust):
     task_set = UserBehaviour
-    min_wait = 0
-    max_wait = 0
+    wait_time = constant(0)
     if __name__ == "__main__":
         host = "http://example.com"

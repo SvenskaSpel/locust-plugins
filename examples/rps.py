@@ -11,5 +11,4 @@ class UserBehavior(TaskSetRPS):
 
 class MyHttpLocust(HttpLocust):
     task_set = UserBehavior
-    min_wait = 0
-    max_wait = 0
+    wait_time = constant(0)

@@ -9,11 +9,8 @@
             "type": "python",
             "request": "launch",
             "gevent": true,
-            "program": "${workspaceFolder}/examples/locustfile.py",
+            "program": "${workspaceFolder}/examples/debug.py",
             "console": "integratedTerminal",
-            "env": {
-                "LOCUST_RPS": "4"
-            },
             "cwd": "${workspaceFolder}/examples"
         },
         {
