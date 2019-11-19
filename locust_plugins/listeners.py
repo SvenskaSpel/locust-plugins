@@ -68,6 +68,7 @@ class TimescaleListener:  # pylint: disable=R0902
         events.request_success += self.request_success
         events.request_failure += self.request_failure
         events.quitting += self.quitting
+        events.hatch_complete += self.hatch_complete
         atexit.register(self.exit)
 
     def _run(self):
@@ -151,6 +152,19 @@ class TimescaleListener:  # pylint: disable=R0902
             "INSERT INTO events (time, text) VALUES (%s, %s)",
             (datetime.now(timezone.utc).isoformat(), self._testplan + " started"),
         )
+
+    def hatch_complete(self, user_count):
+        if not is_slave():  # only log for master/standalone
+            end_time = datetime.now(timezone.utc)
+            try:
+                self._cur.execute(
+                    "INSERT INTO events (time, text) VALUES (%s, %s)",
+                    (end_time, f"{self._testplan} rampup complete, {user_count} locusts spawned"),
+                )
+            except psycopg2.Error as error:
+                logging.error(
+                    "Failed to insert rampup complete event time to Postgresql timescale database: " + repr(error)
+                )
 
     def log_stop_test_run(self):
         end_time = datetime.now(timezone.utc)
