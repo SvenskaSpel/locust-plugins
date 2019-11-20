@@ -1,7 +1,8 @@
 from locust_plugins.listeners import TimescaleListener
 from locust import HttpLocust, TaskSet, task
+from locust.wait_time import constant
 
-TimescaleListener("example", "testenv1")
+TimescaleListener("example", "env1")
 
 
 class MyTaskSet(TaskSet):
@@ -12,6 +13,5 @@ class MyTaskSet(TaskSet):
 
 class MyHttpLocust(HttpLocust):
     task_set = MyTaskSet
-    min_wait = 100
-    max_wait = 100
+    wait_time = constant(1)
     host = "http://example.com"
