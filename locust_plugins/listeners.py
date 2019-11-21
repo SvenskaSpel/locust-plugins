@@ -39,7 +39,6 @@ class TimescaleListener:  # pylint: disable=R0902
             )
             raise
         self._conn.autocommit = True
-        self._cur = self._conn.cursor()
         assert testplan != ""
         self._testplan = testplan
         assert env != ""
@@ -86,11 +85,12 @@ class TimescaleListener:  # pylint: disable=R0902
 
     def write_samples_to_db(self, samples):
         try:
-            self._cur.executemany(
-                """INSERT INTO request(time,run_id,greenlet_id,loadgen,name,request_type,response_time,success,testplan,response_length,exception) VALUES
- (%(time)s, %(run_id)s, %(greenlet_id)s, %(loadgen)s, %(name)s, %(request_type)s, %(response_time)s, %(success)s, %(testplan)s, %(response_length)s, %(exception)s)""",
-                samples,
-            )
+            with self._conn.cursor() as cur:
+                cur.executemany(
+                    """INSERT INTO request(time,run_id,greenlet_id,loadgen,name,request_type,response_time,success,testplan,response_length,exception) VALUES
+    (%(time)s, %(run_id)s, %(greenlet_id)s, %(loadgen)s, %(name)s, %(request_type)s, %(response_time)s, %(success)s, %(testplan)s, %(response_length)s, %(exception)s)""",
+                    samples,
+                )
         except psycopg2.Error as error:
             logging.error("Failed to write samples to Postgresql timescale database: " + repr(error))
 
@@ -143,21 +143,30 @@ class TimescaleListener:  # pylint: disable=R0902
             if arg == "-c":
                 num_clients = sys.argv[index + 1]
 
-        self._cur.execute(
-            "INSERT INTO testrun (id, testplan, profile_name, num_clients, rps, description, env) VALUES (%s,%s,%s,%s,%s,%s,%s)",
-            (self._run_id, self._testplan, self._profile_name, num_clients, self._rps, self._description, self._env),
-        )
-
-        self._cur.execute(
-            "INSERT INTO events (time, text) VALUES (%s, %s)",
-            (datetime.now(timezone.utc).isoformat(), self._testplan + " started"),
-        )
+            with self._conn.cursor() as cur:
+                cur.execute(
+                    "INSERT INTO testrun (id, testplan, profile_name, num_clients, rps, description, env) VALUES (%s,%s,%s,%s,%s,%s,%s)",
+                    (
+                        self._run_id,
+                        self._testplan,
+                        self._profile_name,
+                        num_clients,
+                        self._rps,
+                        self._description,
+                        self._env,
+                    ),
+                )
+                cur.execute(
+                    "INSERT INTO events (time, text) VALUES (%s, %s)",
+                    (datetime.now(timezone.utc).isoformat(), self._testplan + " started"),
+                )
+        self._start_logged = True
 
     def hatch_complete(self, user_count):
         if not is_slave():  # only log for master/standalone
             end_time = datetime.now(timezone.utc)
             try:
-                self._cur.execute(
+                self._conn.cursor().execute(
                     "INSERT INTO events (time, text) VALUES (%s, %s)",
                     (end_time, f"{self._testplan} rampup complete, {user_count} locusts spawned"),
                 )
@@ -169,10 +178,9 @@ class TimescaleListener:  # pylint: disable=R0902
     def log_stop_test_run(self):
         end_time = datetime.now(timezone.utc)
         try:
-            self._cur.execute("UPDATE testrun SET end_time = %s where id = %s", (end_time, self._run_id))
-            self._cur.execute(
-                "INSERT INTO events (time, text) VALUES (%s, %s)", (end_time, self._testplan + " finished")
-            )
+            with self._conn.cursor() as cur:
+                cur.execute("UPDATE testrun SET end_time = %s where id = %s", (end_time, self._run_id))
+                cur.execute("INSERT INTO events (time, text) VALUES (%s, %s)", (end_time, self._testplan + " finished"))
         except psycopg2.Error as error:
             logging.error(
                 "Failed to update testrun record (or events) with end time to Postgresql timescale database: "
@@ -186,7 +194,6 @@ class TimescaleListener:  # pylint: disable=R0902
         if not is_slave():  # on master or standalone locust run
             self.log_stop_test_run()
         if self._conn:
-            self._cur.close()
             self._conn.close()
 
 
