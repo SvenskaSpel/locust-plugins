@@ -21,7 +21,7 @@ class MyHttpLocust(FastHttpLocust):
         host = "https://www.example.com"
 
 
-# allow running as executable, mainly to support attaching the debugger
+# allow running as executable, to support attaching the debugger
 if __name__ == "__main__":
     PrintListener()
     MyHttpLocust._catch_exceptions = False
