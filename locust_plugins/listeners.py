@@ -16,6 +16,7 @@ from datetime import datetime, timezone
 import greenlet
 from dateutil import parser
 from locust import events
+from locust.exception import RescheduleTask
 
 GRAFANA_URL = os.environ["LOCUST_GRAFANA_URL"]
 
@@ -30,7 +31,7 @@ class TimescaleListener:  # pylint: disable=R0902
     (e.g. export LOCUST_GRAFANA_URL=https://my.grafana.host.com/d/qjIIww4Zz/locust?orgId=1)
     """
 
-    def __init__(self, testplan, env, *, profile_name="", description=""):
+    def __init__(self, testplan, env=os.environ["LOCUST_TEST_ENV"], *, profile_name="", description=""):
         try:
             self._conn = psycopg2.connect(host=os.environ["PGHOST"])
         except Exception:
@@ -214,7 +215,17 @@ class PrintListener:  # pylint: disable=R0902
         self._log_request(request_type, name, response_time, response_length, False, exception)
 
     def _log_request(self, request_type, name, response_time, response_length, success, exception):
-        print(f"{request_type}\t{name}\t{response_time}\t{response_length}\t{success}\t{exception}")
+        print(f"{request_type}\t{name}\t{round(response_time)}\t{response_length}\t{success}\t{exception}")
+
+
+class RescheduleTaskOnFailListener:
+    def __init__(self):
+        # make sure to add this listener LAST, because any failures will throw an exception,
+        # causing other listeners to be skipped
+        events.request_failure += self.request_failure
+
+    def request_failure(self, request_type, name, response_time, response_length, exception, **_kwargs):
+        raise RescheduleTask()
 
 
 def is_slave():
