@@ -31,7 +31,7 @@ class TimescaleListener:  # pylint: disable=R0902
     (e.g. export LOCUST_GRAFANA_URL=https://my.grafana.host.com/d/qjIIww4Zz/locust?orgId=1)
     """
 
-    def __init__(self, testplan, env=os.environ["LOCUST_TEST_ENV"], *, profile_name="", description=""):
+    def __init__(self, testplan, env=os.getenv("LOCUST_TEST_ENV", ""), *, profile_name="", description=""):
         try:
             self._conn = psycopg2.connect(host=os.environ["PGHOST"])
         except Exception:
