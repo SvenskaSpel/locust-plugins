@@ -67,6 +67,10 @@ class PostgresReader:
                     # ISOLATION_LEVEL_SERIALIZABLE, and then we need to retry "manually" when there is an error.
                     cursor.close()
                     conn.rollback()
+            if resp is None:
+                raise Exception(
+                    f"Didnt get any customer from db. Maybe they were all locked or your filter statement ({self._selection}) was bad?"
+                )
             return resp
 
     def release(self, customer):
