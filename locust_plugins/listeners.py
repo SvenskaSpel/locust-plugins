@@ -143,25 +143,23 @@ class TimescaleListener:  # pylint: disable=R0902
         for index, arg in enumerate(sys.argv):
             if arg == "-c":
                 num_clients = sys.argv[index + 1]
-
-            with self._conn.cursor() as cur:
-                cur.execute(
-                    "INSERT INTO testrun (id, testplan, profile_name, num_clients, rps, description, env) VALUES (%s,%s,%s,%s,%s,%s,%s)",
-                    (
-                        self._run_id,
-                        self._testplan,
-                        self._profile_name,
-                        num_clients,
-                        self._rps,
-                        self._description,
-                        self._env,
-                    ),
-                )
-                cur.execute(
-                    "INSERT INTO events (time, text) VALUES (%s, %s)",
-                    (datetime.now(timezone.utc).isoformat(), self._testplan + " started"),
-                )
-        self._start_logged = True
+        with self._conn.cursor() as cur:
+            cur.execute(
+                "INSERT INTO testrun (id, testplan, profile_name, num_clients, rps, description, env) VALUES (%s,%s,%s,%s,%s,%s,%s)",
+                (
+                    self._run_id,
+                    self._testplan,
+                    self._profile_name,
+                    num_clients,
+                    self._rps,
+                    self._description,
+                    self._env,
+                ),
+            )
+            cur.execute(
+                "INSERT INTO events (time, text) VALUES (%s, %s)",
+                (datetime.now(timezone.utc).isoformat(), self._testplan + " started"),
+            )
 
     def hatch_complete(self, user_count):
         if not is_slave():  # only log for master/standalone
