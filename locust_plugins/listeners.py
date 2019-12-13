@@ -17,6 +17,7 @@ import greenlet
 from dateutil import parser
 from locust import events
 from locust.exception import RescheduleTask
+import subprocess
 
 GRAFANA_URL = os.environ["LOCUST_GRAFANA_URL"]
 
@@ -49,6 +50,15 @@ class TimescaleListener:  # pylint: disable=R0902
         self._samples = []
         self._finished = False
         self._background = gevent.spawn(self._run)
+        self._gitrepo = (
+            subprocess.check_output(
+                "git remote show origin -n 2>/dev/null | grep h.URL | sed 's/.*://;s/.git$//'",
+                shell=True,
+                stderr=None,
+                universal_newlines=True,
+            )
+            or None  # default to None instead of empty string
+        )
         if is_slave() or is_master():
             # swarm generates the run id for its master and slaves
             self._run_id = parser.parse(os.environ["LOCUST_RUN_ID"])
@@ -146,7 +156,7 @@ class TimescaleListener:  # pylint: disable=R0902
                 num_clients = sys.argv[index + 1]
         with self._conn.cursor() as cur:
             cur.execute(
-                "INSERT INTO testrun (id, testplan, profile_name, num_clients, rps, description, env, username) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)",
+                "INSERT INTO testrun (id, testplan, profile_name, num_clients, rps, description, env, username, gitrepo) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)",
                 (
                     self._run_id,
                     self._testplan,
@@ -156,6 +166,7 @@ class TimescaleListener:  # pylint: disable=R0902
                     self._description,
                     self._env,
                     self._username,
+                    self._gitrepo,
                 ),
             )
             cur.execute(
