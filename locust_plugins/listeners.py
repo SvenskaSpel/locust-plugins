@@ -45,6 +45,7 @@ class TimescaleListener:  # pylint: disable=R0902
         assert env != ""
         self._env = env
         self._hostname = socket.gethostname()
+        self._username = os.getenv("USER")
         self._samples = []
         self._finished = False
         self._background = gevent.spawn(self._run)
@@ -145,7 +146,7 @@ class TimescaleListener:  # pylint: disable=R0902
                 num_clients = sys.argv[index + 1]
         with self._conn.cursor() as cur:
             cur.execute(
-                "INSERT INTO testrun (id, testplan, profile_name, num_clients, rps, description, env) VALUES (%s,%s,%s,%s,%s,%s,%s)",
+                "INSERT INTO testrun (id, testplan, profile_name, num_clients, rps, description, env, username) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)",
                 (
                     self._run_id,
                     self._testplan,
@@ -154,6 +155,7 @@ class TimescaleListener:  # pylint: disable=R0902
                     self._rps,
                     self._description,
                     self._env,
+                    self._username,
                 ),
             )
             cur.execute(
