@@ -193,6 +193,18 @@ class TimescaleListener:  # pylint: disable=R0902
             with self._conn.cursor() as cur:
                 cur.execute("UPDATE testrun SET end_time = %s where id = %s", (end_time, self._run_id))
                 cur.execute("INSERT INTO events (time, text) VALUES (%s, %s)", (end_time, self._testplan + " finished"))
+                cur.execute(
+                    "UPDATE testrun SET rps_avg = (SELECT ROUND(reqs::numeric / secs::numeric, 1) FROM \
+                    (SELECT count(*) AS reqs FROM request WHERE run_id = %s) AS requests, \
+                    (SELECT EXTRACT(epoch FROM (SELECT MAX(time)-MIN(time) FROM request WHERE run_id = %s)) AS secs) AS seconds) \
+                    WHERE id = %s",
+                    (self._run_id, self._run_id, self._run_id),
+                )
+                cur.execute(
+                    "UPDATE testrun SET resp_time_avg = (SELECT ROUND(AVG(response_time)::numeric, 1) FROM request WHERE run_id = %s) WHERE id =  %s",
+                    (self._run_id, self._run_id),
+                )
+
         except psycopg2.Error as error:
             logging.error(
                 "Failed to update testrun record (or events) with end time to Postgresql timescale database: "
