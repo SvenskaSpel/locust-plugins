@@ -41,7 +41,7 @@ class PostgresReader:
             1, 100, host=os.environ["PGHOST"], port="5432", cursor_factory=psycopg2.extras.DictCursor
         )
         self._selection = f" AND {selection}" if selection else ""
-        self._delay_warning = 0.2
+        self._delay_warning = 1
 
     def get(self):
         """Get and lock a customer by setting logged_in in an atomic db operation. Returns a dict."""
