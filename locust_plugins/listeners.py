@@ -15,7 +15,7 @@ from datetime import datetime, timezone
 
 import greenlet
 from dateutil import parser
-from locust import events
+from locust import events, runners
 from locust.exception import RescheduleTask
 import subprocess
 
@@ -49,7 +49,9 @@ class TimescaleListener:  # pylint: disable=R0902
         self._username = os.getenv("USER")
         self._samples = []
         self._finished = False
-        self._background = gevent.spawn(self._run)
+        self._profile_name = profile_name
+        self._rps = os.getenv("LOCUST_RPS", "0")
+        self._description = description
         self._gitrepo = (
             subprocess.check_output(
                 "git remote show origin -n 2>/dev/null | grep h.URL | sed 's/.*://;s/.git$//'",
@@ -69,18 +71,19 @@ class TimescaleListener:  # pylint: disable=R0902
             logging.info(
                 f"Follow test run here: {GRAFANA_URL}&var-testplan={self._testplan}&from={int(self._run_id.timestamp()*1000)}&to=now"
             )
-        self._profile_name = profile_name
-        self._rps = os.getenv("LOCUST_RPS", "0")
-        self._description = description
-
-        if not is_slave():
             self.log_start_testrun()
-
+            self._user_count_logger = gevent.spawn(self._log_user_count)
+        self._background = gevent.spawn(self._run)
         events.request_success += self.request_success
         events.request_failure += self.request_failure
         events.quitting += self.quitting
         events.hatch_complete += self.hatch_complete
         atexit.register(self.exit)
+
+    def _log_user_count(self):
+        while True:
+            self.write_user_count()
+            gevent.sleep(2.0)
 
     def _run(self):
         while True:
@@ -94,6 +97,19 @@ class TimescaleListener:  # pylint: disable=R0902
                 if self._finished:
                     break
             gevent.sleep(0.5)
+
+    def write_user_count(self):
+        if runners.locust_runner is None:
+            return  # there is no runner yet, so nothing to log...
+        try:
+            with self._conn.cursor() as cur:
+                cur.execute(
+                    """INSERT INTO user_count(time, run_id, testplan, user_count) VALUES
+    (%s, %s, %s, %s)""",
+                    (datetime.now(timezone.utc), self._run_id, self._testplan, runners.locust_runner.user_count),
+                )
+        except psycopg2.Error as error:
+            logging.error("Failed to write user count to Postgresql: " + repr(error))
 
     def write_samples_to_db(self, samples):
         try:
@@ -110,6 +126,7 @@ class TimescaleListener:  # pylint: disable=R0902
         self._finished = True
         atexit._clear()  # make sure we dont capture additional ctrl-c:s # pylint: disable=protected-access
         self._background.join()
+        self._user_count_logger.kill()
         self.exit()
 
     def _log_request(self, request_type, name, response_time, response_length, success, exception):
