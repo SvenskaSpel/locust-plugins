@@ -126,7 +126,8 @@ class TimescaleListener:  # pylint: disable=R0902
         self._finished = True
         atexit._clear()  # make sure we dont capture additional ctrl-c:s # pylint: disable=protected-access
         self._background.join()
-        self._user_count_logger.kill()
+        if not is_slave():
+            self._user_count_logger.kill()
         self.exit()
 
     def _log_request(self, request_type, name, response_time, response_length, success, exception):
