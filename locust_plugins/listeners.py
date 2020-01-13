@@ -16,10 +16,22 @@ from datetime import datetime, timezone
 import greenlet
 from dateutil import parser
 from locust import events, runners
-from locust.exception import RescheduleTask
+from locust.exception import RescheduleTask, StopLocust
 import subprocess
 
 GRAFANA_URL = os.environ["LOCUST_GRAFANA_URL"]
+
+
+def create_dbconn():
+    try:
+        conn = psycopg2.connect(host=os.environ["PGHOST"])
+    except Exception:
+        logging.error(
+            "Use standard postgres env vars to specify where to report locust samples (https://www.postgresql.org/docs/11/libpq-envars.html)"
+        )
+        raise
+    conn.autocommit = True
+    return conn
 
 
 class TimescaleListener:  # pylint: disable=R0902
@@ -33,20 +45,17 @@ class TimescaleListener:  # pylint: disable=R0902
     """
 
     def __init__(self, testplan, env=os.getenv("LOCUST_TEST_ENV", ""), *, profile_name="", description=""):
-        try:
-            self._conn = psycopg2.connect(host=os.environ["PGHOST"])
-        except Exception:
-            logging.error(
-                "Use standard postgres env vars to specify where to report locust samples (https://www.postgresql.org/docs/11/libpq-envars.html)"
-            )
-            raise
-        self._conn.autocommit = True
+        self._conn = create_dbconn()
+        self._user_conn = create_dbconn()
+        self._testrun_conn = create_dbconn()
+        self._events_conn = create_dbconn()
         assert testplan != ""
         self._testplan = testplan
         assert env != ""
         self._env = env
         self._hostname = socket.gethostname()
         self._username = os.getenv("USER")
+        self._changeset_guid = os.getenv("CHANGESET_GUID")
         self._samples = []
         self._finished = False
         self._profile_name = profile_name
@@ -102,10 +111,9 @@ class TimescaleListener:  # pylint: disable=R0902
         if runners.locust_runner is None:
             return  # there is no runner yet, so nothing to log...
         try:
-            with self._conn.cursor() as cur:
+            with self._user_conn.cursor() as cur:
                 cur.execute(
-                    """INSERT INTO user_count(time, run_id, testplan, user_count) VALUES
-    (%s, %s, %s, %s)""",
+                    """INSERT INTO user_count(time, run_id, testplan, user_count) VALUES (%s, %s, %s, %s)""",
                     (datetime.now(timezone.utc), self._run_id, self._testplan, runners.locust_runner.user_count),
                 )
         except psycopg2.Error as error:
@@ -172,9 +180,9 @@ class TimescaleListener:  # pylint: disable=R0902
         for index, arg in enumerate(sys.argv):
             if arg == "-c":
                 num_clients = sys.argv[index + 1]
-        with self._conn.cursor() as cur:
+        with self._testrun_conn.cursor() as cur:
             cur.execute(
-                "INSERT INTO testrun (id, testplan, profile_name, num_clients, rps, description, env, username, gitrepo) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+                "INSERT INTO testrun (id, testplan, profile_name, num_clients, rps, description, env, username, gitrepo, changeset_guid) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)",
                 (
                     self._run_id,
                     self._testplan,
@@ -185,6 +193,7 @@ class TimescaleListener:  # pylint: disable=R0902
                     self._env,
                     self._username,
                     self._gitrepo,
+                    self._changeset_guid,
                 ),
             )
             cur.execute(
@@ -196,7 +205,7 @@ class TimescaleListener:  # pylint: disable=R0902
         if not is_slave():  # only log for master/standalone
             end_time = datetime.now(timezone.utc)
             try:
-                self._conn.cursor().execute(
+                self._events_conn.cursor().execute(
                     "INSERT INTO events (time, text) VALUES (%s, %s)",
                     (end_time, f"{self._testplan} rampup complete, {user_count} locusts spawned"),
                 )
@@ -208,7 +217,7 @@ class TimescaleListener:  # pylint: disable=R0902
     def log_stop_test_run(self):
         end_time = datetime.now(timezone.utc)
         try:
-            with self._conn.cursor() as cur:
+            with self._testrun_conn.cursor() as cur:
                 cur.execute("UPDATE testrun SET end_time = %s where id = %s", (end_time, self._run_id))
                 cur.execute("INSERT INTO events (time, text) VALUES (%s, %s)", (end_time, self._testplan + " finished"))
                 cur.execute(
@@ -237,6 +246,9 @@ class TimescaleListener:  # pylint: disable=R0902
             self.log_stop_test_run()
         if self._conn:
             self._conn.close()
+            self._events_conn.close()
+            self._testrun_conn.close()
+            self._user_conn.close()
 
 
 class PrintListener:  # pylint: disable=R0902
@@ -267,6 +279,27 @@ class RescheduleTaskOnFailListener:
 
     def request_failure(self, request_type, name, response_time, response_length, exception, **_kwargs):
         raise RescheduleTask()
+
+
+class StopLocustOnFailListener:
+    def __init__(self):
+        # make sure to add this listener LAST, because any failures will throw an exception,
+        # causing other listeners to be skipped
+        events.request_failure += self.request_failure
+
+    def request_failure(self, request_type, name, response_time, response_length, exception, **_kwargs):
+        raise StopLocust()
+
+
+class ExitOnFailListener:
+    def __init__(self):
+        # make sure to add this listener LAST, because any failures will throw an exception,
+        # causing other listeners to be skipped
+        events.request_failure += self.request_failure
+
+    def request_failure(self, **_kwargs):
+        gevent.sleep(0.2)  # wait for other listeners output to flush / write to db
+        os._exit(1)
 
 
 def is_slave():
