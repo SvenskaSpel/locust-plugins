@@ -182,7 +182,7 @@ class TimescaleListener:  # pylint: disable=R0902
                 num_clients = sys.argv[index + 1]
         with self._testrun_conn.cursor() as cur:
             cur.execute(
-                "INSERT INTO testrun (id, testplan, profile_name, num_clients, rps, description, env, username, gitrepo, changeset_guid) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+                "INSERT INTO testrun (id, testplan, profile_name, num_clients, rps, description, env, username, gitrepo, changeset_guid) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
                 (
                     self._run_id,
                     self._testplan,
