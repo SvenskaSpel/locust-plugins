@@ -42,7 +42,7 @@ def gevent_debugger_patch(host="0.0.0.0", port=5678):
 
         import ptvsd  # pylint: disable=W0611
 
-        ptvsd.enable_attach(address=(host, port), redirect_output=False)
+        ptvsd.enable_attach(address=(host, port))
     finally:
         sys.modules.update(saved_modules)
 
