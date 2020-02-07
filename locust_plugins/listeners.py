@@ -6,6 +6,7 @@ import psycogreen.gevent
 
 psycogreen.gevent.patch_psycopg()
 import psycopg2
+import psycopg2.extras
 import atexit
 import logging
 import os
@@ -122,10 +123,11 @@ class TimescaleListener:  # pylint: disable=R0902
     def write_samples_to_db(self, samples):
         try:
             with self._conn.cursor() as cur:
-                cur.executemany(
-                    """INSERT INTO request(time,run_id,greenlet_id,loadgen,name,request_type,response_time,success,testplan,response_length,exception) VALUES
-    (%(time)s, %(run_id)s, %(greenlet_id)s, %(loadgen)s, %(name)s, %(request_type)s, %(response_time)s, %(success)s, %(testplan)s, %(response_length)s, %(exception)s)""",
+                psycopg2.extras.execute_values(
+                    cur,
+                    """INSERT INTO request(time,run_id,greenlet_id,loadgen,name,request_type,response_time,success,testplan,response_length,exception) VALUES %s""",
                     samples,
+                    template="(%(time)s, %(run_id)s, %(greenlet_id)s, %(loadgen)s, %(name)s, %(request_type)s, %(response_time)s, %(success)s, %(testplan)s, %(response_length)s, %(exception)s)",
                 )
         except psycopg2.Error as error:
             logging.error("Failed to write samples to Postgresql timescale database: " + repr(error))
