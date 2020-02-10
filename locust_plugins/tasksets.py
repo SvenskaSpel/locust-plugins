@@ -20,7 +20,7 @@ class TaskSetRPS(TaskSet):
         current_time = float(time.time())
         if runners.locust_runner is None:  # this happens when debugging (running a single locust)
             return
-        next_time = self._previous_time + runners.locust_runner.num_clients / rps
+        next_time = self._previous_time + runners.locust_runner.user_count / rps
         if current_time > next_time:
             if runners.locust_runner.state == runners.STATE_RUNNING and not TaskSetRPS._failed_to_reach_rps_target:
                 logging.warning("Failed to reach target rps, even after rampup has finished")

@@ -1,7 +1,7 @@
+import os
 from gevent import monkey
 import sys
 import json
-import os
 
 
 def gevent_debugger_patch(host="0.0.0.0", port=5678):
@@ -39,10 +39,6 @@ def gevent_debugger_patch(host="0.0.0.0", port=5678):
         for modname in list(sys.modules.keys()):
             if modname.partition(".")[0] in green_modules:
                 saved_modules[modname] = sys.modules.pop(modname)
-
-        import ptvsd  # pylint: disable=W0611
-
-        ptvsd.enable_attach(address=(host, port))
     finally:
         sys.modules.update(saved_modules)
 
