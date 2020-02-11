@@ -6,3 +6,4 @@ dist
 locust_plugins.egg-info
 src
 .eggs
+.metals
