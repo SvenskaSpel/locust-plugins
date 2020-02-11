@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import os
-from locust_plugins.readers import PostgresReader
+from locust_plugins.postgresreader import PostgresReader
 from locust import HttpLocust, task, TaskSet
 from locust.wait_time import constant
 

@@ -1,4 +1,4 @@
-from locust_plugins.readers import CSVReader
+from locust_plugins.csvreader import CSVReader
 from locust import TaskSet, HttpLocust, task
 from locust.wait_time import constant
 
