@@ -5,13 +5,24 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "current file",
+            "type": "python",
+            "request": "launch",
+            "gevent": true,
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/examples",
+            "justMyCode": false
+        },
+        {
             "name": "single locust",
             "type": "python",
             "request": "launch",
             "gevent": true,
-            "program": "${workspaceFolder}/examples/debug.py",
+            "program": "${workspaceFolder}/examples/rps.py",
             "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}/examples"
+            "cwd": "${workspaceFolder}/examples",
+            "justMyCode": false
         },
         {
             "name": "single webdriver locust",

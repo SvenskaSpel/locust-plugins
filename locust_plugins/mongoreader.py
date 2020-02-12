@@ -1,8 +1,9 @@
-from pymongo import MongoClient, ReturnDocument, errors
+from pymongo import MongoClient
 from datetime import datetime
 import logging
 import time
 import os
+from contextlib import contextmanager
 
 connection_string = os.environ["LOCUST_MONGO"]
 collection = os.environ["LOCUST_MONGO_COLLECTION"]
@@ -10,48 +11,29 @@ database = os.environ["LOCUST_MONGO_DATABASE"]
 
 
 class MongoReader:
-    def __init__(self, query):
+    def __init__(self, filters):
         self.coll = MongoClient(connection_string)[database][collection]
-        self._delay_warning = 0.5
-        self._query = query
+        self.delay_warning = 0.5
+        self.query = {"$and": filters + [{"logged_in": 1}]}
 
-    # Get SSN and update customer as logged in
-    def get(self):
+    @contextmanager
+    def customer(self):
         start_at = time.time()
-        try:
-            getOneUpdate = self.coll.find_one_and_update(
-                self._query,
-                {"$set": {"last_login": datetime.now(), "logged_in": 1}},
-                sort=[("last_login", 1)],
-                return_document=ReturnDocument.AFTER,
+        customer = self.coll.find_one_and_update(
+            self.query, {"$set": {"last_login": datetime.now(), "logged_in": 1}}, sort=[("last_login", 1)]
+        )
+        if start_at + self.delay_warning < time.time():
+            logging.warning(
+                f"Getting a customer took more than {self.delay_warning} seconds (doubling warning threshold for next time)"
             )
-            if getOneUpdate is None:
-                raise Exception(f"Didnt get any customer from db. ")
-            else:
-                if start_at + self._delay_warning < time.time():
-                    logging.warning(
-                        f"Getting a customer took more than {self._delay_warning} seconds (doubling warning threshold for next time)"
-                    )
-                    self._delay_warning *= 2
-                return getOneUpdate
-        except Exception as e:
-            raise errors.PyMongoError(e)
-
-    # Set customer to not logged in
-    def release_ssn(self, ssn):
-        start_at = time.time()
+            self.delay_warning *= 2
+        if customer is None:
+            raise Exception(f"Didnt get any customer from db")
         try:
+            yield customer
+        finally:
             releasessn = self.coll.find_one_and_update(
-                {"ssn": ssn}, {"$set": {"logged_in": 0}}, return_document=ReturnDocument.AFTER
+                {"$and": [{"ssn": customer["ssn"]}, {"logged_in": 1}]}, {"$set": {"logged_in": 0}},
             )
-            if releasessn is None:
-                raise Exception(f"Didnt update customer in db. ")
-            else:
-                if start_at + self._delay_warning < time.time():
-                    logging.warning(
-                        f"Logout customer took more than {self._delay_warning} seconds (doubling warning threshold for next time)"
-                    )
-                    self._delay_warning *= 2
-                return releasessn
-        except Exception as e:
-            raise errors.PyMongoError(e)
+        if releasessn is None:
+            raise Exception(f"Couldnt release lock for customer in db. ")
