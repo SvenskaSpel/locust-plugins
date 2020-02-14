@@ -7,21 +7,27 @@ import os
 from locust_plugins.mongoreader import MongoReader
 from locust_plugins.listeners import PrintListener
 from locust import HttpLocust, task, TaskSet
-from locust.wait_time import constant
+from locust.wait_time import constant_pacing
 
-reader = MongoReader([{"env": os.environ["LOCUST_TEST_ENV"]}, {"tb": 0}, {"lb": 1}])
+reader = MongoReader(
+    filters=[{"tb": 0}, {"lb": 1}],
+    id_column="ssn",
+    uri=os.environ["LOCUST_MONGO"],
+    database=os.environ["LOCUST_MONGO_DATABASE"],
+    collection=os.environ["LOCUST_MONGO_COLLECTION"],
+)
 
 
 class UserBehavior(TaskSet):
     @task
     def my_task(self):
-        with reader.customer() as customer:
-            self.client.get(f"/?ssn={customer['ssn']}")
+        with reader.user() as user:
+            self.client.get(f"/?ssn={user['ssn']}")
 
 
 class MyHttpLocust(HttpLocust):
     task_set = UserBehavior
-    wait_time = constant(0)
+    wait_time = constant_pacing(1)
     host = "http://example.com"
 
 

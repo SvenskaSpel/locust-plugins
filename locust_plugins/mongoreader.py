@@ -2,12 +2,11 @@ from pymongo import MongoClient
 from datetime import datetime
 import logging
 import time
-import os
 from contextlib import contextmanager
 
 
 class MongoReader:
-    def __init__(self, filters, id_column, uri, database, collection):
+    def __init__(self, id_column, uri, database, collection, filters=[]):
         self.coll = MongoClient(uri)[database][collection]
         self.id_column = id_column
         self.delay_warning = 0.5
