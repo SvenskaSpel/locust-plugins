@@ -62,6 +62,7 @@ class TimescaleListener:  # pylint: disable=R0902
         self._profile_name = profile_name
         self._rps = os.getenv("LOCUST_RPS", "0")
         self._description = description
+        self._pid = os.getpid()
         self._gitrepo = (
             subprocess.check_output(
                 "git remote show origin -n 2>/dev/null | grep h.URL | sed 's/.*://;s/.git$//'",
@@ -73,7 +74,13 @@ class TimescaleListener:  # pylint: disable=R0902
         )
         if is_slave() or is_master():
             # swarm generates the run id for its master and slaves
-            self._run_id = parser.parse(os.environ["LOCUST_RUN_ID"])
+            if "LOCUST_RUN_ID" in os.environ:
+                self._run_id = parser.parse(os.environ["LOCUST_RUN_ID"])
+            else:
+                logging.info(
+                    "You are running distributed, but without swarm. run_id:s in Timescale will not match exactly between load gens"
+                )
+                self._run_id = datetime.now(timezone.utc)
         else:
             # non-swarm runs need to generate the run id here
             self._run_id = datetime.now(timezone.utc)
@@ -125,9 +132,9 @@ class TimescaleListener:  # pylint: disable=R0902
             with self._conn.cursor() as cur:
                 psycopg2.extras.execute_values(
                     cur,
-                    """INSERT INTO request(time,run_id,greenlet_id,loadgen,name,request_type,response_time,success,testplan,response_length,exception) VALUES %s""",
+                    """INSERT INTO request(time,run_id,greenlet_id,loadgen,name,request_type,response_time,success,testplan,response_length,exception,pid) VALUES %s""",
                     samples,
-                    template="(%(time)s, %(run_id)s, %(greenlet_id)s, %(loadgen)s, %(name)s, %(request_type)s, %(response_time)s, %(success)s, %(testplan)s, %(response_length)s, %(exception)s)",
+                    template="(%(time)s, %(run_id)s, %(greenlet_id)s, %(loadgen)s, %(name)s, %(request_type)s, %(response_time)s, %(success)s, %(testplan)s, %(response_length)s, %(exception)s, %(pid)s)",
                 )
         except psycopg2.Error as error:
             logging.error("Failed to write samples to Postgresql timescale database: " + repr(error))
@@ -157,6 +164,7 @@ class TimescaleListener:  # pylint: disable=R0902
             "response_time": response_time,
             "success": success,
             "testplan": self._testplan,
+            "pid": self._pid,
         }
 
         if response_length >= 0:
@@ -200,7 +208,7 @@ class TimescaleListener:  # pylint: disable=R0902
             )
             cur.execute(
                 "INSERT INTO events (time, text) VALUES (%s, %s)",
-                (datetime.now(timezone.utc).isoformat(), self._testplan + " started"),
+                (datetime.now(timezone.utc).isoformat(), self._testplan + " started by " + self._username),
             )
 
     def hatch_complete(self, user_count):

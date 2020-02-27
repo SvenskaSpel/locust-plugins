@@ -57,6 +57,7 @@ CREATE TABLE public.request (
     run_id timestamp with time zone NOT NULL,
     exception text,
     greenlet_id integer NOT NULL,
+    pid integer NOT NULL,
     loadgen text NOT NULL,
     name text NOT NULL,
     request_type text NOT NULL,
