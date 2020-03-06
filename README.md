@@ -11,7 +11,7 @@ Having this separate from "Locust core" allows the plugins to evolve faster (at 
 The plugins are grouped by type:
 * [listeners](locust_plugins/listeners.py) (request logging & graphing)
 * [locusts](locust_plugins/locusts.py) (new protocols like websockets & selenium/webdriver)
-* [readers](locust_plugins/readers.py) (ways to get test data into your tests)
+* readers (ways to get test data into your tests) - currently implemented [CSV](https://github.com/SvenskaSpel/locust-plugins/blob/master/locust_plugins/csvreader.py), [MongoDB](https://github.com/SvenskaSpel/locust-plugins/blob/master/locust_plugins/mongoreader.py), and [PostGres](https://github.com/SvenskaSpel/locust-plugins/blob/master/locust_plugins/postgresreader.py)
 * [tasksets](locust_plugins/tasksets.py) (support for RPS limiting, and maybe other task sets in the future)
 * [utils](locust_plugins/utils.py) (other stuff, like VS Code debugging support)
 
