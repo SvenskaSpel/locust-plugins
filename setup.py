@@ -35,5 +35,12 @@ setup(
     packages=find_packages(exclude=["examples"]),
     include_package_data=True,
     zip_safe=False,
-    install_requires=["locustio", "psycogreen", "psycopg2-binary", "websocket-client", "python-dateutil", "pymongo"],
+    install_requires=[
+        "locustio>=1.0",
+        "psycogreen",
+        "psycopg2-binary",
+        "websocket-client",
+        "python-dateutil",
+        "pymongo",
+    ],
 )

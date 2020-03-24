@@ -16,9 +16,9 @@ from datetime import datetime, timezone
 
 import greenlet
 from dateutil import parser
-from locust import events, runners
 from locust.exception import RescheduleTask, StopLocust
 import subprocess
+import locust.env
 
 GRAFANA_URL = os.environ["LOCUST_GRAFANA_URL"]
 
@@ -45,7 +45,14 @@ class TimescaleListener:  # pylint: disable=R0902
     (e.g. export LOCUST_GRAFANA_URL=https://my.grafana.host.com/d/qjIIww4Zz/locust?orgId=1)
     """
 
-    def __init__(self, testplan, env=os.getenv("LOCUST_TEST_ENV", ""), *, profile_name="", description=""):
+    def __init__(
+        self,
+        env: locust.env.Environment,
+        testplan: str,
+        target_env: str = os.getenv("LOCUST_TEST_ENV", ""),
+        profile_name: str = "",
+        description: str = "",
+    ):
         self._conn = create_dbconn()
         self._user_conn = create_dbconn()
         self._testrun_conn = create_dbconn()
@@ -53,7 +60,8 @@ class TimescaleListener:  # pylint: disable=R0902
         assert testplan != ""
         self._testplan = testplan
         assert env != ""
-        self._env = env
+        self._env = target_env
+        self.env = env
         self._hostname = socket.gethostname()
         self._username = os.getenv("USER")
         self._changeset_guid = os.getenv("CHANGESET_GUID")
@@ -90,11 +98,13 @@ class TimescaleListener:  # pylint: disable=R0902
             )
             self.log_start_testrun()
             self._user_count_logger = gevent.spawn(self._log_user_count)
+
         self._background = gevent.spawn(self._run)
-        events.request_success += self.request_success
-        events.request_failure += self.request_failure
-        events.quitting += self.quitting
-        events.hatch_complete += self.hatch_complete
+        events = self.env.events
+        events.request_success.add_listener(self.request_success)
+        events.request_failure.add_listener(self.request_failure)
+        events.quitting.add_listener(self.quitting)
+        events.hatch_complete.add_listener(self.hatch_complete)
         atexit.register(self.exit)
 
     def _log_user_count(self):
@@ -116,13 +126,13 @@ class TimescaleListener:  # pylint: disable=R0902
             gevent.sleep(0.5)
 
     def write_user_count(self):
-        if runners.locust_runner is None:
-            return  # there is no runner yet, so nothing to log...
+        if self.env.runner is None:
+            return  # there is no runner, so nothing to log...
         try:
             with self._user_conn.cursor() as cur:
                 cur.execute(
                     """INSERT INTO user_count(time, run_id, testplan, user_count) VALUES (%s, %s, %s, %s)""",
-                    (datetime.now(timezone.utc), self._run_id, self._testplan, runners.locust_runner.user_count),
+                    (datetime.now(timezone.utc), self._run_id, self._testplan, self.env.runner.user_count,),
                 )
         except psycopg2.Error as error:
             logging.error("Failed to write user count to Postgresql: " + repr(error))
@@ -266,14 +276,16 @@ class PrintListener:  # pylint: disable=R0902
     Print every response (useful when debugging a single locust)
     """
 
-    def __init__(self):
-        events.request_success += self.request_success
-        events.request_failure += self.request_failure
-        print("type\tname\ttime\tlength\tsuccess\texception")
+    def __init__(self, env: locust.env.Environment):
+        env.events.request_success.add_listener(self.request_success)
+        env.events.request_failure.add_listener(self.request_failure)
+        print("\ntype\tname\ttime\tlength\tsuccess\texception")
 
+    # @self._events.request_success.add_listener
     def request_success(self, request_type, name, response_time, response_length, **_kwargs):
         self._log_request(request_type, name, response_time, response_length, True, None)
 
+    # @self._events.request_failure.add_listener
     def request_failure(self, request_type, name, response_time, response_length, exception, **_kwargs):
         self._log_request(request_type, name, response_time, response_length, False, exception)
 
@@ -282,30 +294,30 @@ class PrintListener:  # pylint: disable=R0902
 
 
 class RescheduleTaskOnFailListener:
-    def __init__(self):
+    def __init__(self, env: locust.env.Environment):
         # make sure to add this listener LAST, because any failures will throw an exception,
         # causing other listeners to be skipped
-        events.request_failure += self.request_failure
+        env.events.request_failure.add_listener(self.request_failure)
 
     def request_failure(self, request_type, name, response_time, response_length, exception, **_kwargs):
         raise RescheduleTask()
 
 
 class StopLocustOnFailListener:
-    def __init__(self):
+    def __init__(self, env: locust.env.Environment):
         # make sure to add this listener LAST, because any failures will throw an exception,
         # causing other listeners to be skipped
-        events.request_failure += self.request_failure
+        env.events.request_failure.add_listener(self.request_failure)
 
     def request_failure(self, request_type, name, response_time, response_length, exception, **_kwargs):
         raise StopLocust()
 
 
 class ExitOnFailListener:
-    def __init__(self):
+    def __init__(self, env: locust.env.Environment):
         # make sure to add this listener LAST, because any failures will throw an exception,
         # causing other listeners to be skipped
-        events.request_failure += self.request_failure
+        env.events.request_failure.add_listener(self.request_failure)
 
     def request_failure(self, **_kwargs):
         gevent.sleep(0.2)  # wait for other listeners output to flush / write to db

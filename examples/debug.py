@@ -3,26 +3,30 @@ import locust_plugins.utils
 
 locust_plugins.utils.gevent_debugger_patch()
 from locust_plugins.listeners import PrintListener
-from locust import task, TaskSet
+from locust import task, TaskSet, HttpLocust, env, Events
 from locust.wait_time import constant
-from locust.contrib.fasthttp import FastHttpLocust
 
 
-class UserBehavior(TaskSet):
+class MyTask(TaskSet):
     @task
-    def my_task(self):
-        self.client.get("/")
+    def task1(self):
+        self.client.get("/1")
+
+    @task
+    def task2(self):
+        self.client.get("/2")
 
 
-class MyHttpLocust(FastHttpLocust):
-    task_set = UserBehavior
-    wait_time = constant(1)
-    if __name__ == "__main__":
-        host = "https://www.example.com"
+class SimpleHttpLocust(HttpLocust):
+    task_set = MyTask
+    wait_time = constant(0)
 
 
 # allow running as executable, to support attaching the debugger
 if __name__ == "__main__":
-    PrintListener()
-    MyHttpLocust._catch_exceptions = False
-    MyHttpLocust().run()
+    env = env.Environment()
+    PrintListener(env)
+    SimpleHttpLocust.wait_time = constant(0)
+    SimpleHttpLocust._catch_exceptions = False
+    SimpleHttpLocust.host = "http://example.com"
+    SimpleHttpLocust(env).run()
