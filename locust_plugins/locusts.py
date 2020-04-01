@@ -8,6 +8,7 @@ import gevent
 import websocket
 from locust import HttpLocust, Locust
 from locust.events import request_success
+from locust.wait_time import constant
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
@@ -23,9 +24,10 @@ class WebdriverLocust(Locust):
     # kill old webdriver browser instances
     subprocess.Popen(["killall", "chromedriver"])
     subprocess.Popen(["pkill", "-f", " --test-type=webdriver"])
+    wait_time = constant(0)
 
     def __init__(self, headless=True):
-        super(WebdriverLocust, self).__init__()
+        super().__init__()
         chrome_options = Options()
         if headless:
             chrome_options.add_argument("--headless")
@@ -41,8 +43,10 @@ class SocketIOLocust(HttpLocust):
     socket.io just happens to be my use case
     """
 
+    wait_time = constant(0)
+
     def __init__(self):
-        super(SocketIOLocust, self).__init__()
+        super().__init__()
         ws_host = re.sub(r"https*://", "", self.host)
         self.ws = websocket.create_connection(f"wss://{ws_host}/socket.io/?EIO=3&transport=websocket")
         gevent.spawn(self.receive)
