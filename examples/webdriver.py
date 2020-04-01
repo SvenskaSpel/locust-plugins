@@ -76,7 +76,7 @@ class MyWebdriverLocust(WebdriverLocust):
     host = f"https://spela.{os.environ['LOCUST_TEST_ENV']}.svenskaspel.se/"
 
     def __init__(self):
-        super(MyWebdriverLocust, self).__init__(headless=(__name__ != "__main__"))
+        super().__init__(headless=(__name__ != "__main__"))
 
 
 if __name__ == "__main__":
