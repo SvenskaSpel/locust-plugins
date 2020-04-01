@@ -1,4 +1,4 @@
-from locust_plugins.utils import run_single_user
+from locust_plugins.debug import run_single_user
 from locust_plugins.kafka import KafkaLocust
 from locust import task
 from locust.wait_time import constant

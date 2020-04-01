@@ -3,10 +3,7 @@
 # You need to start selenium server first.
 # Download it from https://www.seleniumhq.org/download/ and run it by executing:
 # java -jar selenium-server-standalone-3.141.59.jar
-import locust_plugins.utils
-
-locust_plugins.utils.gevent_debugger_patch()
-
+from locust_plugins.debug import run_single_user
 from locust_plugins.locusts import WebdriverLocust
 from locust_plugins.listeners import PrintListener
 from locust_plugins.readers_nopool import PostgresReader
