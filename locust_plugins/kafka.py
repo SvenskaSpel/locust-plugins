@@ -15,6 +15,10 @@ class KafkaLocust(Locust):
             environment, bootstrap_servers=type(self).bootstrap_servers, value_serializer=type(self).value_serializer
         )
 
+    def teardown(self):
+        # this should actually be run for every locust instead of just once, but it is better than nothing...
+        self.client.producer.flush(timeout=5)
+
 
 class KafkaClient:
     def __init__(self, environment, bootstrap_servers, value_serializer):
