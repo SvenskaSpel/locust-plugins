@@ -2,9 +2,12 @@
 import time
 from kafka import KafkaProducer
 from locust import Locust
+from locust.wait_time import constant
 
 
 class KafkaLocust(Locust):
+    abstract = True
+    wait_time = constant(0)
     # overload these values in your subclass
     bootstrap_servers = None
     value_serializer = str.encode
@@ -12,7 +15,7 @@ class KafkaLocust(Locust):
     def __init__(self, environment):
         super().__init__(environment)
         self.client = KafkaClient(
-            environment, bootstrap_servers=type(self).bootstrap_servers, value_serializer=type(self).value_serializer
+            environment, bootstrap_servers=self.bootstrap_servers, value_serializer=self.value_serializer
         )
 
     def teardown(self):
