@@ -49,3 +49,15 @@ class KafkaClient:
             response_time=int((time.time() - start_time) * 1000),
             exception=exception,
         )
+
+
+# how to set up a (global) consumer and read the last message:
+#
+# @events.test_start.add_listener
+# def on_test_start(**kw):
+#     consumer = KafkaConsumer(bootstrap_servers=MyLocust.bootstrap_servers)
+#     tp = TopicPartition("my_topic", 0)
+#     consumer.assign([tp])
+#     last_offset = consumer.position(tp)
+#     consumer.seek(tp, last_offset - 1)
+#     last_message = next(consumer)
