@@ -22,5 +22,37 @@ class MyLocust(KafkaLocust):
     wait_time = constant(0)
 
 
+# how to set up a (global) consumer and read the last message. Look at this as inspiration, it might not work for you.
+#
+# @events.init.add_listener
+# def on_locust_init(environment, **_kwargs):
+#     consumer = KafkaConsumer(bootstrap_servers=MyLocust.bootstrap_servers)
+#     tp = TopicPartition("my_topic", 0)
+#     consumer.assign([tp])
+#     last_offset = consumer.position(tp)
+#     consumer.seek(tp, last_offset - 1)
+#     last_message = next(consumer)
+#     last = someProtobufObject()
+#     last.ParseFromString(last_message.value)
+#     environment.events.request_success.fire(
+#         request_type="CONSUME", name="retrans1", response_time=0, response_length=0,
+#     )
+#     control_consumer(environment)
+#     gevent.spawn(wait_for_retrans, environment, consumer)
+#
+# def wait_for_retrans(environment: Environment, consumer):
+#     for message in consumer:
+#         with sema:
+#             control_message = someProtobufObject().FromString(message.value)
+#             environment.events.request_success.fire(
+#                 request_type="CONSUME",
+#                 name="retrans2",
+#                 response_time=0,
+#                 response_length=0,
+#             )
+
 if __name__ == "__main__":
+    # env = Environment()
+    # on_locust_init(env)
+    # run_single_user(MyLocust, env)
     run_single_user(MyLocust)
