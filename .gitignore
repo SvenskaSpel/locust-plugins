@@ -7,3 +7,4 @@ locust_plugins.egg-info
 src
 .eggs
 .metals
+.mypy_cache
