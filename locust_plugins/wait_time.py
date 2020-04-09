@@ -26,6 +26,9 @@ def quitting(**_kw):
 
 def constant_total_ips(ips):
     seconds_per_request = 1.0 / ips
+def constant_ips(ips):
+    return constant_pacing(1.0 / ips)
+
 
     def func(_locust):
         global _warning_emitted, _target_missed, _last_run, runner
