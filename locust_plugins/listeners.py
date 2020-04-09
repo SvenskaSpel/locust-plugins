@@ -16,9 +16,10 @@ from datetime import datetime, timezone
 
 import greenlet
 from dateutil import parser
-from locust.exception import RescheduleTask, StopLocust
+from locust.exception import RescheduleTask, StopLocust, CatchResponseError
 import subprocess
 import locust.env
+from typing import List
 
 GRAFANA_URL = os.environ["LOCUST_GRAFANA_URL"]
 
@@ -63,9 +64,9 @@ class TimescaleListener:  # pylint: disable=R0902
         self._env = target_env
         self.env = env
         self._hostname = socket.gethostname()
-        self._username = os.getenv("USER")
+        self._username = os.getenv("USER", "unknown")
         self._changeset_guid = os.getenv("CHANGESET_GUID")
-        self._samples = []
+        self._samples: List[dict] = []
         self._finished = False
         self._profile_name = profile_name
         self._rps = os.getenv("LOCUST_RPS", "0")
@@ -199,7 +200,7 @@ class TimescaleListener:  # pylint: disable=R0902
         num_clients = 1
         for index, arg in enumerate(sys.argv):
             if arg == "-c":
-                num_clients = sys.argv[index + 1]
+                num_clients = int(sys.argv[index + 1])
         with self._testrun_conn.cursor() as cur:
             cur.execute(
                 "INSERT INTO testrun (id, testplan, profile_name, num_clients, rps, description, env, username, gitrepo, changeset_guid) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
