@@ -9,11 +9,11 @@ class KafkaLocust(Locust):
     abstract = True
     wait_time = constant(0)
     # overload these values in your subclass
-    bootstrap_servers = None
+    bootstrap_servers: str = None  # type: ignore
 
     def __init__(self, environment):
         super().__init__(environment)
-        self.client = KafkaClient(environment=environment, bootstrap_servers=self.bootstrap_servers)
+        self.client: KafkaClient = KafkaClient(environment=environment, bootstrap_servers=self.bootstrap_servers)
 
     def on_stop(self):
         self.client.producer.flush(5)
