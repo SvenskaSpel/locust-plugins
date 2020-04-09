@@ -5,13 +5,11 @@
 # java -jar selenium-server-standalone-3.141.59.jar
 from locust_plugins.debug import run_single_user
 from locust_plugins.locusts import WebdriverLocust
-from locust_plugins.listeners import PrintListener
-from locust_plugins.readers_nopool import PostgresReader
+from locust_plugins.postgresreader import PostgresReader
 
 import os
 import time
 from locust import TaskSet, task
-from locust.events import request_success
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException
 
@@ -60,7 +58,7 @@ class UserBehaviour(TaskSet):
         # but in this case I dont care, and dont want to block another test run from using it
         # (particularly if this test crashes)
         customer_reader.release(customer)
-        request_success.fire(
+        self.locust.environment.events.request_success.fire(
             request_type="Selenium", name="Log in", response_time=(time.time() - start_at) * 1000, response_length=0
         )
         time.sleep(short_sleep * 2)
@@ -77,6 +75,4 @@ class MyWebdriverLocust(WebdriverLocust):
 
 
 if __name__ == "__main__":
-    PrintListener()
-    MyWebdriverLocust._catch_exceptions = False
-    MyWebdriverLocust().run()
+    run_single_user(MyWebdriverLocust)
