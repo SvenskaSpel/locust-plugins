@@ -1,11 +1,11 @@
 from gevent import monkey
 import os
 import sys
-from locust import Environment
+from locust.env import Environment
 from locust_plugins.listeners import PrintListener
 
 
-def gevent_debugger_patch():
+def _gevent_debugger_patch():
     """This is a workaround for gevent hanging during monkey patching when a debugger is attached
     Original code by ayzerar at https://github.com/Microsoft/PTVS/issues/2390"""
 
@@ -41,7 +41,7 @@ def gevent_debugger_patch():
 
 
 def run_single_user(locust_class, env=None, catch_exceptions=False):
-    gevent_debugger_patch()
+    _gevent_debugger_patch()
     if env is None:
         env = Environment()
         PrintListener(env)
