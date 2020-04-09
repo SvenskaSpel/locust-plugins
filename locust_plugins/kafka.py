@@ -19,7 +19,7 @@ class KafkaLocust(Locust):
         self.client.producer.flush(5)
 
 
-def _on_delivery(environment, topic, response_length, start_time, err, msg):
+def _on_delivery(environment, topic, response_length, start_time, err, _msg):
     if err:
         environment.events.request_failure.fire(
             request_type="ENQUEUE",

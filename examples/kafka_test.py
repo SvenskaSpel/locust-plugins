@@ -10,6 +10,8 @@ class MyLocust(KafkaLocust):
     @task
     def t(self):
         self.client.send("lafp_test", b"payload")
+        # if you dont poll immediately after sending message your timings will be incorrect
+        # (but if throughput is most important then you may want to delay it)
         self.client.producer.poll(1)
 
 
