@@ -1,16 +1,22 @@
-from locust_plugins.tasksets import TaskSetRPS
-from locust import task
-from locust.wait_time import constant
-from locust.contrib.fasthttp import FastHttpLocust
+from locust import HttpLocust, task, events
+from locust_plugins.debug import run_single_user
+from locust_plugins.wait_time import constant_total_ips
+from locust_plugins.listeners import TimescaleListener
 
 
-class UserBehavior(TaskSetRPS):
+class MyHttpLocust(HttpLocust):
     @task
     def my_task(self):
-        self.rps_sleep(2)
-        self.client.post("/authentication/1.0/getResults", {"username": "something"})
+        self.client.get("/")
+
+    wait_time = constant_total_ips(5)
+    host = "https://www.example.com"
 
 
-class MyHttpLocust(FastHttpLocust):
-    task_set = UserBehavior
-    wait_time = constant(0)
+@events.init.add_listener
+def on_locust_init(environment, **_kwargs):
+    TimescaleListener(env=environment, testplan="racing", target_env="myTestEnv")
+
+
+if __name__ == "__main__":
+    run_single_user(MyHttpLocust)

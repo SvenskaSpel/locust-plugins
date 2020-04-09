@@ -34,6 +34,7 @@ setup(
     license="Apache-2.0",
     packages=find_packages(exclude=["examples"]),
     include_package_data=True,
+    package_data={"locust_plugins": ["py.typed"]},
     zip_safe=False,
     install_requires=[
         "locustio>=1.0",
