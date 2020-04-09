@@ -1,32 +1,24 @@
 from locust_plugins.debug import run_single_user
 from locust_plugins.kafka import KafkaLocust
-from locust import task, TaskSet
-from locust.wait_time import constant
-import time
-import random
+from locust import task
 import os
 
 
-class MyTaskSet(TaskSet):
+class MyLocust(KafkaLocust):
+    bootstrap_servers = os.environ["LOCUST_KAFKA_SERVERS"]
+
     @task
     def t(self):
-        self.client.send("lafp_test", message=f"{time.time() * 1000}:" + ("kafka" * 24)[: random.randint(32, 128)])
-        self.client.producer.flush(timeout=5)
-        time.sleep(1)
+        self.client.send("lafp_test", b"payload")
+        self.client.producer.poll(1)
 
 
-class MyLocust(KafkaLocust):
-    bootstrap_servers = os.environ["LOCUST_KAFKA_SERVERS"].split(",")
-    tasks = {MyTaskSet: 1}
-    task_set = MyTaskSet
-    wait_time = constant(0)
-
-
-# how to set up a (global) consumer and read the last message. Look at this as inspiration, it might not work for you.
+# How to set up a (global) consumer and read the last message. Consider this as inspiration, it might not work for you.
+# And it is probably out of date. Probably best to ignore this.
 #
 # @events.init.add_listener
 # def on_locust_init(environment, **_kwargs):
-#     consumer = KafkaConsumer(bootstrap_servers=MyLocust.bootstrap_servers)
+#     consumer = KafkaConsumer(MyLocust.bootstrap_servers)
 #     tp = TopicPartition("my_topic", 0)
 #     consumer.assign([tp])
 #     last_offset = consumer.position(tp)
@@ -52,7 +44,4 @@ class MyLocust(KafkaLocust):
 #             )
 
 if __name__ == "__main__":
-    # env = Environment()
-    # on_locust_init(env)
-    # run_single_user(MyLocust, env)
     run_single_user(MyLocust)

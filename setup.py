@@ -42,6 +42,6 @@ setup(
         "websocket-client",
         "python-dateutil",
         "pymongo",
-        "kafka-python",
+        "confluent-kafka",
     ],
 )
