@@ -10,7 +10,6 @@ class KafkaLocust(Locust):
     wait_time = constant(0)
     # overload these values in your subclass
     bootstrap_servers = None
-    value_serializer = None  # str.encode
 
     def __init__(self, environment):
         super().__init__(environment)
