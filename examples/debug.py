@@ -1,21 +1,13 @@
 # How to use VS Code debugger with Locust
 from locust_plugins.debug import run_single_user
-from locust import task, TaskSet, HttpLocust
-from locust.wait_time import constant
-
-
-class MyTask(TaskSet):
-    @task
-    def task1(self):
-        self.client.get("/1")
-
-    @task
-    def task2(self):
-        self.client.get("/2")
+from locust import task, HttpLocust, constant
 
 
 class SimpleHttpLocust(HttpLocust):
-    task_set = MyTask
+    @task
+    def t(self):
+        self.client.get("/")
+
     wait_time = constant(0)
 
 
