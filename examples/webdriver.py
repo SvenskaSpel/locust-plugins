@@ -5,15 +5,12 @@
 # java -jar selenium-server-standalone-3.141.59.jar
 from locust_plugins.debug import run_single_user
 from locust_plugins.locusts import WebdriverLocust
-from locust_plugins.postgresreader import PostgresReader
 
 import os
 import time
 from locust import TaskSet, task
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException
-
-customer_reader = PostgresReader(f"env='{os.environ['LOCUST_TEST_ENV']}' AND tb=0 AND lb=1")
 
 
 class UserBehaviour(TaskSet):
@@ -26,7 +23,6 @@ class UserBehaviour(TaskSet):
         short_sleep = 1 if __name__ == "__main__" else 0.1
         # this is just an example, but it shows off some of the things you might want to do in a Webdriver test
         self.client.delete_all_cookies()
-        customer = customer_reader.get()
 
         start_at = time.time()
         self.client.get(self.locust.host)
@@ -40,7 +36,7 @@ class UserBehaviour(TaskSet):
         self.client.find_element_by_xpath('//*[@id="bankidTab"]/button[1]').click()
         time.sleep(short_sleep)
         self.client.find_element_by_xpath('//*[@id="ssn"]')
-        ssn = customer["ssn"]
+        ssn = "199901010101"
         ssn_input = self.client.switch_to.active_element
         # Sometimes send_keys has issues due to client side javascript. This is a workaround.
         self.client.execute_script(
@@ -57,7 +53,6 @@ class UserBehaviour(TaskSet):
         # typically you would release the customer only after its task has finished,
         # but in this case I dont care, and dont want to block another test run from using it
         # (particularly if this test crashes)
-        customer_reader.release(customer)
         self.locust.environment.events.request_success.fire(
             request_type="Selenium", name="Log in", response_time=(time.time() - start_at) * 1000, response_length=0
         )
