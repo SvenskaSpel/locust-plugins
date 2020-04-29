@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-# This is an example of how to use the WebdriverLocust
+# This is an example of how to use the WebdriverUser
 # You need to start selenium server first.
 # Download it from https://www.seleniumhq.org/download/ and run it by executing:
 # java -jar selenium-server-standalone-3.141.59.jar
 from locust_plugins.debug import run_single_user
-from locust_plugins.locusts import WebdriverLocust
+from locust_plugins.users import WebdriverUser
 
 import os
 import time
@@ -59,7 +59,7 @@ class UserBehaviour(TaskSet):
         time.sleep(short_sleep * 2)
 
 
-class MyWebdriverLocust(WebdriverLocust):
+class MyWebdriverUser(WebdriverUser):
     task_set = UserBehaviour
     min_wait = 0
     max_wait = 0
@@ -70,4 +70,4 @@ class MyWebdriverLocust(WebdriverLocust):
 
 
 if __name__ == "__main__":
-    run_single_user(MyWebdriverLocust)
+    run_single_user(MyWebdriverUser)

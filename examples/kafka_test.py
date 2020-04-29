@@ -1,10 +1,10 @@
 from locust_plugins.debug import run_single_user
-from locust_plugins.kafka import KafkaLocust
+from locust_plugins.kafka import KafkaUser
 from locust import task
 import os
 
 
-class MyLocust(KafkaLocust):
+class MyUser(KafkaUser):
     bootstrap_servers = os.environ["LOCUST_KAFKA_SERVERS"]
 
     @task
@@ -20,7 +20,7 @@ class MyLocust(KafkaLocust):
 #
 # @events.init.add_listener
 # def on_locust_init(environment, **_kwargs):
-#     consumer = KafkaConsumer(MyLocust.bootstrap_servers)
+#     consumer = KafkaConsumer(MyUser.bootstrap_servers)
 #     tp = TopicPartition("my_topic", 0)
 #     consumer.assign([tp])
 #     last_offset = consumer.position(tp)
@@ -46,4 +46,4 @@ class MyLocust(KafkaLocust):
 #             )
 
 if __name__ == "__main__":
-    run_single_user(MyLocust)
+    run_single_user(MyUser)

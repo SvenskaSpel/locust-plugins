@@ -1,13 +1,8 @@
 #!/usr/bin/env python3
-import locust_plugins.utils
-
-locust_plugins.utils.gevent_debugger_patch()
-
+from locust_plugins.debug import run_single_user
 import os
 from locust_plugins.mongoreader import MongoReader
-from locust_plugins.listeners import PrintListener
-from locust import HttpLocust, task, TaskSet
-from locust.wait_time import constant_pacing
+from locust import HttpUser, task, constant
 
 reader = MongoReader(
     filters=[{"tb": 0}, {"lb": 1}],
@@ -18,21 +13,16 @@ reader = MongoReader(
 )
 
 
-class UserBehavior(TaskSet):
+class MyHttpUser(HttpUser):
     @task
     def my_task(self):
         with reader.user() as user:
             self.client.get(f"/?ssn={user['ssn']}")
 
-
-class MyHttpLocust(HttpLocust):
-    task_set = UserBehavior
-    wait_time = constant_pacing(1)
+    wait_time = constant(1)
     host = "http://example.com"
 
 
 # allow running as executable, to support attaching the debugger
 if __name__ == "__main__":
-    PrintListener()
-    MyHttpLocust._catch_exceptions = False
-    MyHttpLocust().run()
+    run_single_user(MyHttpUser)

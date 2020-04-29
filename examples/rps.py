@@ -1,10 +1,10 @@
-from locust import HttpLocust, task, events
+from locust import HttpUser, task, events
 from locust_plugins.debug import run_single_user
 from locust_plugins.wait_time import constant_total_ips
 from locust_plugins.listeners import TimescaleListener
 
 
-class MyHttpLocust(HttpLocust):
+class MyHttpUser(HttpUser):
     @task
     def my_task(self):
         self.client.get("/")
@@ -19,4 +19,4 @@ def on_locust_init(environment, **_kwargs):
 
 
 if __name__ == "__main__":
-    run_single_user(MyHttpLocust)
+    run_single_user(MyHttpUser)

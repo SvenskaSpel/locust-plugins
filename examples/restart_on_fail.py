@@ -1,31 +1,26 @@
 # How to use VS Code debugger with Locust
-import locust_plugins.utils
-
-locust_plugins.utils.gevent_debugger_patch()
+from locust_plugins.debug import run_single_user
 import locust_plugins.listeners
-from locust import task, TaskSet, HttpLocust
+from locust import task, HttpUser, events, env
 from locust.wait_time import constant
 
-locust_plugins.listeners.PrintListener()
-# this needs to be registered after other listeners, because it will throw an exception if there is a failure
-locust_plugins.listeners.RescheduleTaskOnFailListener()
 
+class MyHttpUser(HttpUser):
+    wait_time = constant(1)
+    host = "http://example.com"
 
-class UserBehavior(TaskSet):
     @task
     def my_task(self):
         self.client.get("/fail")
-        self.client.get("/this_will_never_be_run")
+        print("this will never be run")
 
 
-class MyHttpLocust(HttpLocust):
-    task_set = UserBehavior
-    wait_time = constant(1)
-    if __name__ == "__main__":
-        host = "https://www.example.com"
+@events.init.add_listener
+def on_locust_init(environment, **_kwargs):
+    locust_plugins.listeners.RescheduleTaskOnFailListener(environment)
 
 
-# allow running as executable, to support attaching the debugger
 if __name__ == "__main__":
-    MyHttpLocust._catch_exceptions = False
-    MyHttpLocust().run()
+    env = env.Environment()
+    on_locust_init(env)
+    run_single_user(MyHttpUser, env)

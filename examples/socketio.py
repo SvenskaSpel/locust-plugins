@@ -1,10 +1,9 @@
 from locust import task
-from locust.core import TaskSet
-from locust_plugins.locusts import SocketIOLocust
+from locust_plugins.users import SocketIOUser
 from locust.wait_time import constant
 
 
-class UserBehaviour(TaskSet):
+class MySocketIOUser(SocketIOUser):
     @task
     def my_task(self):
         # example of subscribe
@@ -14,9 +13,6 @@ class UserBehaviour(TaskSet):
         # wait for pushes, while occasionally sending heartbeats, like a real client would
         self.locust.sleep_with_heartbeat(10)
 
-
-class MySocketIOLocust(SocketIOLocust):
-    task_set = UserBehaviour
     wait_time = constant(0)
     if __name__ == "__main__":
         host = "http://example.com"

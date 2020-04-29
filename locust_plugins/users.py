@@ -6,13 +6,13 @@ import time
 
 import gevent
 import websocket
-from locust import HttpLocust, Locust
+from locust import HttpUser, User
 from locust.wait_time import constant
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
 
-class WebdriverLocust(Locust):
+class WebdriverUser(User):
     """
     A locust that includes a Webdriver client.
     Download & launch selenium server first:
@@ -35,7 +35,7 @@ class WebdriverLocust(Locust):
         )
 
 
-class SocketIOLocust(HttpLocust):
+class SocketIOUser(HttpUser):
     """
     A locust that includes a socket io websocket connection.
     You could easily use this a template for a pure WS taskset,

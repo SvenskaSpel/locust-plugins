@@ -16,7 +16,7 @@ from datetime import datetime, timezone
 
 import greenlet
 from dateutil import parser
-from locust.exception import RescheduleTask, StopLocust, CatchResponseError
+from locust.exception import RescheduleTask, StopUser, CatchResponseError
 import subprocess
 import locust.env
 from typing import List
@@ -184,7 +184,10 @@ class TimescaleListener:  # pylint: disable=R0902
             sample["response_length"] = None
 
         if exception:
-            sample["exception"] = repr(exception)
+            if exception is CatchResponseError:
+                sample["exception"] = repr(exception)
+            else:
+                sample["exception"] = repr(exception)
         else:
             sample["exception"] = None
 
@@ -197,10 +200,10 @@ class TimescaleListener:  # pylint: disable=R0902
         self._log_request(request_type, name, response_time, response_length, 0, exception)
 
     def log_start_testrun(self):
-        num_clients = 1
+        num_users = 1
         for index, arg in enumerate(sys.argv):
-            if arg == "-c":
-                num_clients = int(sys.argv[index + 1])
+            if arg == "-u":
+                num_users = int(sys.argv[index + 1])
         with self._testrun_conn.cursor() as cur:
             cur.execute(
                 "INSERT INTO testrun (id, testplan, profile_name, num_clients, rps, description, env, username, gitrepo, changeset_guid) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
@@ -208,7 +211,7 @@ class TimescaleListener:  # pylint: disable=R0902
                     self._run_id,
                     self._testplan,
                     self._profile_name,
-                    num_clients,
+                    num_users,
                     self._rps,
                     self._description,
                     self._env,
@@ -304,14 +307,14 @@ class RescheduleTaskOnFailListener:
         raise RescheduleTask()
 
 
-class StopLocustOnFailListener:
+class StopUserOnFailListener:
     def __init__(self, env: locust.env.Environment):
         # make sure to add this listener LAST, because any failures will throw an exception,
         # causing other listeners to be skipped
         env.events.request_failure.add_listener(self.request_failure)
 
     def request_failure(self, request_type, name, response_time, response_length, exception, **_kwargs):
-        raise StopLocust()
+        raise StopUser()
 
 
 class ExitOnFailListener:
