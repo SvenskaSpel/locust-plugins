@@ -1,6 +1,5 @@
 from locust_plugins.listeners import TimescaleListener
 from locust import HttpUser, task, events
-from locust.wait_time import constant
 
 
 class MyHttpUser(HttpUser):
@@ -8,7 +7,6 @@ class MyHttpUser(HttpUser):
     def index(self):
         self.client.post("/authentication/1.0/getResults", {"username": "something"})
 
-    wait_time = constant(1)
     host = "http://example.com"
 
 

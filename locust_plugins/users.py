@@ -7,32 +7,8 @@ import time
 import gevent
 import websocket
 from locust import HttpUser, User
-from locust.wait_time import constant
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-
-
-class WebdriverUser(User):
-    """
-    A locust that includes a Webdriver client.
-    Download & launch selenium server first:
-    https://www.seleniumhq.org/download/
-    java -jar selenium-server-standalone-3.141.59.jar
-    """
-
-    # kill old webdriver browser instances
-    subprocess.Popen(["killall", "chromedriver"])
-    subprocess.Popen(["pkill", "-f", " --test-type=webdriver"])
-    wait_time = constant(0)
-
-    def __init__(self, parent, headless=True):
-        super().__init__(parent)
-        chrome_options = Options()
-        if headless:
-            chrome_options.add_argument("--headless")
-        self.client = webdriver.Remote(
-            command_executor="http://127.0.0.1:4444/wd/hub", desired_capabilities=chrome_options.to_capabilities()
-        )
 
 
 class SocketIOUser(HttpUser):
@@ -41,8 +17,6 @@ class SocketIOUser(HttpUser):
     You could easily use this a template for a pure WS taskset,
     socket.io just happens to be my use case
     """
-
-    wait_time = constant(0)
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -119,3 +93,25 @@ class SocketIOUser(HttpUser):
             gevent.sleep(min(15, seconds))
             seconds -= 15
             self.send("2")
+
+
+class WebdriverUser(User):
+    """
+    A locust that includes a Webdriver client.
+    Download & launch selenium server first:
+    https://www.seleniumhq.org/download/
+    java -jar selenium-server-standalone-3.141.59.jar
+    """
+
+    # kill old webdriver browser instances
+    subprocess.Popen(["killall", "chromedriver"])
+    subprocess.Popen(["pkill", "-f", " --test-type=webdriver"])
+
+    def __init__(self, parent, headless=True):
+        super().__init__(parent)
+        chrome_options = Options()
+        if headless:
+            chrome_options.add_argument("--headless")
+        self.client = webdriver.Remote(
+            command_executor="http://127.0.0.1:4444/wd/hub", desired_capabilities=chrome_options.to_capabilities()
+        )

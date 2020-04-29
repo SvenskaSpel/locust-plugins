@@ -4,7 +4,7 @@ from locust_plugins.wait_time import constant_total_ips
 from locust_plugins.listeners import TimescaleListener
 
 
-class MyHttpUser(HttpUser):
+class MyUser(HttpUser):
     @task
     def my_task(self):
         self.client.get("/")
@@ -19,4 +19,4 @@ def on_locust_init(environment, **_kwargs):
 
 
 if __name__ == "__main__":
-    run_single_user(MyHttpUser)
+    run_single_user(MyUser)

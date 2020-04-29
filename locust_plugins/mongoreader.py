@@ -3,10 +3,14 @@ from datetime import datetime
 import logging
 import time
 from contextlib import contextmanager
+import os
 
 
 class MongoReader:
-    def __init__(self, id_column, uri, database, collection, filters=[]):
+    def __init__(self, id_column, uri=None, database=None, collection=None, filters=[]):
+        uri = uri or os.environ["LOCUST_MONGO"]
+        database = database or os.environ["LOCUST_MONGO_DATABASE"]
+        collection = collection or os.environ["LOCUST_MONGO_COLLECTION"]
         self.coll = MongoClient(uri)[database][collection]
         self.id_column = id_column
         self.delay_warning = 0.5

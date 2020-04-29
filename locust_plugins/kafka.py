@@ -1,13 +1,11 @@
 import time
 from confluent_kafka import Producer
 from locust import User
-from locust.wait_time import constant
 import functools
 
 
 class KafkaUser(User):
     abstract = True
-    wait_time = constant(0)
     # overload these values in your subclass
     bootstrap_servers: str = None  # type: ignore
 
