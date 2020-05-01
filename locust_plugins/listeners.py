@@ -81,8 +81,8 @@ class TimescaleListener:  # pylint: disable=R0902
             )
             or None  # default to None instead of empty string
         )
-        if is_slave() or is_master():
-            # swarm generates the run id for its master and slaves
+        if is_worker() or is_master():
+            # swarm generates the run id for its master and workers
             if "LOCUST_RUN_ID" in os.environ:
                 self._run_id = parser.parse(os.environ["LOCUST_RUN_ID"])
             else:
@@ -93,7 +93,7 @@ class TimescaleListener:  # pylint: disable=R0902
         else:
             # non-swarm runs need to generate the run id here
             self._run_id = datetime.now(timezone.utc)
-        if not is_slave():
+        if not is_worker():
             logging.info(
                 f"Follow test run here: {GRAFANA_URL}&var-testplan={self._testplan}&from={int(self._run_id.timestamp()*1000)}&to=now"
             )
@@ -154,7 +154,7 @@ class TimescaleListener:  # pylint: disable=R0902
         self._finished = True
         atexit._clear()  # make sure we dont capture additional ctrl-c:s # pylint: disable=protected-access
         self._background.join()
-        if not is_slave():
+        if not is_worker():
             self._user_count_logger.kill()
         self.exit()
 
@@ -204,29 +204,30 @@ class TimescaleListener:  # pylint: disable=R0902
         for index, arg in enumerate(sys.argv):
             if arg == "-u":
                 num_users = int(sys.argv[index + 1])
-        with self._testrun_conn.cursor() as cur:
-            cur.execute(
-                "INSERT INTO testrun (id, testplan, profile_name, num_clients, rps, description, env, username, gitrepo, changeset_guid) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-                (
-                    self._run_id,
-                    self._testplan,
-                    self._profile_name,
-                    num_users,
-                    self._rps,
-                    self._description,
-                    self._env,
-                    self._username,
-                    self._gitrepo,
-                    self._changeset_guid,
-                ),
-            )
-            cur.execute(
-                "INSERT INTO events (time, text) VALUES (%s, %s)",
-                (datetime.now(timezone.utc).isoformat(), self._testplan + " started by " + self._username),
-            )
+        try:
+            with self._testrun_conn.cursor() as cur:
+                cur.execute(
+                    "INSERT INTO testrun (id, testplan, profile_name, num_clients, rps, description, env, username, gitrepo, changeset_guid) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+                    (
+                        self._run_id,
+                        self._testplan,
+                        self._profile_name,
+                        num_users,
+                        self._rps,
+                        self._description,
+                        self._env,
+                        self._username,
+                        self._gitrepo,
+                        self._changeset_guid,
+                    ),
+                )
+                cur.execute(
+                    "INSERT INTO events (time, text) VALUES (%s, %s)",
+                    (datetime.now(timezone.utc).isoformat(), self._testplan + " started by " + self._username),
+                )
 
     def hatch_complete(self, user_count):
-        if not is_slave():  # only log for master/standalone
+        if not is_worker():  # only log for master/standalone
             end_time = datetime.now(timezone.utc)
             try:
                 self._events_conn.cursor().execute(
@@ -266,7 +267,7 @@ class TimescaleListener:  # pylint: disable=R0902
         )
 
     def exit(self):
-        if not is_slave():  # on master or standalone locust run
+        if not is_worker():  # on master or standalone locust run
             self.log_stop_test_run()
         if self._conn:
             self._conn.close()
@@ -328,8 +329,8 @@ class ExitOnFailListener:
         os._exit(1)
 
 
-def is_slave():
-    return "--slave" in sys.argv
+def is_worker():
+    return "--worker" in sys.argv
 
 
 def is_master():
