@@ -1,4 +1,4 @@
-__version__ = "0.0.45"
+__version__ = "0.0.46"
 
 # Monkey patch User while waiting for everyone else to see the light:
 # https://github.com/locustio/locust/issues/1308
