@@ -204,27 +204,26 @@ class TimescaleListener:  # pylint: disable=R0902
         for index, arg in enumerate(sys.argv):
             if arg == "-u":
                 num_users = int(sys.argv[index + 1])
-        try:
-            with self._testrun_conn.cursor() as cur:
-                cur.execute(
-                    "INSERT INTO testrun (id, testplan, profile_name, num_clients, rps, description, env, username, gitrepo, changeset_guid) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-                    (
-                        self._run_id,
-                        self._testplan,
-                        self._profile_name,
-                        num_users,
-                        self._rps,
-                        self._description,
-                        self._env,
-                        self._username,
-                        self._gitrepo,
-                        self._changeset_guid,
-                    ),
-                )
-                cur.execute(
-                    "INSERT INTO events (time, text) VALUES (%s, %s)",
-                    (datetime.now(timezone.utc).isoformat(), self._testplan + " started by " + self._username),
-                )
+        with self._testrun_conn.cursor() as cur:
+            cur.execute(
+                "INSERT INTO testrun (id, testplan, profile_name, num_clients, rps, description, env, username, gitrepo, changeset_guid) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+                (
+                    self._run_id,
+                    self._testplan,
+                    self._profile_name,
+                    num_users,
+                    self._rps,
+                    self._description,
+                    self._env,
+                    self._username,
+                    self._gitrepo,
+                    self._changeset_guid,
+                ),
+            )
+            cur.execute(
+                "INSERT INTO events (time, text) VALUES (%s, %s)",
+                (datetime.now(timezone.utc).isoformat(), self._testplan + " started by " + self._username),
+            )
 
     def hatch_complete(self, user_count):
         if not is_worker():  # only log for master/standalone
