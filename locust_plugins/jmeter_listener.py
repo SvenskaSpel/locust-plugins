@@ -111,7 +111,7 @@ class JmeterListener:
 
         row = [
             timestamp,
-            str(round(response_time * 1000)),
+            str(round(response_time)),
             name,
             status_code,
             response_message,
