@@ -60,10 +60,18 @@ class JmeterListener:
             "Connect",
         ]
         self.results_file = self.create_results_log()
+        self.user_count = 0
+        self.user_name = ""
         events.request_success.add_listener(self.csv_success_handler)
         events.request_failure.add_listener(self.csv_request_failure)
         events.quitting.add_listener(self.write_final_log)
         events.init.add_listener(self.on_locust_init)
+
+    def set_user_name(self, name):
+        self.user_name = name
+
+    def add_user(self):
+        self.user_count += 1
 
     def on_locust_init(self, environment, **kw):
         if environment.web_ui:
@@ -100,11 +108,11 @@ class JmeterListener:
         response_message = "OK" if success == "true" else "KO"
         # check to see if the additional fields have been populated. If not, set to a default value
         status_code = kw["status_code"] if "status_code" in kw else "0"
-        thread_name = kw["thread_name"] if "thread_name" in kw else "unnamed"
+        thread_name = self.user_name
         data_type = kw["data_type"] if "data_type" in kw else "unknown"
         bytes_sent = kw["bytes_sent"] if "bytes_sent" in kw else "0"
-        group_threads = kw["group_threads"] if "group_threads" in kw else "0"
-        all_threads = kw["all_threads"] if "all_threads" in kw else "0"
+        group_threads = self.user_count
+        all_threads = self.user_count
         latency = kw["latency"] if "latency" in kw else "0"
         idle_time = kw["idle_time"] if "idle_time" in kw else "0"
         connect = kw["connect"] if "connect" in kw else "0"
@@ -113,7 +121,7 @@ class JmeterListener:
             timestamp,
             str(round(response_time)),
             name,
-            status_code,
+            str(status_code),
             response_message,
             thread_name,
             data_type,
@@ -121,8 +129,8 @@ class JmeterListener:
             exception,
             str(response_length),
             bytes_sent,
-            group_threads,
-            all_threads,
+            str(group_threads),
+            str(all_threads),
             latency,
             idle_time,
             connect,

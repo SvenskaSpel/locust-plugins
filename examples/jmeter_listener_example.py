@@ -24,4 +24,8 @@ class WebsiteUser(HttpUser):
     wait_time = between(2, 5)
     tasks = [UserTasks]
 
-JmeterListener()
+    def on_start(self):
+        jmeter_listener.add_user()
+        jmeter_listener.set_user_name(self.__class__.__name__)
+
+jmeter_listener = JmeterListener()
