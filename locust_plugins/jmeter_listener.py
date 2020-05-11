@@ -7,7 +7,7 @@ from datetime import datetime
 from time import time
 from locust import web
 from locust import events
-
+import logging
 
 class JmeterListener:
     """
@@ -62,8 +62,6 @@ class JmeterListener:
         self.results_file = self.create_results_log()
         self.user_count = 0
         self.user_name = ""
-        events.request_success.add_listener(self.csv_success_handler)
-        events.request_failure.add_listener(self.csv_request_failure)
         events.quitting.add_listener(self.write_final_log)
         events.init.add_listener(self.on_locust_init)
 
@@ -74,6 +72,12 @@ class JmeterListener:
         self.user_count += 1
 
     def on_locust_init(self, environment, **kw):
+        self.env = environment
+        user_classes = self.env.user_classes
+        self.runner = self.env.runner
+        for user_class in user_classes:
+            user_class.on_start = self.my_onstart(user_class.on_start)
+
         if environment.web_ui:
             @environment.web_ui.app.route("/csv_results.csv")
             def csv_results_page():
@@ -90,80 +94,6 @@ class JmeterListener:
                     mimetype="text/csv",
                 )
                 return response
-
-    def add_result(
-            self,
-            success,
-            request_type,
-            name,
-            response_time,
-            response_length,
-            exception,
-            **kw
-    ):
-        """
-        adds a result
-        """
-        timestamp = datetime.fromtimestamp(time()).strftime(self.timestamp_format)
-        response_message = "OK" if success == "true" else "KO"
-        # check to see if the additional fields have been populated. If not, set to a default value
-        status_code = kw["status_code"] if "status_code" in kw else "0"
-        thread_name = self.user_name
-        data_type = kw["data_type"] if "data_type" in kw else "unknown"
-        bytes_sent = kw["bytes_sent"] if "bytes_sent" in kw else "0"
-        group_threads = self.user_count
-        all_threads = self.user_count
-        latency = kw["latency"] if "latency" in kw else "0"
-        idle_time = kw["idle_time"] if "idle_time" in kw else "0"
-        connect = kw["connect"] if "connect" in kw else "0"
-
-        row = [
-            timestamp,
-            str(round(response_time)),
-            name,
-            str(status_code),
-            response_message,
-            thread_name,
-            data_type,
-            success,
-            exception,
-            str(response_length),
-            bytes_sent,
-            str(group_threads),
-            str(all_threads),
-            latency,
-            idle_time,
-            connect,
-        ]
-        if len(self.csv_results) >= self.flush_size:
-            self.flush_to_log()
-        self.csv_results.append(self.field_delimiter.join(row))
-
-    def csv_success_handler(
-            self, request_type, name, response_time, response_length, **kw
-    ):
-        """
-        handler for successful request event
-        """
-        self.add_result(
-            "true", request_type, name, response_time, response_length, "", **kw
-        )
-
-    def csv_request_failure(
-            self, request_type, name, response_time, response_length, exception, **kw
-    ):
-        """
-        handler for failed request event
-        """
-        self.add_result(
-            "false",
-            request_type,
-            name,
-            response_time,
-            response_length,
-            str(exception),
-            **kw
-        )
 
     def create_results_log(self):
         """
@@ -196,3 +126,70 @@ class JmeterListener:
             self.row_delimiter.join(self.csv_results) + self.row_delimiter
         )
         self.results_file.close()
+
+    def my_onstart(self,func):
+        def wrapper(wrappedself, **kwargs):
+            self.add_user()
+            self.set_user_name(wrappedself.__class__.__name__) 
+            wrappedself.client.request = self.add_record(wrappedself.client.request)
+        return wrapper
+
+    def add_record(self,func):
+        def wrapper(wrappedself, *args, **kwargs):
+            """
+            adds a result
+            """
+            timestamp = datetime.fromtimestamp(time()).strftime(self.timestamp_format)
+            name = kwargs["name"] if "name" in kwargs else "unknown"
+            response = func(wrappedself, *args, **kwargs)
+            try:
+                status_code = str(response.status_code)
+                thread_name = self.user_name
+                elapsed_time = str(round(response.elapsed.microseconds / 1000))
+                response_time = elapsed_time
+                response_length = str(len(response.text))
+                if response.ok:
+                    response_message = "OK"
+                    success = "true"
+                    exception = ""
+                else:
+                    response_message = "KO"
+                    success = "false"
+                    exception = response.reason
+
+                #stuff to work out ...
+                binary_codecs = ["base64", "base_64", "bz2", "hex", "quopri", "quotedprintable", "quoted_printable", "uu", "zip", "zlib"]
+                data_type = "binary" if response.encoding in binary_codecs else "text"
+                bytes_sent = "0"
+                group_threads = str(self.user_count)
+                all_threads = str(self.runner.user_count)
+                #all_threads = str(self.user_count)
+                latency = "0"
+                idle_time = "0"
+                connect =  "0"
+
+                row = [
+                    timestamp,
+                    response_time,
+                    name,
+                    status_code,
+                    response_message,
+                    thread_name,
+                    data_type,
+                    success,
+                    exception,
+                    response_length,
+                    bytes_sent,
+                    group_threads,
+                    all_threads,
+                    latency,
+                    idle_time,
+                    connect,
+                ]
+                if len(self.csv_results) >= self.flush_size:
+                    self.flush_to_log()
+                self.csv_results.append(self.field_delimiter.join(row))
+            except:
+                logging.error("failed to log result")
+            return response
+        return wrapper
