@@ -5,7 +5,6 @@ and thereby smooth the transition for JMeter users
 
 from datetime import datetime
 from time import time
-from locust import web
 from locust import events
 import logging
 
@@ -71,12 +70,12 @@ class JmeterListener:
     def add_user(self):
         self.user_count += 1
 
-    def on_locust_init(self, environment, **kw):
+    def on_locust_init(self, environment, **kwargs):
         self.env = environment
         user_classes = self.env.user_classes
         self.runner = self.env.runner
         for user_class in user_classes:
-            user_class.on_start = self.my_onstart(user_class.on_start)
+            user_class.on_start = self.log_onstart(user_class.on_start)
 
         if environment.web_ui:
             @environment.web_ui.app.route("/csv_results.csv")
@@ -127,14 +126,14 @@ class JmeterListener:
         )
         self.results_file.close()
 
-    def my_onstart(self,func):
+    def log_onstart(self, func):
         def wrapper(wrappedself, **kwargs):
             self.add_user()
-            self.set_user_name(wrappedself.__class__.__name__) 
+            self.set_user_name(wrappedself.__class__.__name__)
             wrappedself.client.request = self.add_record(wrappedself.client.request)
         return wrapper
 
-    def add_record(self,func):
+    def add_record(self, func):
         def wrapper(wrappedself, *args, **kwargs):
             """
             adds a result
@@ -157,16 +156,14 @@ class JmeterListener:
                     success = "false"
                     exception = response.reason
 
-                #stuff to work out ...
                 binary_codecs = ["base64", "base_64", "bz2", "hex", "quopri", "quotedprintable", "quoted_printable", "uu", "zip", "zlib"]
                 data_type = "binary" if response.encoding in binary_codecs else "text"
                 bytes_sent = "0"
                 group_threads = str(self.user_count)
                 all_threads = str(self.runner.user_count)
-                #all_threads = str(self.user_count)
                 latency = "0"
                 idle_time = "0"
-                connect =  "0"
+                connect = "0"
 
                 row = [
                     timestamp,
