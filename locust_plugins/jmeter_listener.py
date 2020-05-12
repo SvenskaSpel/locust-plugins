@@ -12,6 +12,14 @@ class JmeterListener:
     """
     create an intance of the listener at the start of a test
     to create a JMeter style results file
+    different formats can be chosen in initialisation
+    (field_delimiter row_delimiter and timestamp_format)
+    and the number of results to send to a log file at a time (flush_size)
+    by default, it will automatically log results (auto_log=True)
+    if you want to manually override the pass/fail outcome and write a custom-made result
+    set auto_log to false in initialisation and for each task and call add_result 
+    with the values you want to record
+    Manual logging has to be used FastHttpUser
     """
 
     # holds results until processed
@@ -23,7 +31,10 @@ class JmeterListener:
             row_delimiter="\n",
             timestamp_format="%Y-%m-%d %H:%M:%S",
             flush_size=100,
+            auto_log=True
     ):
+        #determine whether to auto log requests or do it manually
+        self.auto_log = auto_log
         # default JMeter field and row delimiters
         self.field_delimiter = field_delimiter
         self.row_delimiter = row_delimiter
@@ -40,34 +51,20 @@ class JmeterListener:
         )
 
         # fields set by default in jmeter
-        self.csv_headers = [
-            "timeStamp",
-            "elapsed",
-            "label",
-            "responseCode",
-            "responseMessage",
-            "threadName",
-            "dataType",
-            "success",
-            "failureMessage",
-            "bytes",
-            "sentBytes",
-            "grpThreads",
-            "allThreads",
-            "Latency",
-            "IdleTime",
-            "Connect",
-        ]
-        self.results_file = self.create_results_log()
+        self.csv_headers = ["timeStamp", "elapsed", "label", "responseCode",
+            "responseMessage", "threadName", "dataType", "success",
+            "failureMessage", "bytes", "sentBytes", "grpThreads",
+            "allThreads", "Latency", "IdleTime", "Connect"]
+        self.results_file = self._create_results_log()
         self.user_count = 0
         self.user_name = ""
-        events.quitting.add_listener(self.write_final_log)
+        events.quitting.add_listener(self._write_final_log)
         events.init.add_listener(self.on_locust_init)
 
-    def set_user_name(self, name):
+    def _set_user_name(self, name):
         self.user_name = name
 
-    def add_user(self):
+    def _add_user(self):
         self.user_count += 1
 
     def on_locust_init(self, environment, **kwargs):
@@ -75,7 +72,7 @@ class JmeterListener:
         user_classes = self.env.user_classes
         self.runner = self.env.runner
         for user_class in user_classes:
-            user_class.on_start = self.log_onstart(user_class.on_start)
+            user_class.on_start = self._log_onstart(user_class.on_start)
 
         if environment.web_ui:
             @environment.web_ui.app.route("/csv_results.csv")
@@ -83,7 +80,7 @@ class JmeterListener:
                 """
                 a different way of obtaining results rather than writing to disk
                 to use it getting all results back, set the flush_size to
-                a high enough figure that it will not flush
+                a high enough value that it will not flush during your test
                 """
                 response = environment.web_ui.app.response_class(
                     response=self.field_delimiter.join(self.csv_headers)
@@ -94,7 +91,7 @@ class JmeterListener:
                 )
                 return response
 
-    def create_results_log(self):
+    def _create_results_log(self):
         """
         creates a results log
         """
@@ -105,7 +102,7 @@ class JmeterListener:
         results_file.close()
         return results_file
 
-    def flush_to_log(self):
+    def _flush_to_log(self):
         """
         flushes results to log file
         """
@@ -116,7 +113,7 @@ class JmeterListener:
         self.results_file.close()
         self.csv_results = []
 
-    def write_final_log(self):
+    def _write_final_log(self):
         """
         performs final write to log file when test complete
         """
@@ -126,14 +123,15 @@ class JmeterListener:
         )
         self.results_file.close()
 
-    def log_onstart(self, func):
+    def _log_onstart(self, func):
         def wrapper(wrappedself, **kwargs):
-            self.add_user()
-            self.set_user_name(wrappedself.__class__.__name__)
-            wrappedself.client.request = self.add_record(wrappedself.client.request)
+            self._add_user()
+            self._set_user_name(wrappedself.__class__.__name__)
+            if self.auto_log:
+                wrappedself.client.request = self._add_record(wrappedself.client.request)
         return wrapper
 
-    def add_record(self, func):
+    def _add_record(self, func):
         def wrapper(wrappedself, *args, **kwargs):
             """
             adds a result
@@ -141,6 +139,8 @@ class JmeterListener:
             timestamp = datetime.fromtimestamp(time()).strftime(self.timestamp_format)
             name = kwargs["name"] if "name" in kwargs else "unknown"
             response = func(wrappedself, *args, **kwargs)
+            if hasattr(response, "_manual_result"):
+                logging.info("Found manually controlled result in '" + name + "' Change to manual logging to set pass/fail correctly")
             try:
                 status_code = str(response.status_code)
                 thread_name = self.user_name
@@ -165,28 +165,23 @@ class JmeterListener:
                 idle_time = "0"
                 connect = "0"
 
-                row = [
-                    timestamp,
-                    response_time,
-                    name,
-                    status_code,
-                    response_message,
-                    thread_name,
-                    data_type,
-                    success,
-                    exception,
-                    response_length,
-                    bytes_sent,
-                    group_threads,
-                    all_threads,
-                    latency,
-                    idle_time,
-                    connect,
-                ]
-                if len(self.csv_results) >= self.flush_size:
-                    self.flush_to_log()
-                self.csv_results.append(self.field_delimiter.join(row))
+                self.add_result(timestamp, response_time, name, status_code,
+                    response_message, thread_name, data_type, success,
+                    exception, response_length, bytes_sent, group_threads,
+                    all_threads, latency, idle_time, connect)
             except:
                 logging.error("failed to log result")
             return response
         return wrapper
+
+    def add_result(self, timestamp, response_time, name, status_code,
+                    response_message, thread_name, data_type, success,
+                    exception, response_length, bytes_sent, group_threads,
+                    all_threads, latency, idle_time, connect):
+        row = [timestamp, response_time, name, status_code,
+                    response_message, thread_name, data_type, success,
+                    exception, response_length, bytes_sent, group_threads,
+                    all_threads, latency, idle_time, connect]
+        if len(self.csv_results) >= self.flush_size:
+            self._flush_to_log()
+        self.csv_results.append(self.field_delimiter.join(row))
