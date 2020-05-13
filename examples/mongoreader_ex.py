@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from locust_plugins.debug import run_single_user
+from locust_plugins import run_single_user
 import os
 from locust_plugins.mongoreader import MongoReader
 from locust import HttpUser, task

@@ -3,7 +3,7 @@
 # You need to start selenium server first.
 # Download it from https://www.seleniumhq.org/download/ and run it by executing:
 # java -jar selenium-server-standalone-3.141.59.jar
-from locust_plugins.debug import run_single_user
+from locust_plugins import run_single_user
 from locust_plugins.users import WebdriverUser
 
 import os

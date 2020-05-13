@@ -1,6 +1,6 @@
 # How to use VS Code debugger with Locust
 from locust import task, HttpUser
-from locust_plugins.debug import run_single_user
+from locust_plugins import run_single_user
 
 
 class MyUser(HttpUser):

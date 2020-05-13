@@ -1,5 +1,5 @@
 # How to use VS Code debugger with Locust
-from locust_plugins.debug import run_single_user
+from locust_plugins import run_single_user
 import locust_plugins.listeners
 from locust import task, HttpUser, events, env
 

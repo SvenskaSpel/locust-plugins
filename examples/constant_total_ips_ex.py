@@ -1,6 +1,5 @@
 from locust import HttpUser, task, events
-from locust_plugins.debug import run_single_user
-from locust_plugins.wait_time import constant_total_ips
+from locust_plugins import run_single_user, constant_total_ips
 from locust_plugins.listeners import TimescaleListener
 
 
