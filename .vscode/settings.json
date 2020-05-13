@@ -1,5 +1,5 @@
 {
-    "python.pythonPath": "/usr/local/opt/python/bin/python3.7",
+    "python.pythonPath": "C:\\Users\\hosborne\\AppData\\Local\\Programs\\Python\\Python38\\python.exe",
     "python.formatting.provider": "black",
     "files.exclude": {
         "**/env": true,

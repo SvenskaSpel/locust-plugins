@@ -1,6 +1,6 @@
 """
 a listener to provide results from locust tests in a JMeter compatible format
-and thereby smooth the transition for JMeter users
+and thereby allow JMeter users with existing reporting solutions to transition more easily
 """
 
 from datetime import datetime
@@ -74,12 +74,6 @@ class JmeterListener:
         events.quitting.add_listener(self._write_final_log)
         events.init.add_listener(self.on_locust_init)
 
-    def _set_user_name(self, name):
-        self.user_name = name
-
-    def _add_user(self):
-        self.user_count += 1
-
     def on_locust_init(self, environment, **kwargs):
         self.env = environment
         user_classes = self.env.user_classes
@@ -109,29 +103,27 @@ class JmeterListener:
         """
         results_file = open(self.results_filename, "w")
         results_file.write(self.field_delimiter.join(self.csv_headers) + self.row_delimiter)
-        results_file.close()
+        results_file.flush()
         return results_file
 
     def _flush_to_log(self):
         """
         flushes results to log file
         """
-        self.results_file = open(self.results_filename, "a")
         self.results_file.write(self.row_delimiter.join(self.csv_results) + self.row_delimiter)
-        self.results_file.close()
+        self.results_file.flush()
         self.csv_results = []
 
     def _write_final_log(self):
         """
         performs final write to log file when test complete
         """
-        self.results_file = open(self.results_filename, "a")
         self.results_file.write(self.row_delimiter.join(self.csv_results) + self.row_delimiter)
         self.results_file.close()
 
     def start_logging(self, user):
-        self._add_user()
-        self._set_user_name(user.__class__.__name__)
+        self.user_count += 1
+        self.user_name = user.__class__.__name__
         if self.auto_log:
             user.client.request = self._add_record(user.client.request)
 
@@ -149,61 +141,61 @@ class JmeterListener:
                     + name
                     + "' Change to manual logging to set pass/fail correctly"
                 )
-            # try:
-            status_code = str(response.status_code)
-            thread_name = self.user_name
-            elapsed_time = str(round(response.elapsed.microseconds / 1000))
-            response_time = elapsed_time
-            response_length = str(len(response.text))
-            if response.ok:
-                response_message = "OK"
-                success = "true"
-                exception = ""
-            else:
-                response_message = "KO"
-                success = "false"
-                exception = str(response.reason)
+            try:
+                status_code = str(response.status_code)
+                thread_name = self.user_name
+                elapsed_time = str(round(response.elapsed.microseconds / 1000))
+                response_time = elapsed_time
+                response_length = str(len(response.text))
+                if response.ok:
+                    response_message = "OK"
+                    success = "true"
+                    exception = ""
+                else:
+                    response_message = "KO"
+                    success = "false"
+                    exception = str(response.reason)
 
-            binary_codecs = [
-                "base64",
-                "base_64",
-                "bz2",
-                "hex",
-                "quopri",
-                "quotedprintable",
-                "quoted_printable",
-                "uu",
-                "zip",
-                "zlib",
-            ]
-            data_type = "binary" if response.encoding in binary_codecs else "text"
-            bytes_sent = "0"
-            group_threads = str(self.user_count)
-            all_threads = str(self.runner.user_count)
-            latency = "0"
-            idle_time = "0"
-            connect = "0"
+                binary_codecs = [
+                    "base64",
+                    "base_64",
+                    "bz2",
+                    "hex",
+                    "quopri",
+                    "quotedprintable",
+                    "quoted_printable",
+                    "uu",
+                    "zip",
+                    "zlib",
+                ]
+                data_type = "binary" if response.encoding in binary_codecs else "text"
+                bytes_sent = "0"
+                group_threads = str(self.user_count)
+                all_threads = str(self.runner.user_count)
+                latency = "0"
+                idle_time = "0"
+                connect = "0"
 
-            self.add_result(
-                timestamp,
-                response_time,
-                name,
-                status_code,
-                response_message,
-                thread_name,
-                data_type,
-                success,
-                exception,
-                response_length,
-                bytes_sent,
-                group_threads,
-                all_threads,
-                latency,
-                idle_time,
-                connect,
-            )
-            # except:
-            #    logging.error("failed to log result")
+                self.add_result(
+                    timestamp,
+                    response_time,
+                    name,
+                    status_code,
+                    response_message,
+                    thread_name,
+                    data_type,
+                    success,
+                    exception,
+                    response_length,
+                    bytes_sent,
+                    group_threads,
+                    all_threads,
+                    latency,
+                    idle_time,
+                    connect,
+                )
+            except:
+                logging.error("failed to log result")
             return response
 
         return wrapper
