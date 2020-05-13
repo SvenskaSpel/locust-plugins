@@ -1,6 +1,6 @@
-from locust import HttpUser, SequentialTaskSet, task, between, events
+from locust import HttpUser, SequentialTaskSet, task, between
 from locust_plugins.jmeter_listener import JmeterListener
-import logging
+
 
 import json, random, string
 
@@ -31,35 +31,38 @@ class MakePurchase(SequentialTaskSet):
     @task
     def fourth_task(self):
         self.client.cookies["user"] = self.user_cookie
-        response = self.client.get("/prod.html?idp_=" + str(self.id), name="04 /prod.html?idp_")
+        self.client.get("/prod.html?idp_=" + str(self.id), name="04 /prod.html?idp_")
 
     @task
     def fifth_task(self):
         payload = '{"id":"' + str(self.id) + '"}'
-        response = self.client.post(self.api_host + "/view", payload , headers={"Content-Type": "application/json"}, name="05 /view")
+        self.client.post(self.api_host + "/view", payload , headers={"Content-Type": "application/json"}, name="05 /view")
 
     @task
     def sixth_task(self):
         payload = '{"id":"' + self.purchase_id + '","cookie":"user=' + self.user_cookie + '","prod_id":' + str(self.id) + ',"flag":false}'
-        response = self.client.post(self.api_host + "/addtocart", payload, headers={"Content-Type": "application/json"},  name="06 /addtocart")
+        self.client.post(self.api_host + "/addtocart", payload, headers={"Content-Type": "application/json"},  name="06 /addtocart")
 
     @task
     def seventh_task(self):
-        response = self.client.get("/cart.html", name="07 /cart.html")
+        self.client.get("/cart.html", name="07 /cart.html")
 
     @task
     def eighth_task(self):
         payload = '{"cookie":"user=' + self.user_cookie + '","flag":false}'
-        response = self.client.post(self.api_host + "/viewcart", payload, headers={"Content-Type": "application/json"},  name="08 /viewcart")
+        self.client.post(self.api_host + "/viewcart", payload, headers={"Content-Type": "application/json"},  name="08 /viewcart")
 
     @task
     def ninth_task(self):
         payload = '{"cookie":"user=' + self.user_cookie + '"}'
-        response = self.client.post(self.api_host + "/deletecart", payload, headers={"Content-Type": "application/json"},  name="09 /deletecart", catch_response=True)
+        self.client.post(self.api_host + "/deletecart", payload, headers={"Content-Type": "application/json"},  name="09 /deletecart", catch_response=True)
+
 
 class DemoBlazeUser(HttpUser):
     host = "https://www.demoblaze.com"
     wait_time = between(2, 5)
     tasks = [MakePurchase]
-    
-jmeter_listener = JmeterListener()
+    jmeter_listener = JmeterListener()
+
+    def on_start(self):
+        self.jmeter_listener.start_logging(self)

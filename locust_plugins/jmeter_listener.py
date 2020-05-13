@@ -8,6 +8,7 @@ from time import time
 from locust import events
 import logging
 
+
 class JmeterListener:
     """
     create an intance of the listener at the start of a test
@@ -17,7 +18,7 @@ class JmeterListener:
     and the number of results to send to a log file at a time (flush_size)
     by default, it will automatically log results (auto_log=True)
     if you want to manually override the pass/fail outcome and write a custom-made result
-    set auto_log to false in initialisation and for each task and call add_result 
+    set auto_log to false in initialisation and for each task and call add_result
     with the values you want to record
     Manual logging has to be used FastHttpUser
     """
@@ -31,9 +32,9 @@ class JmeterListener:
             row_delimiter="\n",
             timestamp_format="%Y-%m-%d %H:%M:%S",
             flush_size=100,
-            auto_log=True
+            auto_log=True,
     ):
-        #determine whether to auto log requests or do it manually
+        # determine whether to auto log requests or do it manually
         self.auto_log = auto_log
         # default JMeter field and row delimiters
         self.field_delimiter = field_delimiter
@@ -45,16 +46,28 @@ class JmeterListener:
         # results filename format
         self.results_timestamp_format = "%Y_%m_%d_%H_%M_%S"
         self.results_filename = (
-            "results_"
-            + datetime.fromtimestamp(time()).strftime(self.results_timestamp_format)
-            + ".csv"
+            "results_" + datetime.fromtimestamp(time()).strftime(self.results_timestamp_format) + ".csv"
         )
 
         # fields set by default in jmeter
-        self.csv_headers = ["timeStamp", "elapsed", "label", "responseCode",
-            "responseMessage", "threadName", "dataType", "success",
-            "failureMessage", "bytes", "sentBytes", "grpThreads",
-            "allThreads", "Latency", "IdleTime", "Connect"]
+        self.csv_headers = [
+            "timeStamp",
+            "elapsed",
+            "label",
+            "responseCode",
+            "responseMessage",
+            "threadName",
+            "dataType",
+            "success",
+            "failureMessage",
+            "bytes",
+            "sentBytes",
+            "grpThreads",
+            "allThreads",
+            "Latency",
+            "IdleTime",
+            "Connect",
+        ]
         self.results_file = self._create_results_log()
         self.user_count = 0
         self.user_name = ""
@@ -71,10 +84,9 @@ class JmeterListener:
         self.env = environment
         user_classes = self.env.user_classes
         self.runner = self.env.runner
-        for user_class in user_classes:
-            user_class.on_start = self._log_onstart(user_class.on_start)
 
         if environment.web_ui:
+
             @environment.web_ui.app.route("/csv_results.csv")
             def csv_results_page():
                 """
@@ -96,9 +108,7 @@ class JmeterListener:
         creates a results log
         """
         results_file = open(self.results_filename, "w")
-        results_file.write(
-            self.field_delimiter.join(self.csv_headers) + self.row_delimiter
-        )
+        results_file.write(self.field_delimiter.join(self.csv_headers) + self.row_delimiter)
         results_file.close()
         return results_file
 
@@ -107,9 +117,7 @@ class JmeterListener:
         flushes results to log file
         """
         self.results_file = open(self.results_filename, "a")
-        self.results_file.write(
-            self.row_delimiter.join(self.csv_results) + self.row_delimiter
-        )
+        self.results_file.write(self.row_delimiter.join(self.csv_results) + self.row_delimiter)
         self.results_file.close()
         self.csv_results = []
 
@@ -118,18 +126,14 @@ class JmeterListener:
         performs final write to log file when test complete
         """
         self.results_file = open(self.results_filename, "a")
-        self.results_file.write(
-            self.row_delimiter.join(self.csv_results) + self.row_delimiter
-        )
+        self.results_file.write(self.row_delimiter.join(self.csv_results) + self.row_delimiter)
         self.results_file.close()
 
-    def _log_onstart(self, func):
-        def wrapper(wrappedself, **kwargs):
-            self._add_user()
-            self._set_user_name(wrappedself.__class__.__name__)
-            if self.auto_log:
-                wrappedself.client.request = self._add_record(wrappedself.client.request)
-        return wrapper
+    def start_logging(self, user):
+        self._add_user()
+        self._set_user_name(user.__class__.__name__)
+        if self.auto_log:
+            user.client.request = self._add_record(user.client.request)
 
     def _add_record(self, func):
         def wrapper(wrappedself, *args, **kwargs):
@@ -140,48 +144,107 @@ class JmeterListener:
             name = kwargs["name"] if "name" in kwargs else "unknown"
             response = func(wrappedself, *args, **kwargs)
             if hasattr(response, "_manual_result"):
-                logging.info("Found manually controlled result in '" + name + "' Change to manual logging to set pass/fail correctly")
-            try:
-                status_code = str(response.status_code)
-                thread_name = self.user_name
-                elapsed_time = str(round(response.elapsed.microseconds / 1000))
-                response_time = elapsed_time
-                response_length = str(len(response.text))
-                if response.ok:
-                    response_message = "OK"
-                    success = "true"
-                    exception = ""
-                else:
-                    response_message = "KO"
-                    success = "false"
-                    exception = response.reason
+                logging.info(
+                    "Found manually controlled result in '"
+                    + name
+                    + "' Change to manual logging to set pass/fail correctly"
+                )
+            # try:
+            status_code = str(response.status_code)
+            thread_name = self.user_name
+            elapsed_time = str(round(response.elapsed.microseconds / 1000))
+            response_time = elapsed_time
+            response_length = str(len(response.text))
+            if response.ok:
+                response_message = "OK"
+                success = "true"
+                exception = ""
+            else:
+                response_message = "KO"
+                success = "false"
+                exception = str(response.reason)
 
-                binary_codecs = ["base64", "base_64", "bz2", "hex", "quopri", "quotedprintable", "quoted_printable", "uu", "zip", "zlib"]
-                data_type = "binary" if response.encoding in binary_codecs else "text"
-                bytes_sent = "0"
-                group_threads = str(self.user_count)
-                all_threads = str(self.runner.user_count)
-                latency = "0"
-                idle_time = "0"
-                connect = "0"
+            binary_codecs = [
+                "base64",
+                "base_64",
+                "bz2",
+                "hex",
+                "quopri",
+                "quotedprintable",
+                "quoted_printable",
+                "uu",
+                "zip",
+                "zlib",
+            ]
+            data_type = "binary" if response.encoding in binary_codecs else "text"
+            bytes_sent = "0"
+            group_threads = str(self.user_count)
+            all_threads = str(self.runner.user_count)
+            latency = "0"
+            idle_time = "0"
+            connect = "0"
 
-                self.add_result(timestamp, response_time, name, status_code,
-                    response_message, thread_name, data_type, success,
-                    exception, response_length, bytes_sent, group_threads,
-                    all_threads, latency, idle_time, connect)
-            except:
-                logging.error("failed to log result")
+            self.add_result(
+                timestamp,
+                response_time,
+                name,
+                status_code,
+                response_message,
+                thread_name,
+                data_type,
+                success,
+                exception,
+                response_length,
+                bytes_sent,
+                group_threads,
+                all_threads,
+                latency,
+                idle_time,
+                connect,
+            )
+            # except:
+            #    logging.error("failed to log result")
             return response
+
         return wrapper
 
-    def add_result(self, timestamp, response_time, name, status_code,
-                    response_message, thread_name, data_type, success,
-                    exception, response_length, bytes_sent, group_threads,
-                    all_threads, latency, idle_time, connect):
-        row = [timestamp, response_time, name, status_code,
-                    response_message, thread_name, data_type, success,
-                    exception, response_length, bytes_sent, group_threads,
-                    all_threads, latency, idle_time, connect]
+    def add_result(
+            self,
+            timestamp,
+            response_time,
+            name,
+            status_code,
+            response_message,
+            thread_name,
+            data_type,
+            success,
+            exception,
+            response_length,
+            bytes_sent,
+            group_threads,
+            all_threads,
+            latency,
+            idle_time,
+            connect,
+    ):
+        row = [
+            timestamp,
+            response_time,
+            name,
+            status_code,
+            response_message,
+            thread_name,
+            data_type,
+            success,
+            exception,
+            response_length,
+            bytes_sent,
+            group_threads,
+            all_threads,
+            latency,
+            idle_time,
+            connect,
+        ]
         if len(self.csv_results) >= self.flush_size:
             self._flush_to_log()
         self.csv_results.append(self.field_delimiter.join(row))
