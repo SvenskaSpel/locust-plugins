@@ -184,8 +184,8 @@ class TimescaleListener:  # pylint: disable=R0902
             sample["response_length"] = None
 
         if exception:
-            if exception is CatchResponseError:
-                sample["exception"] = repr(exception)
+            if isinstance(exception, CatchResponseError):
+                sample["exception"] = str(exception)
             else:
                 sample["exception"] = repr(exception)
         else:
@@ -280,10 +280,12 @@ class PrintListener:  # pylint: disable=R0902
     Print every response (useful when debugging a single locust)
     """
 
-    def __init__(self, env: locust.env.Environment):
+    def __init__(self, env: locust.env.Environment, include_length=False, include_time=False):
         env.events.request_success.add_listener(self.request_success)
         env.events.request_failure.add_listener(self.request_failure)
-        print("\ntype\tname\ttime\tlength\tsuccess\texception")
+        self.include_length = "length\t" if include_length else ""
+        self.include_time = "time                    \t" if include_time else ""
+        print(f"\n{self.include_time}type\t{'name'.ljust(30)}\ttime\t{self.include_length}success\texception")
 
     # @self._events.request_success.add_listener
     def request_success(self, request_type, name, response_time, response_length, **_kwargs):
@@ -294,7 +296,14 @@ class PrintListener:  # pylint: disable=R0902
         self._log_request(request_type, name, response_time, response_length, False, exception)
 
     def _log_request(self, request_type, name, response_time, response_length, success, exception):
-        print(f"{request_type}\t{name}\t{round(response_time)}\t{response_length}\t{success}\t{exception}")
+        e = "" if exception is None else exception
+        n = name.ljust(30)
+        if self.include_time:
+            print(datetime.now(), end="\t")
+        if self.include_length:
+            print(f"{request_type}\t{n}\t{round(response_time)}\t{response_length}\t{success}\t{e}")
+        else:
+            print(f"{request_type}\t{n}\t{round(response_time)}\t{success}\t{e}")
 
 
 class RescheduleTaskOnFailListener:

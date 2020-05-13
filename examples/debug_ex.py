@@ -12,4 +12,4 @@ class MyUser(HttpUser):
 # when executed as a script, run a single locust in a way suitable for the vs code debugger
 if __name__ == "__main__":
     MyUser.host = "http://example.com"
-    run_single_user(MyUser)
+    run_single_user(MyUser, include_time=True)

@@ -40,10 +40,10 @@ def _gevent_debugger_patch():
         sys.modules.update(saved_modules)
 
 
-def run_single_user(locust_class, env=None, catch_exceptions=False):
+def run_single_user(locust_class, env=None, catch_exceptions=False, include_length=False, include_time=False):
     _gevent_debugger_patch()
     if env is None:
         env = Environment()
-        PrintListener(env)
+        PrintListener(env, include_length=include_length, include_time=include_time)
     locust_class._catch_exceptions = catch_exceptions
     locust_class(env).run()
