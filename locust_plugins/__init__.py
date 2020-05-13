@@ -1,4 +1,4 @@
-__version__ = "1.0.0"
+__version__ = "1.0.3"
 
 # Monkey patch User while waiting for everyone else to see the light:
 # https://github.com/locustio/locust/issues/1308

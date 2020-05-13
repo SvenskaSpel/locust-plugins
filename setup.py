@@ -37,7 +37,7 @@ setup(
     package_data={"locust_plugins": ["py.typed"]},
     zip_safe=False,
     install_requires=[
-        "locustio>=1.0b1",
+        "locustio>=1.0b2",
         "psycogreen",
         "psycopg2-binary",
         "websocket-client",
