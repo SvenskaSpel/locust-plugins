@@ -136,9 +136,9 @@ class JmeterListener:
             idle_time,
             connect,
         ]
+        self.csv_results.append(self.field_delimiter.join(row))
         if len(self.csv_results) >= self.flush_size:
             self._flush_to_log()
-        self.csv_results.append(self.field_delimiter.join(row))
 
     def _request_success(self, request_type, name, response_time, response_length, **kw):
         self.add_result("true", request_type, name, response_time, response_length, "", **kw)
