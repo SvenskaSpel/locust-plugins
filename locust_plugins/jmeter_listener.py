@@ -6,7 +6,6 @@ and thereby allow JMeter users with existing reporting solutions to transition m
 from datetime import datetime
 from time import time
 from locust import events
-import logging
 
 
 class JmeterListener:
@@ -16,26 +15,14 @@ class JmeterListener:
     different formats can be chosen in initialisation
     (field_delimiter row_delimiter and timestamp_format)
     and the number of results to send to a log file at a time (flush_size)
-    by default, it will automatically log results (auto_log=True)
-    if you want to manually override the pass/fail outcome and write a custom-made result
-    set auto_log to false in initialisation and for each task and call add_result
-    with the values you want to record
-    Manual logging has to be used FastHttpUser
     """
 
     # holds results until processed
     csv_results = []
 
     def __init__(
-            self,
-            field_delimiter=",",
-            row_delimiter="\n",
-            timestamp_format="%Y-%m-%d %H:%M:%S",
-            flush_size=100,
-            auto_log=True,
+            self, field_delimiter=",", row_delimiter="\n", timestamp_format="%Y-%m-%d %H:%M:%S", flush_size=100,
     ):
-        # determine whether to auto log requests or do it manually
-        self.auto_log = auto_log
         # default JMeter field and row delimiters
         self.field_delimiter = field_delimiter
         self.row_delimiter = row_delimiter
@@ -73,10 +60,11 @@ class JmeterListener:
         self.user_name = ""
         events.quitting.add_listener(self._write_final_log)
         events.init.add_listener(self.on_locust_init)
+        events.request_success.add_listener(self._request_success)
+        events.request_failure.add_listener(self._request_failure)
 
     def on_locust_init(self, environment, **kwargs):
         self.env = environment
-        user_classes = self.env.user_classes
         self.runner = self.env.runner
 
         if environment.web_ui:
@@ -124,115 +112,38 @@ class JmeterListener:
     def start_logging(self, user):
         self.user_count += 1
         self.user_name = user.__class__.__name__
-        if self.auto_log:
-            user.client.request = self._add_record(user.client.request)
 
-    def _add_record(self, func):
-        def wrapper(wrappedself, *args, **kwargs):
-            """
-            adds a result
-            """
-            timestamp = datetime.fromtimestamp(time()).strftime(self.timestamp_format)
-            name = kwargs["name"] if "name" in kwargs else "unknown"
-            response = func(wrappedself, *args, **kwargs)
-            if hasattr(response, "_manual_result"):
-                logging.info(
-                    "Found manually controlled result in '"
-                    + name
-                    + "' Change to manual logging to set pass/fail correctly"
-                )
-            try:
-                status_code = str(response.status_code)
-                thread_name = self.user_name
-                elapsed_time = str(round(response.elapsed.microseconds / 1000))
-                response_time = elapsed_time
-                response_length = str(len(response.text))
-                if response.ok:
-                    response_message = "OK"
-                    success = "true"
-                    exception = ""
-                else:
-                    response_message = "KO"
-                    success = "false"
-                    exception = str(response.reason)
+    def add_result(self, success, request_type, name, response_time, response_length, exception, **kw):
+        """
+        adds a result
+        """
+        timestamp = datetime.fromtimestamp(time()).strftime(self.timestamp_format)
+        response_message = "OK" if success == "true" else "KO"
+        # check to see if the additional fields have been populated. If not, set to a default value
+        status_code = kw["status_code"] if "status_code" in kw else "0"
+        thread_name = self.user_name
+        data_type = kw["data_type"] if "data_type" in kw else "unknown"
+        bytes_sent = kw["bytes_sent"] if "bytes_sent" in kw else "0"
+        group_threads = str(self.user_count)
+        all_threads = str(self.runner.user_count)
+        latency = kw["latency"] if "latency" in kw else "0"
+        idle_time = kw["idle_time"] if "idle_time" in kw else "0"
+        connect = kw["connect"] if "connect" in kw else "0"
 
-                binary_codecs = [
-                    "base64",
-                    "base_64",
-                    "bz2",
-                    "hex",
-                    "quopri",
-                    "quotedprintable",
-                    "quoted_printable",
-                    "uu",
-                    "zip",
-                    "zlib",
-                ]
-                data_type = "binary" if response.encoding in binary_codecs else "text"
-                bytes_sent = "0"
-                group_threads = str(self.user_count)
-                all_threads = str(self.runner.user_count)
-                latency = "0"
-                idle_time = "0"
-                connect = "0"
-
-                self.add_result(
-                    timestamp,
-                    response_time,
-                    name,
-                    status_code,
-                    response_message,
-                    thread_name,
-                    data_type,
-                    success,
-                    exception,
-                    response_length,
-                    bytes_sent,
-                    group_threads,
-                    all_threads,
-                    latency,
-                    idle_time,
-                    connect,
-                )
-            except:
-                logging.error("failed to log result")
-            return response
-
-        return wrapper
-
-    def add_result(
-            self,
-            timestamp,
-            response_time,
-            name,
-            status_code,
-            response_message,
-            thread_name,
-            data_type,
-            success,
-            exception,
-            response_length,
-            bytes_sent,
-            group_threads,
-            all_threads,
-            latency,
-            idle_time,
-            connect,
-    ):
         row = [
             timestamp,
-            response_time,
+            str(round(response_time)),
             name,
-            status_code,
+            str(status_code),
             response_message,
             thread_name,
             data_type,
             success,
             exception,
-            response_length,
+            str(response_length),
             bytes_sent,
-            group_threads,
-            all_threads,
+            str(group_threads),
+            str(all_threads),
             latency,
             idle_time,
             connect,
@@ -240,3 +151,15 @@ class JmeterListener:
         if len(self.csv_results) >= self.flush_size:
             self._flush_to_log()
         self.csv_results.append(self.field_delimiter.join(row))
+
+    def _request_success(self, request_type, name, response_time, response_length, **kw):
+        """
+        handler for successful request event
+        """
+        self.add_result("true", request_type, name, response_time, response_length, "", **kw)
+
+    def _request_failure(self, request_type, name, response_time, response_length, exception, **kw):
+        """
+        handler for failed request event
+        """
+        self.add_result("false", request_type, name, response_time, response_length, str(exception), **kw)
