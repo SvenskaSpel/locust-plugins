@@ -86,26 +86,17 @@ class JmeterListener:
                 return response
 
     def _create_results_log(self):
-        """
-        creates a results log
-        """
         results_file = open(self.results_filename, "w")
         results_file.write(self.field_delimiter.join(self.csv_headers) + self.row_delimiter)
         results_file.flush()
         return results_file
 
     def _flush_to_log(self):
-        """
-        flushes results to log file
-        """
         self.results_file.write(self.row_delimiter.join(self.csv_results) + self.row_delimiter)
         self.results_file.flush()
         self.csv_results = []
 
     def _write_final_log(self):
-        """
-        performs final write to log file when test complete
-        """
         self.results_file.write(self.row_delimiter.join(self.csv_results) + self.row_delimiter)
         self.results_file.close()
 
@@ -114,9 +105,6 @@ class JmeterListener:
         self.user_name = user.__class__.__name__
 
     def add_result(self, success, request_type, name, response_time, response_length, exception, **kw):
-        """
-        adds a result
-        """
         timestamp = datetime.fromtimestamp(time()).strftime(self.timestamp_format)
         response_message = "OK" if success == "true" else "KO"
         # check to see if the additional fields have been populated. If not, set to a default value
@@ -153,13 +141,7 @@ class JmeterListener:
         self.csv_results.append(self.field_delimiter.join(row))
 
     def _request_success(self, request_type, name, response_time, response_length, **kw):
-        """
-        handler for successful request event
-        """
         self.add_result("true", request_type, name, response_time, response_length, "", **kw)
 
     def _request_failure(self, request_type, name, response_time, response_length, exception, **kw):
-        """
-        handler for failed request event
-        """
         self.add_result("false", request_type, name, response_time, response_length, str(exception), **kw)
