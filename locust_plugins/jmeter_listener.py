@@ -7,7 +7,6 @@ from datetime import datetime
 from time import time
 from locust import events
 
-
 class JmeterListener:
     """
     create an intance of the listener at the start of a test
@@ -21,8 +20,11 @@ class JmeterListener:
     csv_results = []
 
     def __init__(
-            self, field_delimiter=",", row_delimiter="\n", timestamp_format="%Y-%m-%d %H:%M:%S", flush_size=100,
+            self, env, testplan="testplanname", field_delimiter=",", row_delimiter="\n", timestamp_format="%Y-%m-%d %H:%M:%S", flush_size=100,
     ):
+        self.env = env
+        self.runner = self.env.runner
+        self.testplan = testplan
         # default JMeter field and row delimiters
         self.field_delimiter = field_delimiter
         self.row_delimiter = row_delimiter
@@ -57,26 +59,21 @@ class JmeterListener:
         ]
         self.results_file = self._create_results_log()
         self.user_count = 0
-        self.user_name = ""
+        self.testplan = ""
         events.quitting.add_listener(self._write_final_log)
-        events.init.add_listener(self.on_locust_init)
+        #events.init.add_listener(self.on_locust_init)
         events.request_success.add_listener(self._request_success)
         events.request_failure.add_listener(self._request_failure)
-
-    def on_locust_init(self, environment, **kwargs):
-        self.env = environment
-        self.runner = self.env.runner
-
-        if environment.web_ui:
-
-            @environment.web_ui.app.route("/csv_results.csv")
+    #def on_locust_init(self, env, testplan="testplan", **kwargs):
+        if self.env.web_ui:
+            @self.env.web_ui.app.route("/csv_results.csv")
             def csv_results_page():
                 """
                 a different way of obtaining results rather than writing to disk
                 to use it getting all results back, set the flush_size to
                 a high enough value that it will not flush during your test
                 """
-                response = environment.web_ui.app.response_class(
+                response = self.env.web_ui.app.response_class(
                     response=self.field_delimiter.join(self.csv_headers)
                     + self.row_delimiter
                     + self.row_delimiter.join(self.csv_results),
@@ -100,19 +97,15 @@ class JmeterListener:
         self.results_file.write(self.row_delimiter.join(self.csv_results) + self.row_delimiter)
         self.results_file.close()
 
-    def start_logging(self, user):
-        self.user_count += 1
-        self.user_name = user.__class__.__name__
-
     def add_result(self, success, request_type, name, response_time, response_length, exception, **kw):
         timestamp = datetime.fromtimestamp(time()).strftime(self.timestamp_format)
         response_message = "OK" if success == "true" else "KO"
         # check to see if the additional fields have been populated. If not, set to a default value
         status_code = kw["status_code"] if "status_code" in kw else "0"
-        thread_name = self.user_name
+        thread_name = self.testplan
         data_type = kw["data_type"] if "data_type" in kw else "unknown"
         bytes_sent = kw["bytes_sent"] if "bytes_sent" in kw else "0"
-        group_threads = str(self.user_count)
+        group_threads = str(self.runner.user_count)
         all_threads = str(self.runner.user_count)
         latency = kw["latency"] if "latency" in kw else "0"
         idle_time = kw["idle_time"] if "idle_time" in kw else "0"

@@ -1,4 +1,4 @@
-from locust import HttpUser, SequentialTaskSet, task, between
+from locust import HttpUser, SequentialTaskSet, task, between, events
 from locust_plugins.jmeter_listener import JmeterListener
 
 import json, random, string
@@ -6,10 +6,6 @@ import json, random, string
 class DemoBlazeUser(HttpUser):
     host = "https://www.demoblaze.com"
     wait_time = between(2, 5)
-    jmeter_listener = JmeterListener()
-
-    def on_start(self):
-        self.jmeter_listener.start_logging(self)
 
     @task
     def home(self):
@@ -20,3 +16,7 @@ class DemoBlazeUser(HttpUser):
         response = self.client.get("/config.json", name="02 /config.json")
         response_json = json.loads(response.text)
         self.api_host = response_json["API_URL"]
+
+@events.init.add_listener
+def on_locust_init(environment, **_kwargs):
+    JmeterListener(env=environment, testplan="examplePlan")
