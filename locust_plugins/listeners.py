@@ -133,7 +133,7 @@ class TimescaleListener:  # pylint: disable=R0902
             with self._user_conn.cursor() as cur:
                 cur.execute(
                     """INSERT INTO user_count(time, run_id, testplan, user_count) VALUES (%s, %s, %s, %s)""",
-                    (datetime.now(timezone.utc), self._run_id, self._testplan, self.env.runner.user_count,),
+                    (datetime.now(timezone.utc), self._run_id, self._testplan, self.env.runner.user_count),
                 )
         except psycopg2.Error as error:
             logging.error("Failed to write user count to Postgresql: " + repr(error))
