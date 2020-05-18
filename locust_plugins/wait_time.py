@@ -3,7 +3,7 @@ import time
 from locust.env import Environment
 from locust import events, runners
 from typing import Optional
-from locust.wait_time import constant_pacing
+from locust import constant_pacing
 
 runner: Optional[runners.LocustRunner] = None
 _last_run = 0.0
