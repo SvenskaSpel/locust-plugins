@@ -4,21 +4,16 @@ from locust.env import Environment
 from locust import events, runners
 from typing import Optional
 from locust import constant_pacing
+from locust.event import EventHook
+from typing import Any
 
-runner: Optional[runners.LocustRunner] = None
 _last_run = 0.0
 _warning_emitted = False
 _target_missed = False
 
 
-@events.init.add_listener
-def init(environment: Environment, **_kw):
-    global runner
-    runner = environment.runner  # type: ignore
-
-
 @events.quitting.add_listener
-def quitting(**_kw):
+def quitting(**_kwargs: Any):
     if _warning_emitted:
         print(
             "Failed to reach targeted number of iterations per second (at some point during the test). Probably caused by target system overload or too few clients"
@@ -30,8 +25,9 @@ def constant_ips(ips):
 
 
 def constant_total_ips(ips: float):
-    def func(_locust):
-        global _warning_emitted, _target_missed, _last_run, runner
+    def func(locust):
+        global _warning_emitted, _target_missed, _last_run
+        runner = locust.environment.runner
         if runner is None or runner.target_user_count is None:
             return 1 / ips
         current_time = time.time()
