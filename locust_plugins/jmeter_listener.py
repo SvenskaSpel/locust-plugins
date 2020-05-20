@@ -5,7 +5,7 @@ and thereby allow JMeter users with existing reporting solutions to transition m
 
 from datetime import datetime
 from time import time
-from locust import events
+
 
 class JmeterListener:
     """
@@ -20,7 +20,13 @@ class JmeterListener:
     csv_results = []
 
     def __init__(
-            self, env, testplan="testplanname", field_delimiter=",", row_delimiter="\n", timestamp_format="%Y-%m-%d %H:%M:%S", flush_size=100,
+        self,
+        env,
+        testplan="testplanname",
+        field_delimiter=",",
+        row_delimiter="\n",
+        timestamp_format="%Y-%m-%d %H:%M:%S",
+        flush_size=100,
     ):
         self.env = env
         self.runner = self.env.runner
@@ -60,14 +66,14 @@ class JmeterListener:
         self.results_file = self._create_results_log()
         self.user_count = 0
         self.testplan = ""
+        events = self.env.events
         events.quitting.add_listener(self._write_final_log)
-        #events.init.add_listener(self.on_locust_init)
         events.request_success.add_listener(self._request_success)
         events.request_failure.add_listener(self._request_failure)
-    #def on_locust_init(self, env, testplan="testplan", **kwargs):
         if self.env.web_ui:
+
             @self.env.web_ui.app.route("/csv_results.csv")
-            def csv_results_page():
+            def csv_results_page():  # pylint: disable=unused-variable
                 """
                 a different way of obtaining results rather than writing to disk
                 to use it getting all results back, set the flush_size to
@@ -97,7 +103,7 @@ class JmeterListener:
         self.results_file.write(self.row_delimiter.join(self.csv_results) + self.row_delimiter)
         self.results_file.close()
 
-    def add_result(self, success, request_type, name, response_time, response_length, exception, **kw):
+    def add_result(self, success, _request_type, name, response_time, response_length, exception, **kw):
         timestamp = datetime.fromtimestamp(time()).strftime(self.timestamp_format)
         response_message = "OK" if success == "true" else "KO"
         # check to see if the additional fields have been populated. If not, set to a default value
