@@ -12,4 +12,4 @@ class MyHttpUser(HttpUser):
 
 @events.init.add_listener
 def on_locust_init(environment, **_kwargs):
-    TimescaleListener(env=environment, testplan="racing", target_env="myTestEnv")
+    TimescaleListener(env=environment, testplan="timescale_listener_ex", target_env="myTestEnv")

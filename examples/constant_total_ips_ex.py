@@ -14,7 +14,7 @@ class MyUser(HttpUser):
 
 @events.init.add_listener
 def on_locust_init(environment, **_kwargs):
-    TimescaleListener(env=environment, testplan="racing", target_env="myTestEnv")
+    TimescaleListener(env=environment, testplan="constant_total_ips", target_env="myTestEnv")
 
 
 if __name__ == "__main__":
