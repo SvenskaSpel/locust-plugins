@@ -40,7 +40,9 @@ class TimescaleListener:  # pylint: disable=R0902
     """
     Timescale logs locust samples/events to a Postgres Timescale database.
     It relies on the standard postgres env vars (like PGHOST, PGPORT etc).
-    You need to set up a timescale table first, as described in listeners_timescale_table.sql
+    You need to set up a timescale table first, as described in listeners_timescale_table.sql 
+    Follow to intructions here, if you create a new timescaleDB - https://docs.timescale.com/latest/getting-started/setup
+    And check tables triggers after restoring DB from listeners_timescale_table.sql to prevent erros for INSERT queries - https://github.com/timescale/timescaledb/issues/1381
     To visualize the data, use grafana and this dashboard: https://grafana.com/grafana/dashboards/10878
     Timescale will automatically output a link to your dashboard using the env var LOCUST_GRAFANA_URL
     (e.g. export LOCUST_GRAFANA_URL=https://my.grafana.host.com/d/qjIIww4Zz/locust?orgId=1)
