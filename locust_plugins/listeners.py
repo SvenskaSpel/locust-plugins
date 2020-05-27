@@ -21,8 +21,6 @@ import subprocess
 import locust.env
 from typing import List
 
-GRAFANA_URL = os.environ["LOCUST_GRAFANA_URL"]
-
 
 def create_dbconn():
     try:
@@ -47,6 +45,8 @@ class TimescaleListener:  # pylint: disable=R0902
     Timescale will automatically output a link to your dashboard using the env var LOCUST_GRAFANA_URL
     (e.g. export LOCUST_GRAFANA_URL=https://my.grafana.host.com/d/qjIIww4Zz/locust?orgId=1)
     """
+
+    GRAFANA_URL = os.environ["LOCUST_GRAFANA_URL"]
 
     def __init__(
         self,
@@ -287,7 +287,7 @@ class PrintListener:  # pylint: disable=R0902
         env.events.request_failure.add_listener(self.request_failure)
         self.include_length = "length\t" if include_length else ""
         self.include_time = "time                    \t" if include_time else ""
-        print(f"\n{self.include_time}type\t{'name'.ljust(30)}\ttime\t{self.include_length}success\texception")
+        print(f"\n{self.include_time}type\t{'name'.ljust(40)}\ttime\t{self.include_length}exception")
 
     # @self._events.request_success.add_listener
     def request_success(self, request_type, name, response_time, response_length, **_kwargs):
@@ -298,14 +298,18 @@ class PrintListener:  # pylint: disable=R0902
         self._log_request(request_type, name, response_time, response_length, False, exception)
 
     def _log_request(self, request_type, name, response_time, response_length, success, exception):
-        e = "" if exception is None else exception
+        e = "" if exception is None else str(exception)
+        if success:
+            errortext = e  # should be empty but who knows, maybe there is such a case...
+        else:
+            errortext = "Failed: " + e
         n = name.ljust(30)
         if self.include_time:
             print(datetime.now(), end="\t")
         if self.include_length:
-            print(f"{request_type}\t{n}\t{round(response_time)}\t{response_length}\t{success}\t{e}")
+            print(f"{request_type}\t{n.ljust(40)}\t{round(response_time)}\t{response_length}\t{errortext}")
         else:
-            print(f"{request_type}\t{n}\t{round(response_time)}\t{success}\t{e}")
+            print(f"{request_type}\t{n.ljust(40)}\t{round(response_time)}\t{errortext}")
 
 
 class RescheduleTaskOnFailListener:
