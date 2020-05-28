@@ -97,7 +97,7 @@ class TimescaleListener:  # pylint: disable=R0902
             self._run_id = datetime.now(timezone.utc)
         if not is_worker():
             logging.info(
-                f"Follow test run here: {GRAFANA_URL}&var-testplan={self._testplan}&from={int(self._run_id.timestamp()*1000)}&to=now"
+                f"Follow test run here: {TimescaleListener.GRAFANA_URL}&var-testplan={self._testplan}&from={int(self._run_id.timestamp()*1000)}&to=now"
             )
             self.log_start_testrun()
             self._user_count_logger = gevent.spawn(self._log_user_count)
@@ -264,7 +264,7 @@ class TimescaleListener:  # pylint: disable=R0902
                 + repr(error)
             )
         logging.info(
-            f"Report: {GRAFANA_URL}&var-testplan={self._testplan}&from={int(self._run_id.timestamp()*1000)}&to={int((end_time.timestamp()+1)*1000)}\n"
+            f"Report: {TimescaleListener.GRAFANA_URL}&var-testplan={self._testplan}&from={int(self._run_id.timestamp()*1000)}&to={int((end_time.timestamp()+1)*1000)}\n"
         )
 
     def exit(self):
