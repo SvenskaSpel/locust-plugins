@@ -18,6 +18,8 @@ class SocketIOUser(HttpUser):
     socket.io just happens to be my use case
     """
 
+    abstract = True
+
     def __init__(self, parent):
         super().__init__(parent)
         ws_host = re.sub(r"https*://", "", self.host)
@@ -103,6 +105,7 @@ class WebdriverUser(User):
     java -jar selenium-server-standalone-3.141.59.jar
     """
 
+    abstract = True
     # kill old webdriver browser instances
     subprocess.Popen(["killall", "chromedriver"])
     subprocess.Popen(["pkill", "-f", " --test-type=webdriver"])
