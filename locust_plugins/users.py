@@ -106,12 +106,16 @@ class WebdriverUser(User):
     """
 
     abstract = True
-    # kill old webdriver browser instances
-    subprocess.Popen(["killall", "chromedriver"])
-    subprocess.Popen(["pkill", "-f", " --test-type=webdriver"])
+    _first_instance = True
 
     def __init__(self, parent, headless=True):
         super().__init__(parent)
+        if WebdriverUser._first_instance:
+            WebdriverUser._first_instance = False
+            # kill old webdriver browser instances
+            subprocess.Popen(["killall", "chromedriver"])
+            subprocess.Popen(["pkill", "-f", " --test-type=webdriver"])
+
         chrome_options = Options()
         if headless:
             chrome_options.add_argument("--headless")

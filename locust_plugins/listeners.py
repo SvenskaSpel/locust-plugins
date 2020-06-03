@@ -46,8 +46,6 @@ class TimescaleListener:  # pylint: disable=R0902
     (e.g. export LOCUST_GRAFANA_URL=https://my.grafana.host.com/d/qjIIww4Zz/locust?orgId=1)
     """
 
-    GRAFANA_URL = os.environ["LOCUST_GRAFANA_URL"]
-
     def __init__(
         self,
         env: locust.env.Environment,
@@ -56,6 +54,7 @@ class TimescaleListener:  # pylint: disable=R0902
         profile_name: str = "",
         description: str = "",
     ):
+        self.grafana_url = os.environ["LOCUST_GRAFANA_URL"]
         self._conn = create_dbconn()
         self._user_conn = create_dbconn()
         self._testrun_conn = create_dbconn()
@@ -97,7 +96,7 @@ class TimescaleListener:  # pylint: disable=R0902
             self._run_id = datetime.now(timezone.utc)
         if not is_worker():
             logging.info(
-                f"Follow test run here: {TimescaleListener.GRAFANA_URL}&var-testplan={self._testplan}&from={int(self._run_id.timestamp()*1000)}&to=now"
+                f"Follow test run here: {self.grafana_url}&var-testplan={self._testplan}&from={int(self._run_id.timestamp()*1000)}&to=now"
             )
             self.log_start_testrun()
             self._user_count_logger = gevent.spawn(self._log_user_count)
@@ -264,7 +263,7 @@ class TimescaleListener:  # pylint: disable=R0902
                 + repr(error)
             )
         logging.info(
-            f"Report: {TimescaleListener.GRAFANA_URL}&var-testplan={self._testplan}&from={int(self._run_id.timestamp()*1000)}&to={int((end_time.timestamp()+1)*1000)}\n"
+            f"Report: {self.grafana_url}&var-testplan={self._testplan}&from={int(self._run_id.timestamp()*1000)}&to={int((end_time.timestamp()+1)*1000)}\n"
         )
 
     def exit(self):
