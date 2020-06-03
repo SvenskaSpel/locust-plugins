@@ -1,4 +1,4 @@
-from locust_plugins.embedded_resource_manager import HttpUserWithResources
+from locust_plugins.users import HttpUserWithResources
 from locust import task
 
 class TestUserWithResources(HttpUserWithResources):

@@ -1,54 +1,6 @@
-from locust import HttpUser
-from locust.contrib.fasthttp import FastHttpUser
 from lxml import html, etree
 import logging
 import re
-
-
-class HttpUserWithResources(HttpUser):
-    """
-    provides embedded resource management for HttpUser
-    """
-
-    abstract = True
-
-    include_resources_by_default=True
-    default_resource_filter=".*"
-    bundle_resource_stats=True
-    cache_resource_links=True
-
-    def __init__(self, *args):
-        super().__init__(*args)
-        EmbeddedResourceManager(
-            self,
-            self.include_resources_by_default,
-            self.default_resource_filter,
-            self.bundle_resource_stats,
-            self.cache_resource_links,
-        )
-
-
-class FastHttpUserWithResources(FastHttpUser):
-    """
-    provides embedded resource management for FastHttpUser
-    """
-
-    abstract = True
-
-    include_resources_by_default=True
-    default_resource_filter=".*"
-    bundle_resource_stats=True
-    cache_resource_links=True
-
-    def __init__(self, *args):
-        super().__init__(*args)
-        EmbeddedResourceManager(
-            self,
-            self.include_resources_by_default,
-            self.default_resource_filter,
-            self.bundle_resource_stats,
-            self.cache_resource_links,
-        )
 
 class EmbeddedResourceManager:
     """
