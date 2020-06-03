@@ -12,10 +12,10 @@ class HttpUserWithResources(HttpUser):
 
     abstract = True
 
-    include_resources_by_default = True
-    default_resource_filter = ".*"
-    bundle_resource_stats = True
-    cache_resource_links = True
+    include_resources_by_default=True
+    default_resource_filter=".*"
+    bundle_resource_stats=True
+    cache_resource_links=True
 
     def __init__(self, *args):
         super().__init__(*args)
@@ -35,10 +35,10 @@ class FastHttpUserWithResources(FastHttpUser):
 
     abstract = True
 
-    include_resources_by_default = True
-    default_resource_filter = ".*"
-    bundle_resource_stats = True
-    cache_resource_links = True
+    include_resources_by_default=True
+    default_resource_filter=".*"
+    bundle_resource_stats=True
+    cache_resource_links=True
 
     def __init__(self, *args):
         super().__init__(*args)
@@ -143,19 +143,7 @@ class EmbeddedResourceManager:
         return resources
 
     def _request(self, func):
-        def wrapper(*args, **kwargs):
-            # check if include_resources flag set
-            if "include_resources" in kwargs:
-                include_resources = kwargs["include_resources"]
-                del kwargs["include_resources"]
-            else:
-                include_resources = self.include_resources
-
-            if "resource_filter" in kwargs:
-                resource_filter = kwargs["resource_filter"]
-                del kwargs["resource_filter"]
-            else:
-                resource_filter = self.resource_filter_pattern
+        def wrapper(*args, include_resources=self.include_resources, resource_filter=self.resource_filter_pattern, **kwargs):
 
             response = func(*args, **kwargs)
 
