@@ -286,7 +286,7 @@ class PrintListener:  # pylint: disable=R0902
         env.events.request_failure.add_listener(self.request_failure)
         self.include_length = "length\t" if include_length else ""
         self.include_time = "time                    \t" if include_time else ""
-        print(f"\n{self.include_time}type\t{'name'.ljust(40)}\ttime\t{self.include_length}exception")
+        print(f"\n{self.include_time}type\t{'name'.ljust(40)}\tresponse time\t{self.include_length}exception")
 
     # @self._events.request_success.add_listener
     def request_success(self, request_type, name, response_time, response_length, **_kwargs):
