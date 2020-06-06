@@ -44,5 +44,6 @@ setup(
         "python-dateutil",
         "pymongo",
         "confluent-kafka",
+        "selenium",
     ],
 )
