@@ -8,3 +8,4 @@ src
 .eggs
 .metals
 .mypy_cache
+.tox
