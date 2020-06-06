@@ -1,10 +1,7 @@
 import logging
 import time
-from locust.env import Environment
 from locust import events, runners
-from typing import Optional
 from locust import constant_pacing
-from locust.event import EventHook
 from typing import Any
 
 _last_run = 0.0

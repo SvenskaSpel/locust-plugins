@@ -37,39 +37,38 @@ class SocketIOUser(HttpUser):
             if m is None:
                 # uh oh...
                 raise Exception(f"got no matches in {message}")
-            else:
-                code = m.group(1)
-                json_string = m.group(2)
-                if code == "0":
-                    name = "0 open"
-                elif code == "3":
-                    name = "3 heartbeat"
-                elif code == "40":
-                    name = "40 message ok"
-                elif code == "42":
-                    # this is rather specific to our use case. Some messages contain an originating timestamp,
-                    # and we use that to calculate the delay & report it as locust response time
-                    # see it as inspiration rather than something you just pick up and use
-                    obj = json.loads(json_string)
-                    name = f"{code} {obj[0]} apiUri: {obj[1]['apiUri']}"
-                    if obj[1]["value"] != "":
-                        description = obj[1]["value"]["draw"]["description"]
-                        description_match = description_regex.search(description)
-                        if description_match:
-                            sent_timestamp = int(description_match.group(1))
-                            current_timestamp = int(round(time.time() * 1000))
-                            response_time = current_timestamp - sent_timestamp
-                        else:
-                            # differentiate samples that have no timestamps from ones that do
-                            name += "_"
+            code = m.group(1)
+            json_string = m.group(2)
+            if code == "0":
+                name = "0 open"
+            elif code == "3":
+                name = "3 heartbeat"
+            elif code == "40":
+                name = "40 message ok"
+            elif code == "42":
+                # this is rather specific to our use case. Some messages contain an originating timestamp,
+                # and we use that to calculate the delay & report it as locust response time
+                # see it as inspiration rather than something you just pick up and use
+                obj = json.loads(json_string)
+                name = f"{code} {obj[0]} apiUri: {obj[1]['apiUri']}"
+                if obj[1]["value"] != "":
+                    description = obj[1]["value"]["draw"]["description"]
+                    description_match = description_regex.search(description)
+                    if description_match:
+                        sent_timestamp = int(description_match.group(1))
+                        current_timestamp = int(round(time.time() * 1000))
+                        response_time = current_timestamp - sent_timestamp
                     else:
-                        name += "_missingTimestamp"
+                        # differentiate samples that have no timestamps from ones that do
+                        name += "_"
                 else:
-                    print(f"Received unexpected message: {message}")
-                    continue
-                self.environment.events.request_success.fire(
-                    request_type="WSR", name=name, response_time=response_time, response_length=len(message)
-                )
+                    name += "_missingTimestamp"
+            else:
+                print(f"Received unexpected message: {message}")
+                continue
+            self.environment.events.request_success.fire(
+                request_type="WSR", name=name, response_time=response_time, response_length=len(message)
+            )
 
     def send(self, body):
         if body == "2":

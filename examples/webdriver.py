@@ -3,6 +3,8 @@
 # You need to start selenium server first.
 # Download it from https://www.seleniumhq.org/download/ and run it by executing:
 # java -jar selenium-server-standalone-3.141.59.jar
+
+# WARNING: THIS HASNT BEEN UPDATED FOR A WHILE AND MIGHT HAVE ISSUES WITH LOCUST 1.0
 from locust_plugins import run_single_user
 from locust_plugins.users import WebdriverUser
 
@@ -25,7 +27,7 @@ class UserBehaviour(TaskSet):
         self.client.delete_all_cookies()
 
         start_at = time.time()
-        self.client.get(self.locust.host)
+        self.client.get(self.user.host)
         try:
             self.client.find_element_by_css_selector(".btn-inverted").click()
         except NoSuchElementException:
@@ -53,7 +55,7 @@ class UserBehaviour(TaskSet):
         # typically you would release the customer only after its task has finished,
         # but in this case I dont care, and dont want to block another test run from using it
         # (particularly if this test crashes)
-        self.locust.environment.events.request_success.fire(
+        self.user.environment.events.request_success.fire(
             request_type="Selenium", name="Log in", response_time=(time.time() - start_at) * 1000, response_length=0
         )
         time.sleep(short_sleep * 2)
@@ -66,7 +68,7 @@ class MyWebdriverUser(WebdriverUser):
     host = f"https://spela.{os.environ['LOCUST_TEST_ENV']}.svenskaspel.se/"
 
     def __init__(self):
-        super().__init__(headless=(__name__ != "__main__"))
+        super().__init__(parent=None, headless=(__name__ != "__main__"))
 
 
 if __name__ == "__main__":

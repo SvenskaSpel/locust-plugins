@@ -36,4 +36,4 @@ class MongoReader:
                 {"$and": [{self.id_column: user[self.id_column]}, {"logged_in": 1}]}, {"$set": {"logged_in": 0}}
             )
         if releasessn is None:
-            raise Exception(f"Couldnt release lock for user in db. ")
+            raise Exception("Couldnt release lock for user in db. ")
