@@ -10,6 +10,9 @@ from locust import HttpUser, User
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
+from locust.contrib.fasthttp import FastHttpUser
+from locust_plugins.embedded_resource_manager import EmbeddedResourceManager
+
 
 class SocketIOUser(HttpUser):
     """
@@ -120,4 +123,49 @@ class WebdriverUser(User):
             chrome_options.add_argument("--headless")
         self.client = webdriver.Remote(
             command_executor="http://127.0.0.1:4444/wd/hub", desired_capabilities=chrome_options.to_capabilities()
+        )
+
+class HttpUserWithResources(HttpUser):
+    """
+    provides embedded resource management for HttpUser
+    """
+
+    abstract = True
+
+    include_resources_by_default=True
+    default_resource_filter=".*"
+    bundle_resource_stats=True
+    cache_resource_links=True
+
+    def __init__(self, *args):
+        super().__init__(*args)
+        EmbeddedResourceManager(
+            self,
+            self.include_resources_by_default,
+            self.default_resource_filter,
+            self.bundle_resource_stats,
+            self.cache_resource_links,
+        )
+
+
+class FastHttpUserWithResources(FastHttpUser):
+    """
+    provides embedded resource management for FastHttpUser
+    """
+
+    abstract = True
+
+    include_resources_by_default=True
+    default_resource_filter=".*"
+    bundle_resource_stats=True
+    cache_resource_links=True
+
+    def __init__(self, *args):
+        super().__init__(*args)
+        EmbeddedResourceManager(
+            self,
+            self.include_resources_by_default,
+            self.default_resource_filter,
+            self.bundle_resource_stats,
+            self.cache_resource_links,
         )
