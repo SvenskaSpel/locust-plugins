@@ -125,6 +125,7 @@ class WebdriverUser(User):
             command_executor="http://127.0.0.1:4444/wd/hub", desired_capabilities=chrome_options.to_capabilities()
         )
 
+
 class HttpUserWithResources(HttpUser):
     """
     provides embedded resource management for HttpUser
@@ -132,10 +133,10 @@ class HttpUserWithResources(HttpUser):
 
     abstract = True
 
-    include_resources_by_default=True
-    default_resource_filter=".*"
-    bundle_resource_stats=True
-    cache_resource_links=True
+    include_resources_by_default = True
+    default_resource_filter = ".*"
+    bundle_resource_stats = True
+    cache_resource_links = True
 
     def __init__(self, *args):
         super().__init__(*args)
@@ -155,10 +156,10 @@ class FastHttpUserWithResources(FastHttpUser):
 
     abstract = True
 
-    include_resources_by_default=True
-    default_resource_filter=".*"
-    bundle_resource_stats=True
-    cache_resource_links=True
+    include_resources_by_default = True
+    default_resource_filter = ".*"
+    bundle_resource_stats = True
+    cache_resource_links = True
 
     def __init__(self, *args):
         super().__init__(*args)
