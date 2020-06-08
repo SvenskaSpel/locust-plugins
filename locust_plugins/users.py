@@ -3,14 +3,15 @@ import logging
 import re
 import subprocess
 import time
-
 import gevent
 import websocket
+
 from locust import HttpUser, User
+from locust.contrib.fasthttp import FastHttpUser
+
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
-from locust.contrib.fasthttp import FastHttpUser
 from locust_plugins.embedded_resource_manager import EmbeddedResourceManager
 
 
