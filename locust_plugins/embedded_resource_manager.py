@@ -2,18 +2,14 @@ from lxml import html, etree
 import logging
 import re
 
+
 class EmbeddedResourceManager:
     """
     provides features for finding and managing resources embedded in html
     """
 
     def __init__(
-        self,
-        user,
-        include_resources_by_default,
-        default_resource_filter,
-        bundle_resource_stats,
-        cache_resource_links,
+        self, user, include_resources_by_default, default_resource_filter, bundle_resource_stats, cache_resource_links,
     ):
 
         # store resource links for requests
@@ -25,8 +21,7 @@ class EmbeddedResourceManager:
         self.include_resources = include_resources_by_default
         # for finding url links in style tags
         self.url_link_pattern = re.compile(
-            r".*URL\(\s*('|\")(.*)('|\")\s*\).*",
-            re.IGNORECASE | re.MULTILINE | re.DOTALL,
+            r".*URL\(\s*('|\")(.*)('|\")\s*\).*", re.IGNORECASE | re.MULTILINE | re.DOTALL,
         )
 
         # for finding if a link is partial or full
@@ -67,9 +62,7 @@ class EmbeddedResourceManager:
                 tree = html.fromstring(response_content)
                 # check for base tag - otherwise use host for partial urls
                 base_path_links = tree.xpath("//base/@href")
-                base_path = (
-                    base_path_links[0] if len(base_path_links) > 0 else self.host
-                )
+                base_path = base_path_links[0] if len(base_path_links) > 0 else self.host
                 # build resource list
                 for resource_path in self.resource_paths:
                     for resource in tree.xpath(resource_path):
@@ -95,7 +88,9 @@ class EmbeddedResourceManager:
         return resources
 
     def _request(self, func):
-        def wrapper(*args, include_resources=self.include_resources, resource_filter=self.resource_filter_pattern, **kwargs):
+        def wrapper(
+            *args, include_resources=self.include_resources, resource_filter=self.resource_filter_pattern, **kwargs
+        ):
 
             response = func(*args, **kwargs)
 
@@ -111,9 +106,7 @@ class EmbeddedResourceManager:
                         resource_name = name + "_resources"
                     else:
                         resource_name = resource
-                    self.client.request(
-                        "GET", resource, name=resource_name, include_resources=False
-                    )
+                    self.client.request("GET", resource, name=resource_name, include_resources=False)
             return response
 
         return wrapper

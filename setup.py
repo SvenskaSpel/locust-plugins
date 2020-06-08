@@ -45,5 +45,6 @@ setup(
         "pymongo",
         "confluent-kafka",
         "selenium",
+        "lxml",
     ],
 )
