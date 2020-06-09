@@ -10,12 +10,12 @@ Having this separate from "Locust core" allows the plugins to evolve faster (at 
 
 The plugins are grouped by type:
 * [listeners](locust_plugins/listeners.py) (request logging & graphing)
-* [users](locust_plugins/users.py) (new protocols like websockets & selenium/webdriver)
+* [users](locust_plugins/users.py) (new protocols like websockets, selenium/webdriver, http users that load html page resources)
 * readers (ways to get test data into your tests) - currently implemented [CSV](https://github.com/SvenskaSpel/locust-plugins/blob/master/locust_plugins/csvreader.py) and [MongoDB](https://github.com/SvenskaSpel/locust-plugins/blob/master/locust_plugins/mongoreader.py)
-* [tasksets](locust_plugins/tasksets.py) (support for RPS limiting, and maybe other task sets in the future)
-* [utils](locust_plugins/utils.py) (other stuff, like VS Code debugging support)
+* [wait time](locust_plugins/wait_time.py) (custom wait time functions)
+* [debug](locust_plugins/debug.py) (support for running a single user in the debugger)
 
-You can also have a look at the [example locustfiles](examples/) to learn how to use the plugins.
+Have a look at the [example locustfiles](examples/) to learn how to use the plugins.
 
 These plugins work well together with [locust-swarm](https://github.com/SvenskaSpel/locust-swarm)
 
