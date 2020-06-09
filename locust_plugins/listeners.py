@@ -232,7 +232,7 @@ class TimescaleListener:  # pylint: disable=R0902
             try:
                 self._events_conn.cursor().execute(
                     "INSERT INTO events (time, text) VALUES (%s, %s)",
-                    (end_time, f"{self._testplan} rampup complete, {user_count} locusts spawned"),
+                    (end_time, f"{self._testplan} rampup complete, {user_count} users spawned"),
                 )
             except psycopg2.Error as error:
                 logging.error(
