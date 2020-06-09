@@ -1,4 +1,5 @@
-# How to use VS Code debugger with Locust
+# Example of to use VS Code debugger with Locust.
+# Make sure you set "gevent": true in your launch.json
 from locust import task, HttpUser
 from locust.exception import StopUser
 from locust_plugins import run_single_user
