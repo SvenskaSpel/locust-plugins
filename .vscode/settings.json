@@ -7,7 +7,12 @@
         "**/locust_plugins.egg-info": true,
         "**/pip-wheel-metadata": true,
         "**/build": true,
-        "**/dist": true
+        "**/dist": true,
+        "**/src": true,
+        "**/.eggs": true,
+        "**/.metals": true,
+        "**/.mypy_cache": true,
+        "**/.tox": true
     },
     "python.linting.pylintEnabled": true
 }
