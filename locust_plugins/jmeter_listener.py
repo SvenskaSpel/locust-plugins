@@ -6,7 +6,6 @@ and thereby allow JMeter users with existing reporting solutions to transition m
 from datetime import datetime
 from time import time
 
-
 class JmeterListener:
     """
     create an intance of the listener at the start of a test
@@ -30,6 +29,7 @@ class JmeterListener:
     ):
         self.env = env
         self.runner = self.env.runner
+        self.client_type = type(self.runner).__name__
         self.testplan = testplan
         # default JMeter field and row delimiters
         self.field_delimiter = field_delimiter
@@ -40,9 +40,7 @@ class JmeterListener:
         self.flush_size = flush_size
         # results filename format
         self.results_timestamp_format = "%Y_%m_%d_%H_%M_%S"
-        self.results_filename = (
-            "results_" + datetime.fromtimestamp(time()).strftime(self.results_timestamp_format) + ".csv"
-        )
+        self.results_filename = (f'results_{datetime.fromtimestamp(time()).strftime(self.results_timestamp_format)}.csv')
 
         # fields set by default in jmeter
         self.csv_headers = [
@@ -63,15 +61,21 @@ class JmeterListener:
             "IdleTime",
             "Connect",
         ]
-        self.results_file = self._create_results_log()
+
         self.user_count = 0
         self.testplan = ""
         events = self.env.events
-        events.quitting.add_listener(self._write_final_log)
+        if self.client_type == "WorkerRunner":
+            events.report_to_master.add_listener(self._report_to_master)   
+        else:
+            self.results_file = self._create_results_log() 
+            events.quitting.add_listener(self._write_final_log)
+            events.worker_report.add_listener(self._worker_report)
+
         events.request_success.add_listener(self._request_success)
         events.request_failure.add_listener(self._request_failure)
-        if self.env.web_ui:
 
+        if self.env.web_ui:
             @self.env.web_ui.app.route("/csv_results.csv")
             def csv_results_page():  # pylint: disable=unused-variable
                 """
@@ -99,7 +103,7 @@ class JmeterListener:
         self.results_file.flush()
         self.csv_results = []
 
-    def _write_final_log(self):
+    def _write_final_log(self, **kwargs):
         self.results_file.write(self.row_delimiter.join(self.csv_results) + self.row_delimiter)
         self.results_file.close()
 
@@ -136,7 +140,7 @@ class JmeterListener:
             connect,
         ]
         self.csv_results.append(self.field_delimiter.join(row))
-        if len(self.csv_results) >= self.flush_size:
+        if len(self.csv_results) >= self.flush_size and self.client_type != "WorkerRunner":
             self._flush_to_log()
 
     def _request_success(self, request_type, name, response_time, response_length, **kw):
@@ -144,3 +148,12 @@ class JmeterListener:
 
     def _request_failure(self, request_type, name, response_time, response_length, exception, **kw):
         self.add_result("false", request_type, name, response_time, response_length, str(exception), **kw)
+
+    def _report_to_master(self,client_id, data):
+        data['csv_results'] = self.csv_results
+        self.csv_results = []
+        
+    def _worker_report(self,client_id,data,**kwargs):
+        self.csv_results += data['csv_results']
+        if len(self.csv_results) >= self.flush_size:
+            self._flush_to_log()
