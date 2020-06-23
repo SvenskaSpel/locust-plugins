@@ -154,10 +154,12 @@ class JmeterListener:
         self.add_result("false", request_type, name, response_time, response_length, str(exception), **kw)
 
     def _report_to_master(self, client_id, data):
+        client_id = client_id
         data["csv_results"] = self.csv_results
         self.csv_results = []
 
-    def _worker_report(self, client_id, data, **kwargs):
+    def _worker_report(self, client_id, data, **_kwargs):
+        client_id = client_id
         self.csv_results += data["csv_results"]
         if len(self.csv_results) >= self.flush_size:
             self._flush_to_log()
