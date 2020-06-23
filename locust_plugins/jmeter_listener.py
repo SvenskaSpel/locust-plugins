@@ -107,7 +107,7 @@ class JmeterListener:
         self.results_file.flush()
         self.csv_results = []
 
-    def _write_final_log(self, **kwargs):
+    def _write_final_log(self, **_kwargs):
         self.results_file.write(self.row_delimiter.join(self.csv_results) + self.row_delimiter)
         self.results_file.close()
 
