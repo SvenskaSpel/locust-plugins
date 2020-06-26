@@ -1,4 +1,4 @@
-from locust import HttpUser, task, between, SequentialTaskSet
+from locust import HttpUser, task, between, SequentialTaskSet, events
 from locust_plugins.transaction_manager import TransactionManager
 
         
@@ -11,10 +11,11 @@ class MakePurchase(SequentialTaskSet):
     
     def on_start(self):
         self.purchase_id = get_uuid()
+        self.tm = TransactionManager()
 
     @task
     def home(self):
-        self.startup = tm.start_transaction("startup")
+        self.tm.start_transaction("startup")
         self.client.get("/", name ="01 /")
 
     @task
@@ -22,11 +23,11 @@ class MakePurchase(SequentialTaskSet):
         response = self.client.get("/config.json", name="02 /config.json")
         response_json = json.loads(response.text)
         self.api_host = response_json["API_URL"]
-        tm.end_transaction(self.startup)
+        self.tm.end_transaction("startup")
 
     @task
     def get_item(self):
-        self.make_purchase = tm.start_transaction("make_purchase")
+        self.tm.start_transaction("make_purchase")
         response = self.client.get(self.api_host + "/entries", name="03 /entries")
         response_json = json.loads(response.text)
         self.id = response_json["Items"][0]["id"]
@@ -55,7 +56,7 @@ class MakePurchase(SequentialTaskSet):
     def post_cart(self):
         payload = '{"cookie":"user=' + self.user_cookie + '","flag":false}'
         response = self.client.post(self.api_host + "/viewcart", payload, headers={"Content-Type": "application/json"},  name="08 /viewcart")
-        tm.end_transaction(self.make_purchase)
+        self.tm.end_transaction("make_purchase")
 
     @task
     def delete_item(self):
@@ -74,7 +75,4 @@ def get_uuid():
     #return it in a 'uuid' format
     uuid = r_s[:8] + "-" + r_s[8:12] + "-" + r_s[12:16] + "-" + r_s[16:20] + "-" + r_s[20:32]
     return uuid
-
-
-tm = TransactionManager()
 
