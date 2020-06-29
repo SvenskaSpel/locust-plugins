@@ -3,9 +3,7 @@ import time
 from .wait_time import constant_ips, constant_total_ips
 from .debug import run_single_user
 from locust import User, constant
-from .checks import add_checks_to_arguments as __add_checks_to_arguments
-
-del __add_checks_to_arguments  # this was just imported for the side effects - yes this is a little strange, improvements are welcome :)
+from . import checks as _checks  # import this for the side-effects
 
 # Monkey patch User while waiting for everyone else to see the light:
 # https://github.com/locustio/locust/issues/1308
