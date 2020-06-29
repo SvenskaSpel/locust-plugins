@@ -14,6 +14,7 @@ The plugins are grouped by type:
 * readers (ways to get test data into your tests) - currently implemented [CSV](https://github.com/SvenskaSpel/locust-plugins/blob/master/locust_plugins/csvreader.py) and [MongoDB](https://github.com/SvenskaSpel/locust-plugins/blob/master/locust_plugins/mongoreader.py)
 * [wait time](locust_plugins/wait_time.py) (custom wait time functions)
 * [debug](locust_plugins/debug.py) (support for running a single user in the debugger)
+* [checks](locust_plugins/checks.py) (adds command line parameters to set locust exit code based on requests/s, error percentage and average response times)
 
 Have a look at the [example locustfiles](examples/) to learn how to use the plugins.
 
