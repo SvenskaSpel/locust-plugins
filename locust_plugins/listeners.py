@@ -151,10 +151,10 @@ class TimescaleListener:  # pylint: disable=R0902
         except psycopg2.Error as error:
             logging.error("Failed to write samples to Postgresql timescale database: " + repr(error))
 
-    def quitting(self):
+    def quitting(self, **_kwargs):
         self._finished = True
         atexit._clear()  # make sure we dont capture additional ctrl-c:s # pylint: disable=protected-access
-        self._background.join()
+        self._background.join(timeout=10)
         if not is_worker():
             self._user_count_logger.kill()
         self.exit()
@@ -286,7 +286,7 @@ class PrintListener:  # pylint: disable=R0902
         env.events.request_failure.add_listener(self.request_failure)
         self.include_length = "length\t" if include_length else ""
         self.include_time = "time                    \t" if include_time else ""
-        print(f"\n{self.include_time}type\t{'name'.ljust(40)}\tresponse time\t{self.include_length}exception")
+        print(f"\n{self.include_time}type\t{'name'.ljust(50)}\tresponse time\t{self.include_length}exception")
 
     # @self._events.request_success.add_listener
     def request_success(self, request_type, name, response_time, response_length, **_kwargs):
@@ -306,9 +306,9 @@ class PrintListener:  # pylint: disable=R0902
         if self.include_time:
             print(datetime.now(), end="\t")
         if self.include_length:
-            print(f"{request_type}\t{n.ljust(40)}\t{round(response_time)}\t{response_length}\t{errortext}")
+            print(f"{request_type}\t{n.ljust(50)}\t{round(response_time)}\t{response_length}\t{errortext}")
         else:
-            print(f"{request_type}\t{n.ljust(40)}\t{round(response_time)}\t{errortext}")
+            print(f"{request_type}\t{n.ljust(50)}\t{round(response_time)}\t{errortext}")
 
 
 class RescheduleTaskOnFailListener:
