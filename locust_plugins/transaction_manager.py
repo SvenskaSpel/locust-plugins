@@ -2,7 +2,7 @@ from locust import events
 from time import time
 from datetime import datetime
 import locust.stats
-
+from locust.runners import WorkerRunner
 
 class TransactionManager:
     """
@@ -36,8 +36,6 @@ class TransactionManager:
     def __init__(self):
         self.transaction_count = 0
         self.inprogress_transactions = {}
-        # results filename format
-        # fields set for file output
 
     @classmethod
     def _command_line_parser(cls, parser):
@@ -46,17 +44,12 @@ class TransactionManager:
             help="To log transactions in file rather than using the web ui, set to True",
             default=False,
         )
-        cls.is_not_worker = not parser.parse_args().worker
 
     def start_transaction(self, transaction_name):
         now = time()
         transaction = {}
         transaction["transaction_name"] = transaction_name
         transaction["start_time"] = now
-        transaction["end_time"] = None
-        transaction["duration"] = None
-        transaction["success"] = None
-        transaction["failure_message"] = None
         transaction["user_count"] = self.runner.user_count if self.runner else 0
         self.inprogress_transactions[transaction_name] = transaction
         return transaction_name
@@ -86,7 +79,11 @@ class TransactionManager:
 
         del self.inprogress_transactions[transaction_name]
 
-        if len(self.flat_transaction_list) >= self.flush_size and self.log_transactions_in_file and self.is_not_worker:
+        if (
+            len(self.flat_transaction_list) >= self.flush_size
+            and self.log_transactions_in_file
+            and not isinstance(self.env.runner, WorkerRunner)
+        ):
             self._flush_to_log()
 
     @classmethod
@@ -104,7 +101,7 @@ class TransactionManager:
 
     @classmethod
     def _write_final_log(cls, **_kwargs):
-        if cls.is_not_worker:
+        if not isinstance(cls.env.runner, WorkerRunner):
             if cls.log_transactions_in_file:
                 cls.results_file.write(cls.row_delimiter.join(cls.flat_transaction_list) + cls.row_delimiter)
                 cls.results_file.close()
@@ -119,7 +116,7 @@ class TransactionManager:
         cls.runner = runner
         # determine whether to output to file
         cls.log_transactions_in_file = cls.env.parsed_options.log_transactions_in_file
-        if cls.log_transactions_in_file and cls.is_not_worker:
+        if cls.log_transactions_in_file and not isinstance(cls.env.runner, WorkerRunner):
             cls.results_file = cls._create_results_log()
         if cls.env.web_ui:
             # this route available if a csv isn't being written to (--log_transactions_in_file=False)
@@ -219,7 +216,6 @@ class TransactionManager:
         data["completed_transactions"] = cls.completed_transactions
         cls.completed_transactions = {}
 
-    @classmethod
     def _worker_report(cls, data, **_kwargs):
         if "flat_transaction_list" in data:
             flat_transaction_list = data["flat_transaction_list"]
@@ -229,7 +225,6 @@ class TransactionManager:
                 if t not in cls.completed_transactions:
                     cls.completed_transactions[t] = []
                 cls.completed_transactions[t] += completed_transactions[t]
-
 
 events.init.add_listener(TransactionManager.on_locust_init)
 events.init_command_line_parser.add_listener(TransactionManager._command_line_parser)
