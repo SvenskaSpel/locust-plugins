@@ -37,14 +37,6 @@ class TransactionManager:
         self.transaction_count = 0
         self.inprogress_transactions = {}
 
-    @classmethod
-    def _command_line_parser(cls, parser):
-        parser.add_argument(
-            "--log_transactions_in_file",
-            help="To log transactions in file rather than using the web ui, set to True",
-            default=False,
-        )
-
     def start_transaction(self, transaction_name):
         now = time()
         transaction = {}
@@ -203,7 +195,7 @@ class TransactionManager:
             fields.append(str(round(sorted_durations[-1])))
             # content size is not relevant
             fields.append("")
-            # loop throug the other metrics set out in stats.py
+            # loop through the other metrics set out in stats.py
             for p in locust.stats.PERCENTILES_TO_REPORT:
                 fields.append(str(sorted_durations[int(p * len(sorted_durations)) - 1]))
             summary.append(cls.field_delimiter.join(fields))
@@ -216,6 +208,7 @@ class TransactionManager:
         data["completed_transactions"] = cls.completed_transactions
         cls.completed_transactions = {}
 
+    @classmethod
     def _worker_report(cls, data, **_kwargs):
         if "flat_transaction_list" in data:
             flat_transaction_list = data["flat_transaction_list"]
@@ -226,8 +219,26 @@ class TransactionManager:
                     cls.completed_transactions[t] = []
                 cls.completed_transactions[t] += completed_transactions[t]
 
-events.init.add_listener(TransactionManager.on_locust_init)
-events.init_command_line_parser.add_listener(TransactionManager._command_line_parser)
-events.worker_report.add_listener(TransactionManager._worker_report)
-events.report_to_master.add_listener(TransactionManager._report_to_master)
-events.test_stop.add_listener(TransactionManager._write_final_log)
+@events.init.add_listener
+def _add_init_listener_for_transaction_manager(environment, runner, **_kwargs):
+    TransactionManager.on_locust_init(environment, runner, **_kwargs)
+
+@events.init_command_line_parser.add_listener
+def _add_command_line_parser_for_log_transactions_in_file(parser):
+    parser.add_argument(
+        "--log_transactions_in_file",
+        help="To log transactions in file rather than using the web ui, set to True",
+        default=False,
+    )
+
+@events.worker_report.add_listener
+def add_worker_report_listener_for_transaction_manager(data, **_kwargs):
+    TransactionManager._worker_report(data, **_kwargs)
+
+@events.report_to_master.add_listener
+def add_report_to_master_listener_for_transaction_manager(data, **_kwargs):
+    TransactionManager._report_to_master(data, **_kwargs)
+
+@events.test_stop.add_listener
+def add_test_stop_listener_for_transaction_manager(**_kwargs):
+    TransactionManager._write_final_log(**_kwargs)
