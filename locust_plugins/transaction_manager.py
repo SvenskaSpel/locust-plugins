@@ -4,6 +4,7 @@ from datetime import datetime
 import locust.stats
 from locust.runners import WorkerRunner
 
+
 class TransactionManager:
     """
     Transaction Manager allows transactions spanning multiple tasks to be logged
@@ -79,6 +80,14 @@ class TransactionManager:
             self._flush_to_log()
 
     @classmethod
+    def _command_line_parser(cls, parser):
+        parser.add_argument(
+            "--log_transactions_in_file",
+            help="To log transactions in file rather than using the web ui, set to True",
+            default=False,
+        )
+
+    @classmethod
     def _create_results_log(cls):
         results_file = open(cls.transactions_filename, "w")
         results_file.write(cls.field_delimiter.join(cls.csv_headers) + cls.row_delimiter)
@@ -94,7 +103,7 @@ class TransactionManager:
     @classmethod
     def _write_final_log(cls, **_kwargs):
         if not isinstance(cls.env.runner, WorkerRunner):
-            if cls.log_transactions_in_file:
+            if cls.log_transactions_in_file and not cls.results_file.closed:
                 cls.results_file.write(cls.row_delimiter.join(cls.flat_transaction_list) + cls.row_delimiter)
                 cls.results_file.close()
                 # also write summary file in stats.py style
@@ -219,26 +228,9 @@ class TransactionManager:
                     cls.completed_transactions[t] = []
                 cls.completed_transactions[t] += completed_transactions[t]
 
-@events.init.add_listener
-def _add_init_listener_for_transaction_manager(environment, runner, **_kwargs):
-    TransactionManager.on_locust_init(environment, runner, **_kwargs)
 
-@events.init_command_line_parser.add_listener
-def _add_command_line_parser_for_log_transactions_in_file(parser):
-    parser.add_argument(
-        "--log_transactions_in_file",
-        help="To log transactions in file rather than using the web ui, set to True",
-        default=False,
-    )
-
-@events.worker_report.add_listener
-def add_worker_report_listener_for_transaction_manager(data, **_kwargs):
-    TransactionManager._worker_report(data, **_kwargs)
-
-@events.report_to_master.add_listener
-def add_report_to_master_listener_for_transaction_manager(data, **_kwargs):
-    TransactionManager._report_to_master(data, **_kwargs)
-
-@events.test_stop.add_listener
-def add_test_stop_listener_for_transaction_manager(**_kwargs):
-    TransactionManager._write_final_log(**_kwargs)
+events.init.add_listener(TransactionManager.on_locust_init)
+events.init_command_line_parser.add_listener(TransactionManager._command_line_parser)
+events.worker_report.add_listener(TransactionManager._worker_report)
+events.report_to_master.add_listener(TransactionManager._report_to_master)
+events.test_stop.add_listener(TransactionManager._write_final_log)
