@@ -111,7 +111,16 @@ class TimescaleListener:  # pylint: disable=R0902
 
     def _log_user_count(self):
         while True:
-            self.write_user_count()
+            if self.env.runner is None:
+                return  # there is no runner, so nothing to log...
+            try:
+                with self._user_conn.cursor() as cur:
+                    cur.execute(
+                        """INSERT INTO user_count(time, run_id, testplan, user_count) VALUES (%s, %s, %s, %s)""",
+                        (datetime.now(timezone.utc), self._run_id, self._testplan, self.env.runner.user_count),
+                    )
+            except psycopg2.Error as error:
+                logging.error("Failed to write user count to Postgresql: " + repr(error))
             gevent.sleep(2.0)
 
     def _run(self):
@@ -126,18 +135,6 @@ class TimescaleListener:  # pylint: disable=R0902
                 if self._finished:
                     break
             gevent.sleep(0.5)
-
-    def write_user_count(self):
-        if self.env.runner is None:
-            return  # there is no runner, so nothing to log...
-        try:
-            with self._user_conn.cursor() as cur:
-                cur.execute(
-                    """INSERT INTO user_count(time, run_id, testplan, user_count) VALUES (%s, %s, %s, %s)""",
-                    (datetime.now(timezone.utc), self._run_id, self._testplan, self.env.runner.user_count),
-                )
-        except psycopg2.Error as error:
-            logging.error("Failed to write user count to Postgresql: " + repr(error))
 
     def write_samples_to_db(self, samples):
         try:
