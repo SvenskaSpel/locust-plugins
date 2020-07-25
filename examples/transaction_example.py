@@ -1,4 +1,4 @@
-from locust import HttpUser, task, between, SequentialTaskSet, events
+from locust import HttpUser, task, SequentialTaskSet
 from locust_plugins.transaction_manager import TransactionManager
 
 

@@ -10,7 +10,7 @@ variable-rgx=[a-z0-9_]{1,30}$
 attr-rgx=[a-z0-9_]{1,30}$
 
 [MESSAGES CONTROL]
-disable=logging-not-lazy,logging-fstring-interpolation,missing-docstring,wrong-import-position,wrong-import-order,too-few-public-methods,invalid-name,protected-access,logging-format-interpolation,dangerous-default-value,global-statement,bad-continuation,too-many-locals,too-many-arguments,too-many-instance-attributes,no-self-use,blacklisted-name,no-value-for-parameter
+disable=logging-not-lazy,logging-fstring-interpolation,missing-docstring,wrong-import-position,wrong-import-order,too-few-public-methods,invalid-name,protected-access,logging-format-interpolation,dangerous-default-value,global-statement,bad-continuation,too-many-locals,too-many-arguments,too-many-instance-attributes,no-self-use,blacklisted-name,no-value-for-parameter,attribute-defined-outside-init
 
 [MASTER]
 ignore=locustio
