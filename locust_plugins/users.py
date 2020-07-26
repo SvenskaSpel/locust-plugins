@@ -60,7 +60,7 @@ class SocketIOUser(HttpUser):
                     description_match = description_regex.search(description)
                     if description_match:
                         sent_timestamp = int(description_match.group(1))
-                        current_timestamp = int(round(time.time() * 1000))
+                        current_timestamp = int(round(time.monotonic() * 1000))
                         response_time = current_timestamp - sent_timestamp
                     else:
                         # differentiate samples that have no timestamps from ones that do

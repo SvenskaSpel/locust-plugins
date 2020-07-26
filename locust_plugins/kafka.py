@@ -22,7 +22,7 @@ def _on_delivery(environment, topic, response_length, start_time, err, _msg):
         environment.events.request_failure.fire(
             request_type="ENQUEUE",
             name=topic,
-            response_time=int((time.time() - start_time) * 1000),
+            response_time=int((time.monotonic() - start_time) * 1000),
             response_length=response_length,
             exception=err,
         )
@@ -30,7 +30,7 @@ def _on_delivery(environment, topic, response_length, start_time, err, _msg):
         environment.events.request_success.fire(
             request_type="ENQUEUE",
             name=topic,
-            response_time=int((time.time() - start_time) * 1000),
+            response_time=int((time.monotonic() - start_time) * 1000),
             response_length=response_length,
         )
 
@@ -41,7 +41,7 @@ class KafkaClient:
         self.producer = Producer({"bootstrap.servers": bootstrap_servers})
 
     def send(self, topic: str, value: bytes, key=None, response_length_override=None):
-        start_time = time.time()
+        start_time = time.monotonic()
         response_length = response_length_override if response_length_override else len(value)
         callback = functools.partial(_on_delivery, self.environment, topic, response_length, start_time)
         self.producer.produce(topic, value, key, on_delivery=callback)

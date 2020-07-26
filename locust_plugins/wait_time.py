@@ -27,7 +27,7 @@ def constant_total_ips(ips: float):
         runner = locust.environment.runner
         if runner is None or runner.target_user_count is None:
             return 1 / ips
-        current_time = time.time()
+        current_time = time.monotonic()
         delay = runner.target_user_count / ips
         next_time = _last_run + delay
         if current_time > next_time:

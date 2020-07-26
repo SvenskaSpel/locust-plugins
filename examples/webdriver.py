@@ -26,7 +26,7 @@ class UserBehaviour(TaskSet):
         # this is just an example, but it shows off some of the things you might want to do in a Webdriver test
         self.client.delete_all_cookies()
 
-        start_at = time.time()
+        start_at = time.monotonic()
         self.client.get(self.user.host)
         try:
             self.client.find_element_by_css_selector(".btn-inverted").click()
@@ -56,7 +56,10 @@ class UserBehaviour(TaskSet):
         # but in this case I dont care, and dont want to block another test run from using it
         # (particularly if this test crashes)
         self.user.environment.events.request_success.fire(
-            request_type="Selenium", name="Log in", response_time=(time.time() - start_at) * 1000, response_length=0
+            request_type="Selenium",
+            name="Log in",
+            response_time=(time.monotonic() - start_at) * 1000,
+            response_length=0,
         )
         time.sleep(short_sleep * 2)
 

@@ -18,13 +18,13 @@ class MongoReader:
 
     @contextmanager
     def user(self):
-        start_at = time.time()
+        start_at = time.monotonic()
         user = self.coll.find_one_and_update(
             self.query, {"$set": {"last_login": datetime.now(), "logged_in": 1}}, sort=[("last_login", 1)]
         )
         if user is None:
             raise Exception(f"Didnt get any user from db ({self.coll}) using query {self.query}")
-        if start_at + self.delay_warning < time.time():
+        if start_at + self.delay_warning < time.monotonic():
             logging.warning(
                 f"Getting a user took more than {self.delay_warning} seconds (doubling warning threshold for next time)"
             )
