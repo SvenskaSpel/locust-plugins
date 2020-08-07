@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-from locust_plugins import run_single_user
 import os
 from locust_plugins.mongoreader import MongoReader
 from locust import HttpUser, task
@@ -21,7 +19,3 @@ class MyUser(HttpUser):
 
     host = "http://example.com"
 
-
-# allow running as executable, to support attaching the debugger
-if __name__ == "__main__":
-    run_single_user(MyUser)
