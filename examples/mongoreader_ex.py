@@ -18,4 +18,3 @@ class MyUser(HttpUser):
             self.client.get(f"/?ssn={user['ssn']}")
 
     host = "http://example.com"
-
