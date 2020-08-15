@@ -10,32 +10,32 @@ Having this separate from "Locust core" allows the plugins to evolve faster (at 
 
 There are a couple of plugin types:
 
-## [Listeners](locust_plugins/listeners.py)
-- Request logging & graphing
+## Listeners 
+- Request logging & graphing ([source](locust_plugins/listeners.py))
 
-## [Users](locust_plugins/users.py) 
-- New protocols like: 
+## Users
+- New protocols ([source](locust_plugins/users.py))
     - WebSockets
     - Selenium/Webdriver
     - http users that load html page resources
 
 ## Readers 
 - Provide ways to get test data into your tests
-    - [CSV](https://github.com/SvenskaSpel/locust-plugins/blob/master/locust_plugins/csvreader.py) 
-    - [MongoDB](https://github.com/SvenskaSpel/locust-plugins/blob/master/locust_plugins/mongoreader.py)
+    - CSV ([source](https://github.com/SvenskaSpel/locust-plugins/blob/master/locust_plugins/csvreader.py))
+    - MongoDB ([source](https://github.com/SvenskaSpel/locust-plugins/blob/master/locust_plugins/mongoreader.py))
 
-## [Wait time](locust_plugins/wait_time.py)
-- Custom wait time functions
+## Wait time 
+- Custom wait time functions ([source](locust_plugins/wait_time.py))
 
-## [Debug](locust_plugins/debug.py) 
-- Support for running a single User in the debugger
+## Debug 
+- Support for running a single User in the debugger ([source](locust_plugins/debug.py))
 
 Have a look at the [example locustfiles](examples/) to learn how to use the plugins.
 
-## [Command line options](locust_plugins/__init__.py) 
+## Command line options 
 - Iteration limit (`-i`), stops Locust after a certain number of task iterations
 - Checks (`--check-rps`, `--check-fail-ratio`, `--check-avg-response-time`), gives an error return code if certain conditions are not met
-- Here are some [examples of use](examples/cmd_line_examples.sh)
+- Here are some [examples of use](examples/cmd_line_examples.sh), and of course the [source](locust_plugins/__init__.py) 
 
 
 These plugins work well together with [locust-swarm](https://github.com/SvenskaSpel/locust-swarm)
