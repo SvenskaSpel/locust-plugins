@@ -33,8 +33,9 @@ There are a couple of plugin types:
 Have a look at the [example locustfiles](examples/) to learn how to use the plugins.
 
 ## Command line options 
-- Iteration limit (`-i`), stops Locust after a certain number of task iterations
-- Checks (`--check-rps`, `--check-fail-ratio`, `--check-avg-response-time`), gives an error return code if certain conditions are not met
+- Additional locust command line options provided:
+    - Iteration limit (`-i`), stops Locust after a certain number of task iterations
+    - Checks (`--check-rps`, `--check-fail-ratio`, `--check-avg-response-time`), gives an error return code if certain conditions are not met
 - Here are some [examples of use](examples/cmd_line_examples.sh), and of course the [source](locust_plugins/__init__.py) 
 
 
