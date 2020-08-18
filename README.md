@@ -15,22 +15,20 @@ There are a couple of plugin types:
 
 ## Users
 - New protocols ([source](locust_plugins/users.py))
-    - WebSockets
-    - Selenium/Webdriver
-    - http users that load html page resources
+    - WebSockets/SocketIO ([example](examples/socketio_ex.py))
+    - Selenium/Webdriver ([example](examples/webdriver.py))
+    - http users that load html page resources ([example](examples/embedded_resource_manager_ex.py))
 
 ## Readers 
 - Provide ways to get test data into your tests
-    - CSV ([source](https://github.com/SvenskaSpel/locust-plugins/blob/master/locust_plugins/csvreader.py))
-    - MongoDB ([source](https://github.com/SvenskaSpel/locust-plugins/blob/master/locust_plugins/mongoreader.py))
+    - CSV ([source](https://github.com/SvenskaSpel/locust-plugins/blob/master/locust_plugins/csvreader.py)), ([example](examples/csvreader_ex.py))
+    - MongoDB ([source](https://github.com/SvenskaSpel/locust-plugins/blob/master/locust_plugins/mongoreader.py)) ([example](examples/mongoreader_ex.py))
 
 ## Wait time 
-- Custom wait time functions ([source](locust_plugins/wait_time.py))
+- Custom wait time functions ([source](locust_plugins/wait_time.py)) ([example](examples/constant_total_ips_ex.py))
 
 ## Debug 
-- Support for running a single User in the debugger ([source](locust_plugins/debug.py))
-
-Have a look at the [example locustfiles](examples/) to learn how to use the plugins.
+- Support for running a single User in the debugger ([source](locust_plugins/debug.py)) ([example](examples/debug_ex.py))
 
 ## Command line options 
 - Additional locust command line options provided:
@@ -38,6 +36,11 @@ Have a look at the [example locustfiles](examples/) to learn how to use the plug
     - Checks (`--check-rps`, `--check-fail-ratio`, `--check-avg-response-time`), gives an error return code if certain conditions are not met
 - Here are some [examples of use](examples/cmd_line_examples.sh), and of course the [source](locust_plugins/__init__.py) 
 
+# Further examples
+
+Have a look at the [example locustfiles](examples/) to learn how to use the plugins.
+
+# locust-swarm
 
 These plugins work well together with [locust-swarm](https://github.com/SvenskaSpel/locust-swarm)
 
