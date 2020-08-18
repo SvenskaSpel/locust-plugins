@@ -22,14 +22,14 @@ There are a couple of plugin types:
 
 ## Readers 
 - Provide ways to get test data into your tests
-    - CSV ([source](https://github.com/SvenskaSpel/locust-plugins/blob/master/locust_plugins/csvreader.py)), ([example](examples/csvreader_ex.py))
-    - MongoDB ([source](https://github.com/SvenskaSpel/locust-plugins/blob/master/locust_plugins/mongoreader.py)) ([example](examples/mongoreader_ex.py))
+    - CSV ([source](https://github.com/SvenskaSpel/locust-plugins/blob/master/locust_plugins/csvreader.py), [example](examples/csvreader_ex.py))
+    - MongoDB ([source](https://github.com/SvenskaSpel/locust-plugins/blob/master/locust_plugins/mongoreader.py), [example](examples/mongoreader_ex.py))
 
 ## Wait time 
-- Custom wait time functions ([source](locust_plugins/wait_time.py)) ([example](examples/constant_total_ips_ex.py))
+- Custom wait time functions ([source](locust_plugins/wait_time.py), [example](examples/constant_total_ips_ex.py))
 
 ## Debug 
-- Support for running a single User in the debugger ([source](locust_plugins/debug.py)) ([example](examples/debug_ex.py))
+- Support for running a single User in the debugger ([source](locust_plugins/debug.py), [example](examples/debug_ex.py))
 
 ## Command line options 
 - Additional locust command line options provided ([source](locust_plugins/__init__.py), [examples](examples/cmd_line_examples.sh))
