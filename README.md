@@ -32,7 +32,7 @@ There are a couple of plugin types:
 - Support for running a single User in the debugger ([source](locust_plugins/debug.py)) ([example](examples/debug_ex.py))
 
 ## Command line options 
-- Additional locust command line options provided ([source](locust_plugins/__init__.py), [examples](examples/cmd_line_examples.sh)
+- Additional locust command line options provided ([source](locust_plugins/__init__.py), [examples](examples/cmd_line_examples.sh))
     - Iteration limit (`-i`), stops Locust after a certain number of task iterations
     - Checks (`--check-rps`, `--check-fail-ratio`, `--check-avg-response-time`), gives an error return code if certain conditions are not met
 
