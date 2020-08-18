@@ -11,7 +11,11 @@ Having this separate from "Locust core" allows the plugins to evolve faster (at 
 There are a couple of plugin types:
 
 ## Listeners 
-- Request logging & graphing ([source](locust_plugins/listeners.py))
+- Listen to events and log things
+    - Log and graph results using TimescaleDB and Grafana ([source](locust_plugins/listeners.py), [example](examples/timescale_listener_ex.py))
+    - PrintListener (prints prints every request with response time etc) ([source](locust_plugins/listeners.py))
+    - JmeterListener (writes a jmeter-like output file) ([source](locust_plugins/jmeter_listener.py), [example](examples/timescale_listener_example.py))
+    - RescheduleTaskOnFailListener / ExitOnFailListener / StopUserOnFailListener / (perform actions when a request fails) ([source](locust_plugins/listeners.py))
 
 ## Users
 - New protocols ([source](locust_plugins/users.py))
@@ -30,6 +34,9 @@ There are a couple of plugin types:
 
 ## Debug 
 - Support for running a single User in the debugger ([source](locust_plugins/debug.py), [example](examples/debug_ex.py))
+
+## Transaction manager
+- Support for logging transactions (aggregating multiple requests or other actions) ([source](locust_plugins/transaction_manager.py), [example](examples/transaction_example.py))
 
 ## Command line options 
 - Additional locust command line options provided ([source](locust_plugins/__init__.py), [examples](examples/cmd_line_examples.sh))
