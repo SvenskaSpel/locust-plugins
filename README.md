@@ -17,7 +17,8 @@ There are a couple of plugin types:
 - New protocols ([source](locust_plugins/users.py))
     - WebSockets/SocketIO ([example](examples/socketio_ex.py))
     - Selenium/Webdriver ([example](examples/webdriver.py))
-    - http users that load html page resources ([example](examples/embedded_resource_manager_ex.py))
+    - HTTP users that load html page resources ([example](examples/embedded_resource_manager_ex.py))
+    - Kafka ([example](examples/kafka_ex.py))
 
 ## Readers 
 - Provide ways to get test data into your tests
