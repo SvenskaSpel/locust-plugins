@@ -106,7 +106,7 @@ class TimescaleListener:  # pylint: disable=R0902
         events.request_success.add_listener(self.request_success)
         events.request_failure.add_listener(self.request_failure)
         events.quitting.add_listener(self.quitting)
-        events.hatch_complete.add_listener(self.hatch_complete)
+        events.spawning_complete.add_listener(self.spawning_complete)
         atexit.register(self.exit)
 
     def _log_user_count(self):
@@ -223,7 +223,7 @@ class TimescaleListener:  # pylint: disable=R0902
                 (datetime.now(timezone.utc).isoformat(), self._testplan + " started by " + self._username),
             )
 
-    def hatch_complete(self, user_count):
+    def spawning_complete(self, user_count):
         if not is_worker():  # only log for master/standalone
             end_time = datetime.now(timezone.utc)
             try:
@@ -298,7 +298,7 @@ class PrintListener:  # pylint: disable=R0902
         if success:
             errortext = e  # should be empty but who knows, maybe there is such a case...
         else:
-            errortext = "Failed: " + e
+            errortext = "Failed: " + e[:500]
         n = name.ljust(30)
         if self.include_time:
             print(datetime.now(), end="\t")
