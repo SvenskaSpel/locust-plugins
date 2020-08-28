@@ -1,5 +1,6 @@
 import gevent
 import gevent.monkey
+import geventhttpclient
 
 gevent.monkey.patch_all()
 import psycogreen.gevent
@@ -185,7 +186,10 @@ class TimescaleListener:  # pylint: disable=R0902
             if isinstance(exception, CatchResponseError):
                 sample["exception"] = str(exception)
             else:
-                sample["exception"] = repr(exception)
+                try:
+                    sample["exception"] = repr(exception)
+                except AttributeError:
+                    sample["exception"] = f"{exception.__class__} (and it has no string representation)"
         else:
             sample["exception"] = None
 
@@ -294,7 +298,16 @@ class PrintListener:  # pylint: disable=R0902
         self._log_request(request_type, name, response_time, response_length, False, exception)
 
     def _log_request(self, request_type, name, response_time, response_length, success, exception):
-        e = "" if exception is None else str(exception)
+        if exception:
+            if isinstance(exception, CatchResponseError):
+                e = str(exception)
+            else:
+                try:
+                    e = repr(exception)
+                except AttributeError:
+                    e = f"{exception.__class__} (and it has no string representation)"
+        else:
+            e = ""
         if success:
             errortext = e  # should be empty but who knows, maybe there is such a case...
         else:
