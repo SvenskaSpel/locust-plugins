@@ -3,6 +3,7 @@ import os
 import sys
 from locust.env import Environment
 from locust_plugins.listeners import PrintListener
+import locust.log
 
 
 def _gevent_debugger_patch():
@@ -41,9 +42,16 @@ def _gevent_debugger_patch():
 
 
 def run_single_user(
-    locust_class, env=None, catch_exceptions=False, include_length=False, include_time=False, init_listener=None
+    locust_class,
+    env=None,
+    catch_exceptions=False,
+    include_length=False,
+    include_time=False,
+    init_listener=None,
+    loglevel="DEBUG",
 ):
     _gevent_debugger_patch()
+    locust.log.setup_logging(loglevel)
     if env is None:
         env = Environment()
         PrintListener(env, include_length=include_length, include_time=include_time)
