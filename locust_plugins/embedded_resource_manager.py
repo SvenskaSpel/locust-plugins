@@ -9,7 +9,12 @@ class EmbeddedResourceManager:
     """
 
     def __init__(
-        self, user, include_resources_by_default, default_resource_filter, bundle_resource_stats, cache_resource_links,
+        self,
+        user,
+        include_resources_by_default,
+        default_resource_filter,
+        bundle_resource_stats,
+        cache_resource_links,
     ):
 
         # store resource links for requests
@@ -21,7 +26,8 @@ class EmbeddedResourceManager:
         self.include_resources = include_resources_by_default
         # for finding url links in style tags
         self.url_link_pattern = re.compile(
-            r".*URL\(\s*('|\")(.*)('|\")\s*\).*", re.IGNORECASE | re.MULTILINE | re.DOTALL,
+            r".*URL\(\s*('|\")(.*)('|\")\s*\).*",
+            re.IGNORECASE | re.MULTILINE | re.DOTALL,
         )
 
         # for finding if a link is partial or full
