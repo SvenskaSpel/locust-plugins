@@ -1,6 +1,5 @@
 import gevent
 import gevent.monkey
-import geventhttpclient
 
 gevent.monkey.patch_all()
 import psycogreen.gevent
