@@ -7,13 +7,14 @@ import os
 
 
 class MongoReader:
-    def __init__(self, id_column, uri=None, database=None, collection=None, filters=[]):
+    def __init__(self, uri=None, database=None, collection=None, filters=[]):
         uri = uri or os.environ["LOCUST_MONGO"]
         database = database or os.environ["LOCUST_MONGO_DATABASE"]
         collection = collection or os.environ["LOCUST_MONGO_COLLECTION"]
         self.coll = MongoClient(uri)[database][collection]
-        self.id_column = id_column
-        self.delay_warning = 0.5
+        self.filters = filters
+        self.reduced_filters = []
+        self.delay_warning = 0
         self.query = {"$and": filters + [{"logged_in": 0}]}
 
     @contextmanager
@@ -25,15 +26,20 @@ class MongoReader:
         if user is None:
             raise Exception(f"Didnt get any user from db ({self.coll}) using query {self.query}")
         if start_at + self.delay_warning < time.monotonic():
-            logging.warning(
-                f"Getting a user took more than {self.delay_warning} seconds (doubling warning threshold for next time)"
-            )
-            self.delay_warning *= 2
+            if not self.delay_warning:
+                # dont warn on first query, just set the threshold
+                self.delay_warning = 1
+            else:
+                logging.warning(
+                    f"Getting a user with filter more than {self.delay_warning} seconds (doubling warning threshold for next time, filter used was {self.filters})"
+                )
+                self.delay_warning *= 2
         try:
             yield user
         finally:
             releasessn = self.coll.find_one_and_update(
-                {"$and": [{self.id_column: user[self.id_column]}, {"logged_in": 1}]}, {"$set": {"logged_in": 0}}
+                {"_id": user["_id"]},
+                {"$set": {"logged_in": 0}},
             )
         if releasessn is None:
-            raise Exception("Couldnt release lock for user in db. ")
+            raise Exception(f"Couldnt release lock for user: {user}")
