@@ -4,7 +4,6 @@ from locust import HttpUser, task
 
 reader = MongoReader(
     filters=[{"tb": 0}, {"lb": 1}],
-    id_column="ssn",
     uri=os.environ["LOCUST_MONGO"],
     database=os.environ["LOCUST_MONGO_DATABASE"],
     collection=os.environ["LOCUST_MONGO_COLLECTION"],
