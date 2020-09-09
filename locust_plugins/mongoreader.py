@@ -15,13 +15,13 @@ class MongoReader:
         self.filters = filters
         self.reduced_filters = []
         self.delay_warning = 0
-        self.query = {"$and": filters + [{"logged_in": 0}]}
+        self.query = {"$and": filters + [{"logged_in": False}]}
 
     @contextmanager
     def user(self):
         start_at = time.monotonic()
         user = self.coll.find_one_and_update(
-            self.query, {"$set": {"last_login": datetime.now(), "logged_in": 1}}, sort=[("last_login", 1)]
+            self.query, {"$set": {"last_login": datetime.now(), "logged_in": True}}, sort=[("last_login", 1)]
         )
         if user is None:
             raise Exception(f"Didnt get any user from db ({self.coll}) using query {self.query}")
@@ -39,7 +39,7 @@ class MongoReader:
         finally:
             releasessn = self.coll.find_one_and_update(
                 {"_id": user["_id"]},
-                {"$set": {"logged_in": 0}},
+                {"$set": {"logged_in": False}},
             )
         if releasessn is None:
             raise Exception(f"Couldnt release lock for user: {user}")
