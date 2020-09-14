@@ -2,11 +2,13 @@ __version__ = "1.0.17"
 from .wait_time import constant_ips, constant_total_ips
 from .debug import run_single_user
 from locust import User, constant, TaskSet
+from locust.user.task import DefaultTaskSet
 from locust import events
 from locust.exception import StopUser
 from locust.env import Environment
 from locust.runners import Runner
 import logging
+from functools import wraps
 
 # Monkey patch User while waiting for everyone else to see the light:
 # https://github.com/locustio/locust/issues/1308
@@ -52,24 +54,26 @@ def set_up_iteration_limit(environment: Environment, **_kwargs):
         runner.iterations_started = 0
         runner.iteration_target_reached = False
 
-        # monkey patch Runner to add support for iterations limit
-        _execute_task = TaskSet.execute_task
+        def wrapper(method):
+            @wraps(method)
+            def wrapped(_self, _task):
+                if runner.iterations_started == environment.parsed_options.iterations:
+                    if not runner.iteration_target_reached:
+                        runner.iteration_target_reached = True
+                        logging.info(
+                            f"Iteration limit reached ({environment.parsed_options.iterations}), stopping Users at the start of their next task run"
+                        )
+                    if runner.user_count == 1:
+                        logging.info("Last user stopped, quitting runner")
+                        runner.quit()
+                    raise StopUser()
+                runner.iterations_started = runner.iterations_started + 1
 
-        def execute_task_with_iteration_limit(self: TaskSet):
-            if runner.iterations_started == environment.parsed_options.iterations:
-                if not runner.iteration_target_reached:
-                    runner.iteration_target_reached = True
-                    logging.info(
-                        f"Iteration limit reached ({environment.parsed_options.iterations}), stopping Users at the start of their next task run"
-                    )
-                if runner.user_count == 1:
-                    logging.info("Last user stopped, quitting runner")
-                    runner.quit()
-                raise StopUser()
-            runner.iterations_started = runner.iterations_started + 1
-            _execute_task(self)
+            return wrapped
 
-        TaskSet.execute_task = execute_task_with_iteration_limit
+        # monkey patch TaskSets to add support for iterations limit. Not ugly at all :)
+        TaskSet.execute_task = wrapper(TaskSet.execute_task)
+        DefaultTaskSet.execute_task = wrapper(DefaultTaskSet.execute_task)
 
 
 @events.quitting.add_listener
