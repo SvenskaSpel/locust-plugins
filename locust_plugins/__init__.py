@@ -53,9 +53,9 @@ def set_up_iteration_limit(environment: Environment, **_kwargs):
         runner.iteration_target_reached = False
 
         # monkey patch Runner to add support for iterations limit
-        _execute_next_task = TaskSet.execute_next_task
+        _execute_task = TaskSet.execute_task
 
-        def execute_next_task_with_iteration_limit(self: TaskSet):
+        def execute_task_with_iteration_limit(self: TaskSet):
             if runner.iterations_started == environment.parsed_options.iterations:
                 if not runner.iteration_target_reached:
                     runner.iteration_target_reached = True
@@ -63,13 +63,13 @@ def set_up_iteration_limit(environment: Environment, **_kwargs):
                         f"Iteration limit reached ({environment.parsed_options.iterations}), stopping Users at the start of their next task run"
                     )
                 if runner.user_count == 1:
-                    logging.debug("Last user stopped, quitting runner")
+                    logging.info("Last user stopped, quitting runner")
                     runner.quit()
                 raise StopUser()
             runner.iterations_started = runner.iterations_started + 1
-            _execute_next_task(self)
+            _execute_task(self)
 
-        TaskSet.execute_next_task = execute_next_task_with_iteration_limit
+        TaskSet.execute_task = execute_task_with_iteration_limit
 
 
 @events.quitting.add_listener
