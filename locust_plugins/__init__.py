@@ -54,9 +54,9 @@ def set_up_iteration_limit(environment: Environment, **_kwargs):
         runner.iterations_started = 0
         runner.iteration_target_reached = False
 
-        def wrapper(method):
+        def iteration_limit_wrapper(method):
             @wraps(method)
-            def wrapped(_self, _task):
+            def wrapped(self, task):
                 if runner.iterations_started == environment.parsed_options.iterations:
                     if not runner.iteration_target_reached:
                         runner.iteration_target_reached = True
@@ -68,12 +68,13 @@ def set_up_iteration_limit(environment: Environment, **_kwargs):
                         runner.quit()
                     raise StopUser()
                 runner.iterations_started = runner.iterations_started + 1
+                method(self, task)
 
             return wrapped
 
         # monkey patch TaskSets to add support for iterations limit. Not ugly at all :)
-        TaskSet.execute_task = wrapper(TaskSet.execute_task)
-        DefaultTaskSet.execute_task = wrapper(DefaultTaskSet.execute_task)
+        TaskSet.execute_task = iteration_limit_wrapper(TaskSet.execute_task)
+        DefaultTaskSet.execute_task = iteration_limit_wrapper(DefaultTaskSet.execute_task)
 
 
 @events.quitting.add_listener
