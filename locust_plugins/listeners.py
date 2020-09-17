@@ -24,7 +24,9 @@ from typing import List
 
 def create_dbconn():
     try:
-        conn = psycopg2.connect(host=os.environ["PGHOST"])
+        conn = psycopg2.connect(
+            host=os.environ["PGHOST"], keepalives_idle=120, keepalives_interval=20, keepalives_count=6
+        )
     except Exception:
         logging.error(
             "Use standard postgres env vars to specify where to report locust samples (https://www.postgresql.org/docs/11/libpq-envars.html)"
@@ -256,7 +258,6 @@ class TimescaleListener:  # pylint: disable=R0902
                     "UPDATE testrun SET resp_time_avg = (SELECT ROUND(AVG(response_time)::numeric, 1) FROM request WHERE run_id = %s AND time > %s) WHERE id =  %s",
                     (self._run_id, self._run_id, self._run_id),
                 )
-
         except psycopg2.Error as error:
             logging.error(
                 "Failed to update testrun record (or events) with end time to Postgresql timescale database: "
