@@ -270,11 +270,6 @@ class TimescaleListener:  # pylint: disable=R0902
     def exit(self):
         if not is_worker():  # on master or standalone locust run
             self.log_stop_test_run()
-        if self._conn:
-            self._conn.close()
-            self._events_conn.close()
-            self._testrun_conn.close()
-            self._user_conn.close()
 
 
 class PrintListener:  # pylint: disable=R0902
