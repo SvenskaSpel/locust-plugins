@@ -115,8 +115,11 @@ class TransactionManager:
     def on_locust_init(cls, environment, runner, **_kwargs):
         cls.env = environment
         cls.runner = runner
-        # determine whether to output to file
-        cls.log_transactions_in_file = cls.env.parsed_options.log_transactions_in_file
+        # determine whether to output to file, (if options parsed)
+        if cls.env.parsed_options:
+            cls.log_transactions_in_file = cls.env.parsed_options.log_transactions_in_file
+        else:
+            cls.log_transactions_in_file = False
         if cls.log_transactions_in_file and not isinstance(cls.env.runner, WorkerRunner):
             cls.results_file = cls._create_results_log()
         if cls.env.web_ui:
@@ -234,6 +237,6 @@ class TransactionManager:
 
 events.init.add_listener(TransactionManager.on_locust_init)
 events.init_command_line_parser.add_listener(TransactionManager._command_line_parser)
-events.worker_report.add_listener(TransactionManager._worker_report)
 events.report_to_master.add_listener(TransactionManager._report_to_master)
+events.worker_report.add_listener(TransactionManager._worker_report)
 events.test_stop.add_listener(TransactionManager._write_final_log)
