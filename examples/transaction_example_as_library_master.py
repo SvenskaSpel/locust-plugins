@@ -1,15 +1,11 @@
-import gevent
 import locust
-from locust import runners
-from locust.main import create_environment
 from locust.env import Environment
-from examples import transaction_example
 from locust import HttpUser, task, SequentialTaskSet
 from locust_plugins.transaction_manager import TransactionManager
 
+
 class ExampleSequentialTaskSet(SequentialTaskSet):
     def on_start(self):
-        TransactionManager().on_locust_init(env, env.runner)
         self.tm = TransactionManager()
 
     @task
@@ -26,6 +22,7 @@ class ExampleSequentialTaskSet(SequentialTaskSet):
 class TranactionExample(HttpUser):
     host = "https://www.demoblaze.com"
     tasks = [ExampleSequentialTaskSet]
+
 
 env = Environment(user_classes=[TranactionExample])
 env.create_master_runner()
