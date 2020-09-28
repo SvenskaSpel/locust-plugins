@@ -147,10 +147,7 @@ class TransactionManager:
                 headers["Content-type"] = "text/csv"
                 headers["Content-disposition"] = f"attachment;filename={cls.transactions_summary_filename}"
                 response = cls.env.web_ui.app.response_class(
-                    response=cls.row_delimiter.join(response_body),
-                    headers=headers,
-                    status=200,
-                    mimetype="text/csv",
+                    response=cls.row_delimiter.join(response_body), headers=headers, status=200, mimetype="text/csv",
                 )
                 return response
 
