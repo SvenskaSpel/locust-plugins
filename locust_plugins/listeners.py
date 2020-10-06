@@ -335,6 +335,7 @@ class ApplicationInsightsListener:
         custom_dimensions = {}
 
         custom_dimensions['method'] = str(request_type)
+        custom_dimensions['result'] = 'Success'
         custom_dimensions['response_time'] = response_time
         custom_dimensions['response_length'] = response_length
         custom_dimensions['endpoint'] = str(name)
@@ -351,6 +352,7 @@ class ApplicationInsightsListener:
         custom_dimensions = {}
 
         custom_dimensions['method'] = str(request_type)
+        custom_dimensions['result'] = 'Fail'
         custom_dimensions['response_time'] = response_time
         custom_dimensions['response_length'] = response_length
         custom_dimensions['endpoint'] = str(name)
