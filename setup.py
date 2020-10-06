@@ -46,5 +46,6 @@ setup(
         "confluent-kafka",
         "selenium",
         "lxml",
+        "opencensus-ext-azure",
     ],
 )

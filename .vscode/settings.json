@@ -13,5 +13,6 @@
         "**/.mypy_cache": true,
         "**/.tox": true
     },
-    "python.linting.pylintEnabled": true
+    "python.linting.pylintEnabled": true,
+    "python.pythonPath": "/usr/bin/python3"
 }
