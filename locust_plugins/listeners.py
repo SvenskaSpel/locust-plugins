@@ -20,7 +20,6 @@ from locust.exception import RescheduleTask, StopUser, CatchResponseError
 import subprocess
 import locust.env
 from typing import List
-from opencensus.ext.azure.log_exporter import AzureLogHandler
 
 def create_dbconn():
     try:
