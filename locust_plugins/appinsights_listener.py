@@ -33,10 +33,10 @@ class ApplicationInsightsListener:
 
     def request_failure(self, request_type, name, response_time, response_length, exception, **_kwargs):
         custom_dimensions = self._create_custom_dimensions_dict(
-            request_type, "Fail", response_time, response_length, name, exception
+            request_type, "Failure", response_time, response_length, name, exception
         )
 
-        message_to_log = "Fail: {} {} Response time: {} Number of Threads: {} Exception: {}.".format(
+        message_to_log = "Failure: {} {} Response time: {} Number of Threads: {} Exception: {}.".format(
             str(request_type), str(name), str(response_time), str(self.env.runner.user_count), str(exception)
         )
 
