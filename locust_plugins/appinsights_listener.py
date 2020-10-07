@@ -32,7 +32,7 @@ class ApplicationInsightsListener:
                                                                                         str(name),
                                                                                         str(response_time),
                                                                                         str(self.env.runner.user_count))
- 
+
         self.logger.info(message_to_log, extra={'custom_dimensions': custom_dimensions})
 
     def request_failure(self, request_type, name, response_time, response_length, exception, **_kwargs):
