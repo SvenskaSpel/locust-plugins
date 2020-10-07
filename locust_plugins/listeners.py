@@ -21,6 +21,7 @@ import subprocess
 import locust.env
 from typing import List
 
+
 def create_dbconn():
     try:
         conn = psycopg2.connect(
