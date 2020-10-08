@@ -15,6 +15,7 @@ There are a couple of plugin types:
     - Log and graph results using TimescaleDB and Grafana ([source](locust_plugins/listeners.py), [example](examples/timescale_listener_ex.py))
     - PrintListener (prints prints every request with response time etc) ([source](locust_plugins/listeners.py))
     - JmeterListener (writes a jmeter-like output file) ([source](locust_plugins/jmeter_listener.py), [example](examples/timescale_listener_example.py))
+     - ApplicationInsightsListener (writes the test logs to Azure Application Insights) ([source](locust_plugins/appinsights_listener.py), [example](examples/appinsights_listener_ex.py))
     - RescheduleTaskOnFailListener / ExitOnFailListener / StopUserOnFailListener / (perform actions when a request fails) ([source](locust_plugins/listeners.py))
 
 ## Users
