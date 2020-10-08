@@ -26,7 +26,7 @@ class ApplicationInsightsListener:
         )
 
         message_to_log = "Success: {} {} Response time: {} Number of Threads: {}.".format(
-            str(request_type), str(name), str(response_time), str(self.env.runner.user_count)
+            str(request_type), str(name), str(response_time), custom_dimensions["thread_count"]
         )
 
         self.logger.info(message_to_log, extra={"custom_dimensions": custom_dimensions})
@@ -37,24 +37,35 @@ class ApplicationInsightsListener:
         )
 
         message_to_log = "Failure: {} {} Response time: {} Number of Threads: {} Exception: {}.".format(
-            str(request_type), str(name), str(response_time), str(self.env.runner.user_count), str(exception)
+            str(request_type), str(name), str(response_time), custom_dimensions["thread_count"], str(exception)
         )
 
         self.logger.error(message_to_log, extra={"custom_dimensions": custom_dimensions})
 
     def _create_custom_dimensions_dict(self, method, result, response_time, response_length, endpoint, exception=None):
-        custom_dimensions = {}
+        custom_dimensions = self._safe_return_runner_values()
 
+        custom_dimensions["host"] = str(self.env.host)
         custom_dimensions["method"] = str(method)
         custom_dimensions["result"] = result
         custom_dimensions["response_time"] = response_time
         custom_dimensions["response_length"] = response_length
         custom_dimensions["endpoint"] = str(endpoint)
         custom_dimensions["testplan"] = str(self.testplan)
-        custom_dimensions["thread_count"] = str(self.env.runner.user_count)
-        custom_dimensions["host"] = str(self.env.host)
-        custom_dimensions["target_user_count"] = str(self.env.runner.target_user_count)
-        custom_dimensions["spawn_rate"] = str(self.env.runner.spawn_rate)
         custom_dimensions["exception"] = str(exception)
 
         return custom_dimensions
+
+    def _safe_return_runner_values(self):
+        runner_values = {}
+
+        if self.env.runner is None:
+            runner_values["thread_count"] = ""
+            runner_values["target_user_count"] = ""
+            runner_values["spawn_rate"] = ""
+        else:
+            runner_values["thread_count"] = str(self.env.runner.user_count)
+            runner_values["target_user_count"] = str(self.env.runner.target_user_count)
+            runner_values["spawn_rate"] = str(self.env.runner.spawn_rate)
+
+        return runner_values
