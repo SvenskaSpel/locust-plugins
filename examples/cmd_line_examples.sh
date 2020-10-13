@@ -4,7 +4,7 @@ locust -f your_locustfile_that_imports_locust_plugins.py --help
 # use --help for more info
 
 locust -u 1 -t 60 --headless --check-rps 5 --check-fail-ratio 0.05 --check-avg-response-time 50
-# Set locust's exit code to failed (2) if any of the following are not met at the end of the run:
+# Set locust's exit code to failed (2) if any of the following criteria are not met at the end of the run:
 # * At least 5 requests/s
 # * At most 5% errors
 # * At most 50ms average response times
