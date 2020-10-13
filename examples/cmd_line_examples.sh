@@ -12,5 +12,4 @@ locust -u 1 -t 60 --headless --check-rps 5 --check-fail-ratio 0.05 --check-avg-r
 
 locust -u 5 -t 60 --headless -i 10
 # Stop locust after 10 task iterations (this is an upper bound, so you can be sure no more than 10 of iterations will be done)
-# Note that the limit is applied *per worker* in a distributed run. So if you, for example, have 2 workers you will run 20 requests.
-# It is (currently) not distributed from master to worker.
+# Note that in a distributed run the parameter needs to be set on the workers, it is (currently) not distributed from master to worker.
