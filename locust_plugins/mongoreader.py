@@ -1,9 +1,24 @@
 from pymongo import MongoClient
+import pymongo.collection
 from datetime import datetime
 import logging
 import time
 from contextlib import contextmanager
 import os
+
+
+class NoUserException(Exception):
+    pass
+
+
+class User(dict):
+    def __init__(self, data, coll: pymongo.collection.Collection):
+        super().__init__(data)
+        self.coll = coll
+
+    def __setitem__(self, key, value):
+        super().__setitem__(key, value)
+        self.coll.find_one_and_update({"_id": self["_id"]}, {"$set": {key: value}})
 
 
 class MongoReader:
@@ -20,11 +35,15 @@ class MongoReader:
     @contextmanager
     def user(self):
         start_at = time.monotonic()
-        user = self.coll.find_one_and_update(
-            self.query, {"$set": {"last_login": datetime.now(), "logged_in": True}}, sort=[("last_login", 1)]
+        user = User(
+            self.coll.find_one_and_update(
+                self.query, {"$set": {"last_login": datetime.now(), "logged_in": True}}, sort=[("last_login", 1)]
+            ),
+            self.coll,
         )
         if user is None:
-            raise Exception(f"Didnt get any user from db ({self.coll}) using query {self.query}")
+            raise NoUserException(f"Didnt get any user from db ({self.coll}) using query {self.query}")
+
         if start_at + self.delay_warning < time.monotonic():
             if not self.delay_warning:
                 # dont warn on first query, just set the threshold
