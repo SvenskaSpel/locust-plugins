@@ -85,10 +85,7 @@ class TransactionManager:
     def _command_line_parser(cls, parser):
         # keep the old argument so that the user can be notified
         parser.add_argument(
-            "--log_transactions_in_file",
-            help=SUPPRESS,
-            default=False,
-            dest="old_log_transactions_in_file"
+            "--log_transactions_in_file", help=SUPPRESS, default=False, dest="old_log_transactions_in_file"
         )
         parser.add_argument(
             "--log-transactions-in-file",
