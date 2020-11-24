@@ -118,6 +118,9 @@ class TransactionManager:
         # determine whether to output to file, (if options parsed)
         if cls.env.parsed_options:
             cls.log_transactions_in_file = cls.env.parsed_options.log_transactions_in_file
+            if cls.env.parsed_options.csv_prefix:
+                cls.transactions_filename = f"{cls.env.parsed_options.csv_prefix}_transactions.csv"
+                cls.transactions_summary_filename = f"{cls.env.parsed_options.csv_prefix}_transactions_summary.csv"
         else:
             cls.log_transactions_in_file = False
         if cls.log_transactions_in_file and not isinstance(cls.env.runner, WorkerRunner):
