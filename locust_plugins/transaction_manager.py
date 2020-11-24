@@ -21,9 +21,8 @@ class TransactionManager:
     timestamp_format = "%Y-%m-%d %H:%M:%S"
     flat_transaction_list = []
     completed_transactions = {}
-    test_timestamp = datetime.fromtimestamp(time()).strftime("%Y_%m_%d_%H_%M_%S")
-    transactions_filename = f"transactions_{test_timestamp}.csv"
-    transactions_summary_filename = f"transactions_summary_{test_timestamp}.csv"
+    transactions_filename = None
+    transactions_summary_filename = None
     user_count = 0
     csv_headers = [
         "start_time",
@@ -123,6 +122,10 @@ class TransactionManager:
                 cls.transactions_summary_filename = f"{cls.env.parsed_options.csv_prefix}_transactions_summary.csv"
         else:
             cls.log_transactions_in_file = False
+        if cls.log_transactions_in_file and not cls.transactions_filename:
+            timestamp = datetime.fromtimestamp(time()).strftime("%Y_%m_%d_%H_%M_%S")
+            cls.transactions_filename = f"transactions_{timestamp}.csv"
+            cls.transactions_summary_filename = f"transactions_summary_{timestamp}.csv"
         if cls.log_transactions_in_file and not isinstance(cls.env.runner, WorkerRunner):
             cls.results_file = cls._create_results_log()
         if cls.env.web_ui:
