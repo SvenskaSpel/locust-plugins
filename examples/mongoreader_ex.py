@@ -14,6 +14,7 @@ class MyUser(HttpUser):
     @task
     def my_task(self):
         with reader.user() as user:
-            self.client.get(f"/?ssn={user['ssn']}")
+            self.client.get(f"/?ssn={user['ssn']}")  # use data from db to make request
+            user["foo"] = "bar"  # add/update field in db (for use some other time)
 
     host = "http://example.com"
