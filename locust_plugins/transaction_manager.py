@@ -1,6 +1,8 @@
 from locust import events
 from time import time
 from datetime import datetime
+from configargparse import SUPPRESS
+from sys import stderr, exit
 import locust.stats
 from locust.runners import WorkerRunner
 
@@ -81,13 +83,13 @@ class TransactionManager:
 
     @classmethod
     def _command_line_parser(cls, parser):
-        # keep this argument for backwards compatibility
+        # keep the old argument so that the user can be notified
         parser.add_argument(
             "--log_transactions_in_file",
-            help="To log transactions in file rather than using the web ui, set to True",
+            help=SUPPRESS,
             default=False,
+            dest="old_log_transactions_in_file"
         )
-        # prefer a simple argument flag
         parser.add_argument(
             "--log-transactions-in-file",
             help="Log transactions in a file rather than using the web ui",
@@ -125,6 +127,10 @@ class TransactionManager:
         cls.runner = runner
         # determine whether to output to file, (if options parsed)
         if cls.env.parsed_options:
+            # notify replaced argument and quit
+            if cls.env.parsed_options.old_log_transactions_in_file is not None:
+                stderr.write("--log_transactions_in_file=True has been replaced by --log-transactions-in-file\n")
+                exit(1)
             cls.log_transactions_in_file = cls.env.parsed_options.log_transactions_in_file
         else:
             cls.log_transactions_in_file = False
