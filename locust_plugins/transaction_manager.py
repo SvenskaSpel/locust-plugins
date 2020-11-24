@@ -2,7 +2,7 @@ from locust import events
 from time import time
 from datetime import datetime
 from configargparse import SUPPRESS
-from sys import stderr, exit
+from sys import stderr
 import locust.stats
 from locust.runners import WorkerRunner
 
