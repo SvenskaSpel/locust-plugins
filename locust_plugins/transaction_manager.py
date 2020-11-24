@@ -9,7 +9,7 @@ class TransactionManager:
     """
     Transaction Manager allows transactions spanning multiple tasks to be logged
     using start_transaction and end_transaction methods
-    Stats are written to file when using --log_transactions_in_file=True
+    Stats are written to file when using --log-transactions-in-file
     otherwise, two web endpoints are available to collect full and summary stats:
     /stats/transactions/csv and /stats/transactions/all/csv
     when running in master/worker mode, all data is sent to the master during execution
@@ -81,9 +81,17 @@ class TransactionManager:
 
     @classmethod
     def _command_line_parser(cls, parser):
+        # keep this argument for backwards compatibility
         parser.add_argument(
             "--log_transactions_in_file",
             help="To log transactions in file rather than using the web ui, set to True",
+            default=False,
+        )
+        # prefer a simple argument flag
+        parser.add_argument(
+            "--log-transactions-in-file",
+            help="Log transactions in a file rather than using the web ui",
+            action="store_true",
             default=False,
         )
 
@@ -123,7 +131,7 @@ class TransactionManager:
         if cls.log_transactions_in_file and not isinstance(cls.env.runner, WorkerRunner):
             cls.results_file = cls._create_results_log()
         if cls.env.web_ui:
-            # this route available if a csv isn't being written to (--log_transactions_in_file=False)
+            # this route available if a csv isn't being written to (--log-transactions-in-file is omitted)
             @cls.env.web_ui.app.route("/stats/transactions/all/csv")
             def _transactions_results_page():
                 headers = {}
