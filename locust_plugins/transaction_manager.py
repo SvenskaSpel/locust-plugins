@@ -2,7 +2,7 @@ from locust import events
 from time import time
 from datetime import datetime
 from configargparse import SUPPRESS
-from sys import stderr
+import sys
 import locust.stats
 from locust.runners import WorkerRunner
 
@@ -129,8 +129,8 @@ class TransactionManager:
         if cls.env.parsed_options:
             # notify replaced argument and quit
             if cls.env.parsed_options.old_log_transactions_in_file is not None:
-                stderr.write("--log_transactions_in_file=True has been replaced by --log-transactions-in-file\n")
-                exit(1)
+                sys.stderr.write("--log_transactions_in_file=True has been replaced by --log-transactions-in-file\n")
+                sys.exit(1)
             cls.log_transactions_in_file = cls.env.parsed_options.log_transactions_in_file
         else:
             cls.log_transactions_in_file = False
