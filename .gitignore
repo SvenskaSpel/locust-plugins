@@ -9,3 +9,4 @@ src
 .metals
 .mypy_cache
 .tox
+env

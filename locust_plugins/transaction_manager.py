@@ -1,6 +1,8 @@
 from locust import events
 from time import time
 from datetime import datetime
+from configargparse import SUPPRESS
+import sys
 import locust.stats
 from locust.runners import WorkerRunner
 
@@ -9,7 +11,7 @@ class TransactionManager:
     """
     Transaction Manager allows transactions spanning multiple tasks to be logged
     using start_transaction and end_transaction methods
-    Stats are written to file when using --log_transactions_in_file=True
+    Stats are written to file when using --log-transactions-in-file
     otherwise, two web endpoints are available to collect full and summary stats:
     /stats/transactions/csv and /stats/transactions/all/csv
     when running in master/worker mode, all data is sent to the master during execution
@@ -81,9 +83,14 @@ class TransactionManager:
 
     @classmethod
     def _command_line_parser(cls, parser):
+        # keep the old argument so that the user can be notified
         parser.add_argument(
-            "--log_transactions_in_file",
-            help="To log transactions in file rather than using the web ui, set to True",
+            "--log_transactions_in_file", help=SUPPRESS, default=False, dest="old_log_transactions_in_file"
+        )
+        parser.add_argument(
+            "--log-transactions-in-file",
+            help="Log transactions in a file rather than using the web ui",
+            action="store_true",
             default=False,
         )
 
@@ -117,13 +124,17 @@ class TransactionManager:
         cls.runner = runner
         # determine whether to output to file, (if options parsed)
         if cls.env.parsed_options:
+            # notify replaced argument and quit
+            if cls.env.parsed_options.old_log_transactions_in_file is not None:
+                sys.stderr.write("--log_transactions_in_file=True has been replaced by --log-transactions-in-file\n")
+                sys.exit(1)
             cls.log_transactions_in_file = cls.env.parsed_options.log_transactions_in_file
         else:
             cls.log_transactions_in_file = False
         if cls.log_transactions_in_file and not isinstance(cls.env.runner, WorkerRunner):
             cls.results_file = cls._create_results_log()
         if cls.env.web_ui:
-            # this route available if a csv isn't being written to (--log_transactions_in_file=False)
+            # this route available if a csv isn't being written to (--log-transactions-in-file is omitted)
             @cls.env.web_ui.app.route("/stats/transactions/all/csv")
             def _transactions_results_page():
                 headers = {}
