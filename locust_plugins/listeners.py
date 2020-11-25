@@ -16,7 +16,7 @@ from datetime import datetime, timezone
 
 import greenlet
 from dateutil import parser
-from locust.exception import RescheduleTask, StopUser, CatchResponseError
+from locust.exception import RescheduleTask, StopUser, CatchResponseError, InterruptTaskSet
 import subprocess
 import locust.env
 from typing import List
@@ -324,6 +324,16 @@ class RescheduleTaskOnFailListener:
 
     def request_failure(self, request_type, name, response_time, response_length, exception, **_kwargs):
         raise RescheduleTask()
+
+
+class InterruptTaskOnFailListener:
+    def __init__(self, env: locust.env.Environment):
+        # make sure to add this listener LAST, because any failures will throw an exception,
+        # causing other listeners to be skipped
+        env.events.request_failure.add_listener(self.request_failure)
+
+    def request_failure(self, request_type, name, response_time, response_length, exception, **_kwargs):
+        raise InterruptTaskSet()
 
 
 class StopUserOnFailListener:
