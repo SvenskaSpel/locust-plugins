@@ -189,7 +189,8 @@ class TransactionManager:
                     '"Average Response Time"',
                     '"Min Response Time"',
                     '"Max Response Time"',
-                ] + locust.stats.get_readable_percentiles(locust.stats.PERCENTILES_TO_REPORT)
+                ]
+                + locust.stats.get_readable_percentiles(locust.stats.PERCENTILES_TO_REPORT)
             )
         )
         for tname in cls.completed_transactions:
