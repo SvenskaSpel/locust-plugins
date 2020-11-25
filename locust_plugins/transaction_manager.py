@@ -189,22 +189,8 @@ class TransactionManager:
                     '"Average Response Time"',
                     '"Min Response Time"',
                     '"Max Response Time"',
-                    '"Average Content Size"',
-                    '"Requests/s"',
-                    '"Failures/s"',
-                    '"50%"',
-                    '"66%"',
-                    '"75%"',
-                    '"80%"',
-                    '"90%"',
-                    '"95%"',
-                    '"98%"',
-                    '"99%"',
-                    '"99.9%"',
-                    '"99.99%"',
-                    '"99.999%"',
-                    '"100%"',
                 ]
+                + locust.stats.get_readable_percentiles(locust.stats.PERCENTILES_TO_REPORT)
             )
         )
         for tname in cls.completed_transactions:
@@ -228,8 +214,6 @@ class TransactionManager:
 
             fields.append(str(round(sorted_durations[0])))
             fields.append(str(round(sorted_durations[-1])))
-            # content size is not relevant
-            fields.append("")
             # loop through the other metrics set out in stats.py
             for p in locust.stats.PERCENTILES_TO_REPORT:
                 fields.append(str(sorted_durations[int(p * len(sorted_durations)) - 1]))
