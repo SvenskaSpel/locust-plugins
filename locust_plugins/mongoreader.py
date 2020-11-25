@@ -12,9 +12,14 @@ class NoUserException(Exception):
 
 
 class User(dict):
-    def __init__(self, data, coll: pymongo.collection.Collection):
-        super().__init__(data)
+    def __init__(self, coll: pymongo.collection.Collection, query: dict):
         self.coll = coll
+        data = self.coll.find_one_and_update(
+            query, {"$set": {"last_login": datetime.now(), "logged_in": True}}, sort=[("last_login", 1)]
+        )
+        if not data:
+            raise NoUserException(f"Didnt get any user from db ({self.coll}) using query {query}")
+        super().__init__(data)
 
     def __setitem__(self, key, value):
         super().__setitem__(key, value)
@@ -35,14 +40,7 @@ class MongoReader:
     @contextmanager
     def user(self):
         start_at = time.monotonic()
-        user = User(
-            self.coll.find_one_and_update(
-                self.query, {"$set": {"last_login": datetime.now(), "logged_in": True}}, sort=[("last_login", 1)]
-            ),
-            self.coll,
-        )
-        if user is None:
-            raise NoUserException(f"Didnt get any user from db ({self.coll}) using query {self.query}")
+        user = User(self.coll, self.query)
 
         if start_at + self.delay_warning < time.monotonic():
             if not self.delay_warning:
