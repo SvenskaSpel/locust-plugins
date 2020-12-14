@@ -8,7 +8,8 @@
 # 4. Set up Grafana, and import the dashboard https://grafana.com/grafana/dashboards/10878
 # 5. Set the env var LOCUST_GRAFANA_URL to link to your Grafana
 #    (e.g. export LOCUST_GRAFANA_URL=https://my.grafana.host.com/d/qjIIww4Zz/locust?orgId=1)
-# 6. Run your tests
+# 6. Run your tests. If you get an error about "Make sure the TimescaleDB extension has been preloaded", have a look at
+#    https://github.com/SvenskaSpel/locust-plugins/issues/11
 
 # Example output:
 # ~ locust --headless -f mytestplan.py
