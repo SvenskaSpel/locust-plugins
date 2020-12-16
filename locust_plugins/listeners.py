@@ -45,7 +45,7 @@ class TimescaleListener:  # pylint: disable=R0902
         self,
         env: locust.env.Environment,
         testplan: str,
-        target_env: str = os.getenv("LOCUST_TEST_ENV", ""),
+        target_env: str = "",
         profile_name: str = "",
         description: str = "",
     ):
