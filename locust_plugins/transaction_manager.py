@@ -59,12 +59,12 @@ class TransactionManager:
 
         self.transactions.append(
             [
-                f'{datetime.fromtimestamp(t["start_time"]).strftime(self.timestamp_format)}',
-                f'{round(t["duration"])}',
-                f'{t["transaction_name"]}',
-                f'{t["user_count"]}',
-                f'{t["success"]}',
-                f'{t["failure_message"]}',
+                datetime.fromtimestamp(t["start_time"]).strftime(self.timestamp_format),
+                round(t["duration"]),
+                t["transaction_name"],
+                t["user_count"],
+                t["success"],
+                t["failure_message"],
             ]
         )
 
@@ -84,13 +84,19 @@ class TransactionManager:
 
     @classmethod
     def _command_line_parser(cls, parser):
+        group = None
+        if parser._action_groups:
+            group = next((x for x in parser._action_groups if x.title == "Request statistics options"), None)
+        if not group:
+            group = parser.add_argument_group(title="Request statistics options")
+
         # keep the old argument so that the user can be notified
-        parser.add_argument(
-            "--log_transactions_in_file", help=SUPPRESS, default=False, dest="old_log_transactions_in_file"
+        group.add_argument(
+            "--log_transactions_in_file", help=SUPPRESS, default=None, dest="old_log_transactions_in_file"
         )
-        parser.add_argument(
+        group.add_argument(
             "--log-transactions-in-file",
-            help="Log transactions in a file rather than using the web ui",
+            help="Log transactions in a file rather than using the web ui (added by locust-plugins)",
             action="store_true",
             default=False,
         )
@@ -191,14 +197,14 @@ class TransactionManager:
         summary = []
         summary.append(
             [
-                '"Type"',
-                '"Name"',
-                '"Request Count"',
-                '"Failure Count"',
-                '"Median Response Time"',
-                '"Average Response Time"',
-                '"Min Response Time"',
-                '"Max Response Time"',
+                "Type",
+                "Name",
+                "Request Count",
+                "Failure Count",
+                "Median Response Time",
+                "Average Response Time",
+                "Min Response Time",
+                "Max Response Time",
             ]
             + locust.stats.get_readable_percentiles(locust.stats.PERCENTILES_TO_REPORT)
         )
