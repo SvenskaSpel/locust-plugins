@@ -1,7 +1,7 @@
 __version__ = "1.0.20"
 from .wait_time import constant_ips, constant_total_ips
 from .debug import run_single_user
-from locust import stats
+import locust
 from locust import User, constant, TaskSet
 from locust.user.task import DefaultTaskSet
 from locust import events
@@ -83,14 +83,14 @@ def add_checks_arguments(parser: configargparse.ArgumentParser):
         type=str,
         help="Interval at which to print locust stats to command line",
         env_var="LOCUST_CONSOLE_STATS_INTERVAL",
-        default=stats.CONSOLE_STATS_INTERVAL_SEC,
+        default=locust.stats.CONSOLE_STATS_INTERVAL_SEC,
     )
 
 
 @events.test_start.add_listener
 def set_up_iteration_limit(environment: Environment, **_kwargs):
     options = environment.parsed_options
-    stats.CONSOLE_STATS_INTERVAL_SEC = environment.parsed_options.console_stats_interval
+    locust.stats.CONSOLE_STATS_INTERVAL_SEC = environment.parsed_options.console_stats_interval
     if options.iterations:
         runner: Runner = environment.runner
         runner.iterations_started = 0
