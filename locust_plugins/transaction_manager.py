@@ -2,6 +2,8 @@ from locust import events
 from time import time
 from datetime import datetime
 from configargparse import SUPPRESS
+from csv import writer as csv_writer
+from io import StringIO
 import sys
 import locust.stats
 from locust.runners import WorkerRunner
@@ -21,7 +23,7 @@ class TransactionManager:
     field_delimiter = ","
     row_delimiter = "\n"
     timestamp_format = "%Y-%m-%d %H:%M:%S"
-    flat_transaction_list = []
+    transactions = []
     completed_transactions = {}
     user_count = 0
     csv_headers = [
@@ -55,13 +57,15 @@ class TransactionManager:
         t["success"] = success
         t["failure_message"] = failure_message
 
-        self.flat_transaction_list.append(
-            f'{datetime.fromtimestamp(t["start_time"]).strftime(self.timestamp_format)}{self.field_delimiter}'
-            f'{round(t["duration"])}{self.field_delimiter}'
-            f'{t["transaction_name"]}{self.field_delimiter}'
-            f'{t["user_count"]}{self.field_delimiter}'
-            f'{t["success"]}{self.field_delimiter}'
-            f'{t["failure_message"]}'
+        self.transactions.append(
+            [
+                datetime.fromtimestamp(t["start_time"]).strftime(self.timestamp_format),
+                round(t["duration"]),
+                t["transaction_name"],
+                t["user_count"],
+                t["success"],
+                t["failure_message"],
+            ]
         )
 
         if t["transaction_name"] not in self.completed_transactions:
@@ -72,7 +76,7 @@ class TransactionManager:
         del self.inprogress_transactions[transaction_name]
 
         if (
-            len(self.flat_transaction_list) >= self.flush_size
+            len(self.transactions) >= self.flush_size
             and self.log_transactions_in_file
             and not isinstance(self.env.runner, WorkerRunner)
         ):
@@ -80,40 +84,50 @@ class TransactionManager:
 
     @classmethod
     def _command_line_parser(cls, parser):
+        group = None
+        if parser._action_groups:
+            group = next((x for x in parser._action_groups if x.title == "Request statistics options"), None)
+        if not group:
+            group = parser.add_argument_group(title="Request statistics options")
+
         # keep the old argument so that the user can be notified
-        parser.add_argument(
-            "--log_transactions_in_file", help=SUPPRESS, default=False, dest="old_log_transactions_in_file"
+        group.add_argument(
+            "--log_transactions_in_file", help=SUPPRESS, default=None, dest="old_log_transactions_in_file"
         )
-        parser.add_argument(
+        group.add_argument(
             "--log-transactions-in-file",
-            help="Log transactions in a file rather than using the web ui",
+            help="Log transactions in a file rather than using the web ui (added by locust-plugins)",
             action="store_true",
             default=False,
         )
 
     @classmethod
     def _create_results_log(cls):
-        results_file = open(cls.transactions_filename, "w")
-        results_file.write(cls.field_delimiter.join(cls.csv_headers) + cls.row_delimiter)
-        results_file.flush()
-        return results_file
+        cls.results_file = open(cls.transactions_filename, "w")
+        cls.results_file_writer = cls._create_csv_writer(cls.results_file)
+        cls.results_file_writer.writerow(cls.csv_headers)
+        cls.results_file.flush()
+
+    @classmethod
+    def _create_csv_writer(cls, buffer):
+        return csv_writer(buffer, delimiter=cls.field_delimiter, lineterminator=cls.row_delimiter)
 
     @classmethod
     def _flush_to_log(cls):
-        cls.results_file.write(cls.row_delimiter.join(cls.flat_transaction_list) + cls.row_delimiter)
+        cls.results_file_writer.writerows(cls.transactions)
         cls.results_file.flush()
-        cls.flat_transaction_list = []
+        cls.transactions = []
 
     @classmethod
     def _write_final_log(cls, **_kwargs):
         if not isinstance(cls.env.runner, WorkerRunner):
             if cls.log_transactions_in_file and not cls.results_file.closed:
-                cls.results_file.write(cls.row_delimiter.join(cls.flat_transaction_list) + cls.row_delimiter)
+                cls.results_file_writer.writerows(cls.transactions)
                 cls.results_file.close()
                 # also write summary file in stats.py style
-                summary_file = open(cls.transactions_summary_filename, "w")
-                summary_file.write(cls.row_delimiter.join(cls._get_transactions_summary()))
-                summary_file.close()
+                with open(cls.transactions_summary_filename, "w") as f:
+                    writer = cls._create_csv_writer(f)
+                    writer.writerows(cls._get_transactions_summary())
 
     @classmethod
     def _init_filenames(cls):
@@ -141,7 +155,7 @@ class TransactionManager:
         cls._init_filenames()
 
         if cls.log_transactions_in_file and not isinstance(cls.env.runner, WorkerRunner):
-            cls.results_file = cls._create_results_log()
+            cls._create_results_log()
         if cls.env.web_ui:
             # this route available if a csv isn't being written to (--log-transactions-in-file is omitted)
             @cls.env.web_ui.app.route("/stats/transactions/all/csv")
@@ -149,49 +163,50 @@ class TransactionManager:
                 headers = {}
                 headers["Content-type"] = "text/csv"
                 headers["Content-disposition"] = f"attachment;filename={cls.transactions_filename}"
-                response = cls.env.web_ui.app.response_class(
-                    response=cls.field_delimiter.join(cls.csv_headers)
-                    + cls.row_delimiter
-                    + cls.row_delimiter.join(cls.flat_transaction_list),
+                with StringIO() as buffer:
+                    writer = cls._create_csv_writer(buffer)
+                    writer.writerows([cls.csv_headers] + cls.transactions)
+                    response = buffer.getvalue()
+                return cls.env.web_ui.app.response_class(
+                    response=response,
                     headers=headers,
                     status=200,
                     mimetype="text/csv",
                 )
-                return response
 
             # provides summary stats like requests endpoint
             @cls.env.web_ui.app.route("/stats/transactions/csv")
             def _transactions_summary_page():
-                response_body = cls._get_transactions_summary()
                 headers = {}
                 headers["Content-type"] = "text/csv"
                 headers["Content-disposition"] = f"attachment;filename={cls.transactions_summary_filename}"
-                response = cls.env.web_ui.app.response_class(
-                    response=cls.row_delimiter.join(response_body),
+                with StringIO as buffer:
+                    writer = cls._create_csv_writer(buffer)
+                    writer.writerows(cls._get_transactions_summary())
+                    response = buffer.getvalue()
+                return cls.env.web_ui.app.response_class(
+                    response=response,
                     headers=headers,
                     status=200,
                     mimetype="text/csv",
                 )
-                return response
 
     @classmethod
     def _get_transactions_summary(cls):
         # create a summary in the same format as used for requests in stats.py
         summary = []
         summary.append(
-            cls.field_delimiter.join(
-                [
-                    '"Type"',
-                    '"Name"',
-                    '"Request Count"',
-                    '"Failure Count"',
-                    '"Median Response Time"',
-                    '"Average Response Time"',
-                    '"Min Response Time"',
-                    '"Max Response Time"',
-                ]
-                + locust.stats.get_readable_percentiles(locust.stats.PERCENTILES_TO_REPORT)
-            )
+            [
+                "Type",
+                "Name",
+                "Request Count",
+                "Failure Count",
+                "Median Response Time",
+                "Average Response Time",
+                "Min Response Time",
+                "Max Response Time",
+            ]
+            + locust.stats.get_readable_percentiles(locust.stats.PERCENTILES_TO_REPORT)
         )
         for tname in cls.completed_transactions:
             fields = []
@@ -217,21 +232,21 @@ class TransactionManager:
             # loop through the other metrics set out in stats.py
             for p in locust.stats.PERCENTILES_TO_REPORT:
                 fields.append(str(sorted_durations[int(p * len(sorted_durations)) - 1]))
-            summary.append(cls.field_delimiter.join(fields))
+            summary.append(fields)
         return summary
 
     @classmethod
     def _report_to_master(cls, data, **_kwargs):
-        data["flat_transaction_list"] = cls.flat_transaction_list
-        cls.flat_transaction_list = []
+        data["transactions"] = cls.transactions
+        cls.transactions = []
         data["completed_transactions"] = cls.completed_transactions
         cls.completed_transactions = {}
 
     @classmethod
     def _worker_report(cls, data, **_kwargs):
-        if "flat_transaction_list" in data:
-            flat_transaction_list = data["flat_transaction_list"]
-            cls.flat_transaction_list += flat_transaction_list
+        if "transactions" in data:
+            transactions = data["transactions"]
+            cls.transactions += transactions
             completed_transactions = data["completed_transactions"]
             for t in completed_transactions:
                 if t not in cls.completed_transactions:
