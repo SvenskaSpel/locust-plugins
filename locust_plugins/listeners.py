@@ -49,7 +49,7 @@ class TimescaleListener:  # pylint: disable=R0902
         profile_name: str = "",
         description: str = "",
     ):
-        self.grafana_url = os.environ["LOCUST_GRAFANA_URL"]
+        self.grafana_url = env.parsed_options.grafana_url
         self._conn = create_dbconn()
         self._user_conn = create_dbconn()
         self._testrun_conn = create_dbconn()
@@ -57,11 +57,12 @@ class TimescaleListener:  # pylint: disable=R0902
         assert testplan != ""
         self._testplan = testplan
         assert env != ""
+        # self._env = env.parsed_options.target_env
         self._env = target_env
         self.env = env
         self._hostname = socket.gethostname()
         self._username = os.getenv("USER", "unknown")
-        self._changeset_guid = os.getenv("CHANGESET_GUID")
+        self._test_version = env.parsed_options.test_version
         self._samples: List[dict] = []
         self._finished = False
         self._profile_name = profile_name
@@ -213,7 +214,7 @@ class TimescaleListener:  # pylint: disable=R0902
                     self._env,
                     self._username,
                     self._gitrepo,
-                    self._changeset_guid,
+                    self._test_version,
                 ),
             )
             cur.execute(
