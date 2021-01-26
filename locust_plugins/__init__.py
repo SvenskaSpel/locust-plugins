@@ -18,7 +18,7 @@ import os
 def add_checks_arguments(parser: configargparse.ArgumentParser):
     checks = parser.add_argument_group(
         "locust-plugins - Checks",
-        "Sets locust's exit code to 2 if any of these thresholds were not met",
+        "Sets locust's exit code to 3 if any of these thresholds were not met",
     )
     checks.add_argument(
         "--check-rps",
