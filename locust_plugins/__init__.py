@@ -133,12 +133,22 @@ def do_checks(environment, **_kw):
 
     if fail_ratio > check_fail_ratio:
         logging.info(f"CHECK FAILED: fail ratio was {fail_ratio:.1f} (threshold {check_fail_ratio:.1f})")
-        environment.process_exit_code = 2
+        environment.process_exit_code = 3
+    else:
+        logging.debug(f"CHECK SUCCESSFUL: fail ratio was {fail_ratio:.1f} (threshold {check_fail_ratio:.1f})")
+
     if total_rps < check_rps:
         logging.info(f"CHECK FAILED: total rps was {total_rps:.1f} (threshold {check_rps:.1f})")
-        environment.process_exit_code = 2
+        environment.process_exit_code = 3
+    else:
+        logging.debug(f"CHECK SUCCESSFUL: total rps was {total_rps:.1f} (threshold {check_rps:.1f})")
+
     if avg_response_time > check_avg_response_time:
         logging.info(
             f"CHECK FAILED: avg response time was {avg_response_time:.1f} (threshold {check_avg_response_time:.1f})"
         )
-        environment.process_exit_code = 2
+        environment.process_exit_code = 3
+    else:
+        logging.debug(
+            f"CHECK SUCCESSFUL: avg response time was {avg_response_time:.1f} (threshold {check_avg_response_time:.1f})"
+        )
