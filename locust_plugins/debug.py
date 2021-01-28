@@ -4,7 +4,7 @@ import sys
 from locust.env import Environment
 from locust_plugins.listeners import PrintListener
 import locust.log
-from locust import User
+from locust import User, argument_parser
 
 
 def _gevent_debugger_patch():
@@ -55,6 +55,7 @@ def run_single_user(
     locust.log.setup_logging(loglevel)
     if env is None:
         env = Environment()
+        env.parsed_options = argument_parser.parse_options()
         PrintListener(env, include_length=include_length, include_time=include_time)
     if init_listener:
         init_listener(env)
