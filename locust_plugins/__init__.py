@@ -7,7 +7,7 @@ from locust.user.task import DefaultTaskSet
 from locust import events
 from locust.exception import StopUser
 from locust.env import Environment
-from locust.runners import Runner
+from locust.runners import Runner, WorkerRunner
 import logging
 from functools import wraps
 import configargparse
@@ -121,6 +121,9 @@ def set_up_iteration_limit(environment: Environment, **_kwargs):
 
 @events.quitting.add_listener
 def do_checks(environment, **_kw):
+    if isinstance(environment.runner, WorkerRunner):
+        return
+
     stats = environment.runner.stats.total
     fail_ratio = stats.fail_ratio
     total_rps = stats.total_rps
