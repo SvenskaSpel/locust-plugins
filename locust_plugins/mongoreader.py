@@ -15,7 +15,7 @@ class User(dict):
     def __init__(self, coll: pymongo.collection.Collection, query: dict):
         self.coll = coll
         data = self.coll.find_one_and_update(
-            query, {"$set": {"last_login": datetime.now(), "logged_in": True}}, sort=[("last_login", 1)]
+            query, {"$set": {"last_login": datetime.utcnow(), "logged_in": True}}, sort=[("last_login", 1)]
         )
         if not data:
             raise NoUserException(f"Didnt get any user from db ({self.coll}) using query {query}")
