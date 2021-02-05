@@ -21,6 +21,8 @@ import subprocess
 import locust.env
 from typing import List
 
+# pylint: disable=trailing-whitespace # pylint is confused by multiline strings used for SQL
+
 
 def create_dbconn():
     try:
@@ -237,12 +239,22 @@ class TimescaleListener:  # pylint: disable=R0902
             with self._testrun_conn.cursor() as cur:
                 cur.execute("UPDATE testrun SET end_time = %s where id = %s", (end_time, self._run_id))
                 cur.execute("INSERT INTO events (time, text) VALUES (%s, %s)", (end_time, self._testplan + " finished"))
+                # note: the AND time > run_id clause in the following statements are there to help Timescale performance
                 cur.execute(
-                    "UPDATE testrun SET rps_avg = (SELECT ROUND(reqs::numeric / secs::numeric, 1) FROM \
-                    (SELECT count(*) AS reqs FROM request WHERE run_id = %s AND time > %s) AS requests, \
-                    (SELECT EXTRACT(epoch FROM (SELECT MAX(time)-MIN(time) FROM request WHERE run_id = %s AND time > %s)) AS secs) AS seconds) \
-                    WHERE id = %s",
-                    (self._run_id, self._run_id, self._run_id, self._run_id, self._run_id),
+                    """UPDATE testrun SET (rps_avg, fail_ratio) = (SELECT ROUND(reqs / GREATEST(secs, 1), 1), fails / GREATEST(reqs, 1) FROM 
+(SELECT COUNT(*)::numeric AS reqs FROM request WHERE run_id = %s AND time > %s) AS _,
+(SELECT EXTRACT(epoch FROM (SELECT MAX(time)-MIN(time) FROM request WHERE run_id = %s AND time > %s))::numeric AS secs) AS __,
+(SELECT COUNT(*)::numeric AS fails FROM request WHERE run_id = %s AND time > %s AND success = 0) as ___)
+WHERE id = %s""",
+                    (
+                        self._run_id,
+                        self._run_id,
+                        self._run_id,
+                        self._run_id,
+                        self._run_id,
+                        self._run_id,
+                        self._run_id,
+                    ),
                 )
                 cur.execute(
                     "UPDATE testrun SET resp_time_avg = (SELECT ROUND(AVG(response_time)::numeric, 1) FROM request WHERE run_id = %s AND time > %s) WHERE id =  %s",
