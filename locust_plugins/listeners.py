@@ -197,10 +197,6 @@ class TimescaleListener:  # pylint: disable=R0902
         self._log_request(request_type, name, response_time, response_length, 0, exception)
 
     def log_start_testrun(self):
-        num_users = 1
-        for index, arg in enumerate(sys.argv):
-            if arg == "-u":
-                num_users = int(sys.argv[index + 1])
         with self._testrun_conn.cursor() as cur:
             cur.execute(
                 "INSERT INTO testrun (id, testplan, profile_name, num_clients, rps, description, env, username, gitrepo, changeset_guid) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
@@ -208,7 +204,7 @@ class TimescaleListener:  # pylint: disable=R0902
                     self._run_id,
                     self._testplan,
                     self._profile_name,
-                    num_users,
+                    self.env.parsed_options.num_users or 1,
                     self._rps,
                     self._description,
                     self._env,
