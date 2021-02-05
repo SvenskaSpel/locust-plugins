@@ -246,15 +246,7 @@ class TimescaleListener:  # pylint: disable=R0902
 (SELECT EXTRACT(epoch FROM (SELECT MAX(time)-MIN(time) FROM request WHERE run_id = %s AND time > %s))::numeric AS secs) AS __,
 (SELECT COUNT(*)::numeric AS fails FROM request WHERE run_id = %s AND time > %s AND success = 0) as ___)
 WHERE id = %s""",
-                    (
-                        self._run_id,
-                        self._run_id,
-                        self._run_id,
-                        self._run_id,
-                        self._run_id,
-                        self._run_id,
-                        self._run_id,
-                    ),
+                    [self._run_id] * 7,
                 )
                 cur.execute(
                     "UPDATE testrun SET resp_time_avg = (SELECT ROUND(AVG(response_time)::numeric, 1) FROM request WHERE run_id = %s AND time > %s) WHERE id =  %s",
