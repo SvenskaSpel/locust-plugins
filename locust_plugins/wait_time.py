@@ -8,9 +8,8 @@ from typing import Any
 _last_run = 0.0
 _warning_emitted = False
 _target_missed = False
-_rps_window = deque()  # an implicitly sorted list of when iterations where started
-_rps_window.append(0)  # make sure the list isnt empty to start with
-RPS_WINDOW_SIZE = 20
+_ips_window = deque()  # an implicitly sorted list of when iterations where started
+IPS_WINDOW_SIZE = 20
 
 
 @events.quitting.add_listener
@@ -34,12 +33,12 @@ def constant_total_ips(ips: float):
         current_time = time.monotonic()
 
         # As the delay calculation will not always be able to compensate (particularly when iteration times differ a lot),
-        # we compensate up to 10% for the last RPS_WINDOW_SIZE seconds worth of throughput. This will allow us to temporarily
+        # we compensate up to 10% for the last IPS_WINDOW_SIZE seconds worth of throughput. This will allow us to temporarily
         # over/undershoot the target rate, but get the right rate over time.
-        while _rps_window[0] < current_time - RPS_WINDOW_SIZE:
-            _rps_window.popleft()
-        previous_rate = len(_rps_window) / RPS_WINDOW_SIZE
-        _rps_window.append(current_time)
+        while _ips_window and _ips_window[0] < current_time - IPS_WINDOW_SIZE:
+            _ips_window.popleft()
+        previous_rate = len(_ips_window) / IPS_WINDOW_SIZE
+        _ips_window.append(current_time)
         rate_diff = previous_rate - ips
         delay = delay * (1 + max(min(rate_diff, 0.1), -0.1) / ips)
 
