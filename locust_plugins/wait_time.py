@@ -1,5 +1,6 @@
 import logging
 import time
+from collections import deque
 from locust import events, runners
 from locust import constant_pacing
 from typing import Any
@@ -7,6 +8,9 @@ from typing import Any
 _last_run = 0.0
 _warning_emitted = False
 _target_missed = False
+_rps_window = deque()  # an implicitly sorted list of when iterations where started
+_rps_window.append(0)  # make sure the list isnt empty to start with
+RPS_WINDOW_SIZE = 20
 
 
 @events.quitting.add_listener
@@ -17,18 +21,26 @@ def quitting(**_kwargs: Any):
         )
 
 
-def constant_ips(ips):
-    return constant_pacing(1.0 / ips)
-
-
+# This wait time function to calculate when the next iteration should be run in order to achieve the desired number of Iterations Per Second for the whole locust instance
 def constant_total_ips(ips: float):
-    def func(locust):
+    def func(user):
         global _warning_emitted, _target_missed, _last_run
-        runner = locust.environment.runner
+        runner = user.environment.runner
         if runner is None or runner.target_user_count is None:
             return 1 / ips
-        current_time = time.monotonic()
         delay = runner.target_user_count / ips
+        current_time = time.monotonic()
+
+        # As the delay calculation will not always be able to compensate (particularly when iteration times differ a lot),
+        # we compensate up to 10% for the last RPS_WINDOW_SIZE seconds worth of throughput. This will allow us to temporarily
+        # over/undershoot the target rate, but get the right rate over time.
+        while _rps_window[0] < current_time - RPS_WINDOW_SIZE:
+            _rps_window.popleft()
+        previous_rate = len(_rps_window) / RPS_WINDOW_SIZE
+        _rps_window.append(current_time)
+        rate_diff = previous_rate - ips
+        delay = delay * (1 + max(min(rate_diff, 0.1), -0.1) / ips)
+
         next_time = _last_run + delay
         if current_time > next_time:
             if runner.state == runners.STATE_RUNNING and _target_missed and not _warning_emitted:
@@ -42,3 +54,12 @@ def constant_total_ips(ips: float):
         return delay
 
     return func
+
+
+# inverted versions of common functions
+def constant_ips(ips: float):
+    return constant_pacing(1.0 / ips)
+
+
+def constant_total_pacing(seconds: float):
+    return constant_total_ips(1.0 / seconds)
