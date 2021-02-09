@@ -1,4 +1,5 @@
-__version__ = "1.0.22"
+__version__ = "1.0.23"
+
 from .wait_time import constant_ips, constant_total_ips
 from .debug import run_single_user
 import locust
