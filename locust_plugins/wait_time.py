@@ -1,6 +1,6 @@
 import logging
 import time
-from collections import deque
+from collections import deque, namedtuple
 from locust import events, runners
 from locust import constant_pacing
 from typing import Any
@@ -25,9 +25,11 @@ def quitting(**_kwargs: Any):
 def constant_total_ips(ips: float):
     def func(user):
         global _warning_emitted, _target_missed, _last_run
+
         runner = user.environment.runner
-        if runner is None or runner.target_user_count is None:
-            return 1 / ips
+        if runner is None:  # happens when debugging a single locust
+            runner = namedtuple("FakeRunner", ["target_user_count", "state"])(1, runners.STATE_RUNNING)
+
         delay = runner.target_user_count / ips
         current_time = time.monotonic()
 
