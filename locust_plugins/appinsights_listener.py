@@ -4,7 +4,7 @@ import locust.env
 from opencensus.ext.azure.log_exporter import AzureLogHandler
 
 
-class ApplicationInsightsListener:
+class ApplicationInsights:
     def __init__(self, env: locust.env.Environment, testplan="", instrumentation_key=""):
         self.testplan = testplan or "appinsightstestplan"
         self.env = env
@@ -69,3 +69,8 @@ class ApplicationInsightsListener:
             runner_values["spawn_rate"] = str(self.env.runner.spawn_rate)
 
         return runner_values
+
+
+class ApplicationInsightsListener:
+    def __init__(self, *args, **kwargs):
+        raise Exception("All listeners have had their -Listener suffix removed, please update your code.")

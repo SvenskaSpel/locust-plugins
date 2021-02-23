@@ -2,7 +2,7 @@ from gevent import monkey
 import os
 import sys
 from locust.env import Environment
-from locust_plugins.listeners import PrintListener
+from locust_plugins import listeners
 import locust.log
 from locust import User, argument_parser
 
@@ -56,7 +56,7 @@ def run_single_user(
     if env is None:
         env = Environment()
         env.parsed_options = argument_parser.parse_options()
-        PrintListener(env, include_length=include_length, include_time=include_time)
+        listeners.Print(env, include_length=include_length, include_time=include_time)
     if init_listener:
         init_listener(env)
     locust_class._catch_exceptions = catch_exceptions

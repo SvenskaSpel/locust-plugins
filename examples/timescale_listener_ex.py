@@ -24,11 +24,11 @@
 # [2020-12-13 19:07:58,623] myhost/INFO/locust.main: Shutting down (exit code 0), bye.
 # ...
 
-from locust_plugins.listeners import TimescaleListener
+from locust_plugins import run_single_user, listeners
 from locust import HttpUser, task, events
 
 
-class MyHttpUser(HttpUser):
+class MyUser(HttpUser):
     @task
     def index(self):
         self.client.post("/authentication/1.0/getResults", {"username": "something"})
@@ -38,4 +38,9 @@ class MyHttpUser(HttpUser):
 
 @events.init.add_listener
 def on_locust_init(environment, **_kwargs):
-    TimescaleListener(env=environment, testplan="timescale_listener_ex", target_env="myTestEnv")
+    listeners.Timescale(env=environment, testplan="timescale_listener_ex", target_env="myTestEnv")
+
+
+if __name__ == "__main__":
+    # enable easy debugging from VS Code
+    run_single_user(MyUser, init_listener=on_locust_init)

@@ -1,5 +1,6 @@
-from locust_plugins.appinsights_listener import ApplicationInsightsListener
+from locust_plugins.appinsights_listener import ApplicationInsights
 from locust import HttpUser, task, events, between
+
 
 class MyHttpUser(HttpUser):
     @task
@@ -12,4 +13,4 @@ class MyHttpUser(HttpUser):
 
 @events.init.add_listener
 def on_locust_init(environment, **_kwargs):
-    ApplicationInsightsListener(env=environment, instrumentation_key="<YOUR-APP-INSIGHTS-INSTRUMENTATION-KEY>")
+    ApplicationInsights(env=environment, instrumentation_key="<YOUR-APP-INSIGHTS-INSTRUMENTATION-KEY>")

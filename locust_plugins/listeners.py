@@ -24,21 +24,7 @@ from typing import List
 # pylint: disable=trailing-whitespace # pylint is confused by multiline strings used for SQL
 
 
-def create_dbconn():
-    try:
-        conn = psycopg2.connect(
-            host=os.environ["PGHOST"], keepalives_idle=120, keepalives_interval=20, keepalives_count=6
-        )
-    except Exception:
-        logging.error(
-            "Use standard postgres env vars to specify where to report locust samples (https://www.postgresql.org/docs/11/libpq-envars.html)"
-        )
-        raise
-    conn.autocommit = True
-    return conn
-
-
-class TimescaleListener:  # pylint: disable=R0902
+class Timescale:  # pylint: disable=R0902
     """
     See timescale_listener_ex.py for documentation
     """
@@ -52,10 +38,10 @@ class TimescaleListener:  # pylint: disable=R0902
         description: str = "",
     ):
         self.grafana_url = env.parsed_options.grafana_url
-        self._conn = create_dbconn()
-        self._user_conn = create_dbconn()
-        self._testrun_conn = create_dbconn()
-        self._events_conn = create_dbconn()
+        self._conn = self._dbconn()
+        self._user_conn = self._dbconn()
+        self._testrun_conn = self._dbconn()
+        self._events_conn = self._dbconn()
         assert testplan != ""
         self._testplan = testplan
         assert env != ""
@@ -106,6 +92,19 @@ class TimescaleListener:  # pylint: disable=R0902
         events.quitting.add_listener(self.quitting)
         events.spawning_complete.add_listener(self.spawning_complete)
         atexit.register(self.exit)
+
+    def _dbconn(self) -> psycopg2.extensions.connection:
+        try:
+            conn = psycopg2.connect(
+                host=os.environ["PGHOST"], keepalives_idle=120, keepalives_interval=20, keepalives_count=6
+            )
+        except Exception:
+            logging.error(
+                "Use standard postgres env vars to specify where to report locust samples (https://www.postgresql.org/docs/11/libpq-envars.html)"
+            )
+            raise
+        conn.autocommit = True
+        return conn
 
     def _log_user_count(self):
         while True:
@@ -273,7 +272,7 @@ WHERE id = %s""",
             self.log_stop_test_run()
 
 
-class PrintListener:  # pylint: disable=R0902
+class Print:  # pylint: disable=R0902
     """
     Print every response (useful when debugging a single locust)
     """
@@ -317,7 +316,7 @@ class PrintListener:  # pylint: disable=R0902
             print(f"{request_type}\t{n.ljust(50)}\t{round(response_time)}\t{errortext}")
 
 
-class RescheduleTaskOnFailListener:
+class RescheduleTaskOnFail:
     def __init__(self, env: locust.env.Environment):
         # make sure to add this listener LAST, because any failures will throw an exception,
         # causing other listeners to be skipped
@@ -327,7 +326,7 @@ class RescheduleTaskOnFailListener:
         raise RescheduleTask()
 
 
-class InterruptTaskOnFailListener:
+class InterruptTaskOnFail:
     def __init__(self, env: locust.env.Environment):
         # make sure to add this listener LAST, because any failures will throw an exception,
         # causing other listeners to be skipped
@@ -337,7 +336,7 @@ class InterruptTaskOnFailListener:
         raise InterruptTaskSet()
 
 
-class StopUserOnFailListener:
+class StopUserOnFail:
     def __init__(self, env: locust.env.Environment):
         # make sure to add this listener LAST, because any failures will throw an exception,
         # causing other listeners to be skipped
@@ -347,7 +346,7 @@ class StopUserOnFailListener:
         raise StopUser()
 
 
-class ExitOnFailListener:
+class ExitOnFail:
     def __init__(self, env: locust.env.Environment):
         # make sure to add this listener LAST, because any failures will throw an exception,
         # causing other listeners to be skipped
@@ -364,3 +363,13 @@ def is_worker():
 
 def is_master():
     return "--master" in sys.argv
+
+
+class TimescaleListener:
+    def __init__(self, *args, **kwargs):
+        raise Exception("All listeners have had their -Listener suffix removed, please update your code.")
+
+
+class RescheduleTaskOnFailListener:
+    def __init__(self, *args, **kwargs):
+        raise Exception("All listeners have had their -Listener suffix removed, please update your code.")

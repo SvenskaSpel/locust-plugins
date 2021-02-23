@@ -1,4 +1,4 @@
-__version__ = "1.0.25"
+__version__ = "1.1.0"
 
 from .wait_time import constant_ips, constant_total_ips
 from .debug import run_single_user
@@ -12,7 +12,6 @@ from locust.runners import Runner, WorkerRunner
 import logging
 from functools import wraps
 import configargparse
-import os
 
 
 @events.init_command_line_parser.add_listener

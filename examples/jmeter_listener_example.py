@@ -1,5 +1,5 @@
 from locust import HttpUser, task, events
-from locust_plugins.jmeter_listener import JmeterListener
+from locust_plugins import jmeter_listener
 
 
 class DemoBlazeUser(HttpUser):
@@ -12,4 +12,4 @@ class DemoBlazeUser(HttpUser):
 
 @events.init.add_listener
 def on_locust_init(environment, **_kwargs):
-    JmeterListener(env=environment, testplan="examplePlan")
+    jmeter_listener.Jmeter(env=environment, testplan="examplePlan")
