@@ -10,12 +10,19 @@ from locust_plugins.users import WebdriverUser
 
 import os
 import time
-from locust import TaskSet, task
+from locust import task
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException
 
 
-class UserBehaviour(TaskSet):
+class MyUser(WebdriverUser):
+    min_wait = 0
+    max_wait = 0
+    host = f"https://spela.{os.environ['LOCUST_TEST_ENV']}.svenskaspel.se/"
+
+    def __init__(self, parent):
+        super().__init__(parent, headless=(__name__ != "__main__"))
+
     def on_start(self):
         self.client.set_window_size(1400, 1000)
         self.client.implicitly_wait(10)
@@ -27,7 +34,7 @@ class UserBehaviour(TaskSet):
         self.client.delete_all_cookies()
 
         start_at = time.monotonic()
-        self.client.get(self.user.host)
+        self.client.get(self.host)
         try:
             self.client.find_element_by_css_selector(".btn-inverted").click()
         except NoSuchElementException:
@@ -55,7 +62,7 @@ class UserBehaviour(TaskSet):
         # typically you would release the customer only after its task has finished,
         # but in this case I dont care, and dont want to block another test run from using it
         # (particularly if this test crashes)
-        self.user.environment.events.request_success.fire(
+        self.environment.events.request_success.fire(
             request_type="Selenium",
             name="Log in",
             response_time=(time.monotonic() - start_at) * 1000,
@@ -64,15 +71,5 @@ class UserBehaviour(TaskSet):
         time.sleep(short_sleep * 2)
 
 
-class MyWebdriverUser(WebdriverUser):
-    task_set = UserBehaviour
-    min_wait = 0
-    max_wait = 0
-    host = f"https://spela.{os.environ['LOCUST_TEST_ENV']}.svenskaspel.se/"
-
-    def __init__(self):
-        super().__init__(parent=None, headless=(__name__ != "__main__"))
-
-
 if __name__ == "__main__":
-    run_single_user(MyWebdriverUser)
+    run_single_user(MyUser)
