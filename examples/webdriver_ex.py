@@ -21,7 +21,6 @@ class MyUser(WebdriverUser):
     # this is just an example, but it shows off some of the things you might want to do in a Webdriver test
     @task
     def my_task(self):
-        short_sleep = 1 if __name__ == "__main__" else 0.1
         self.client.delete_all_cookies()
         self.client.get("https://spela.test4.svenskaspel.se/")
         self.client.add_cookie(
@@ -32,8 +31,8 @@ class MyUser(WebdriverUser):
                 "secure": True,
             }
         )
-        self.client.get("https://spela.test4.svenskaspel.se/logga-in/bankid/ssn")
         start_at = time.monotonic()
+        self.client.get("https://spela.test4.svenskaspel.se/logga-in/bankid/ssn")
         ssn_input = self.client.find_element(By.CSS_SELECTOR, "#ssn")
         ssn_input.click()
         ssn_input.send_keys("199901010109")
@@ -56,7 +55,6 @@ class MyUser(WebdriverUser):
             response_time=(time.monotonic() - start_at) * 1000,
             response_length=0,
         )
-        time.sleep(short_sleep * 2)
 
 
 if __name__ == "__main__":
