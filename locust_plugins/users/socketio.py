@@ -1,24 +1,16 @@
 import json
 import logging
 import re
-import subprocess
 import time
 import gevent
 import websocket
-
-from locust import HttpUser, User
-from locust.contrib.fasthttp import FastHttpUser
-
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-
-from locust_plugins.embedded_resource_manager import EmbeddedResourceManager
+from locust import HttpUser
 
 
 class SocketIOUser(HttpUser):
     """
     A locust that includes a socket io websocket connection.
-    You could easily use this a template for a pure WS taskset,
+    You could easily use this a template for plain WebSockets,
     socket.io just happens to be my use case
     """
 
@@ -98,76 +90,3 @@ class SocketIOUser(HttpUser):
             gevent.sleep(min(15, seconds))
             seconds -= 15
             self.send("2")
-
-
-class WebdriverUser(User):
-    """
-    A locust that includes a Webdriver client.
-    Download & launch selenium server first:
-    https://www.seleniumhq.org/download/
-    java -jar selenium-server-standalone-3.141.59.jar
-    """
-
-    abstract = True
-    _first_instance = True
-
-    def __init__(self, parent, headless=True):
-        super().__init__(parent)
-        if WebdriverUser._first_instance:
-            WebdriverUser._first_instance = False
-            # kill old webdriver browser instances
-            subprocess.Popen(["killall", "chromedriver"])
-            subprocess.Popen(["pkill", "-f", " --test-type=webdriver"])
-
-        chrome_options = Options()
-        if headless:
-            chrome_options.add_argument("--headless")
-        self.client = webdriver.Remote(
-            command_executor="http://127.0.0.1:4444/wd/hub", desired_capabilities=chrome_options.to_capabilities()
-        )
-
-
-class HttpUserWithResources(HttpUser):
-    """
-    provides embedded resource management for HttpUser
-    """
-
-    abstract = True
-
-    include_resources_by_default = True
-    default_resource_filter = ".*"
-    bundle_resource_stats = True
-    cache_resource_links = True
-
-    def __init__(self, *args):
-        super().__init__(*args)
-        EmbeddedResourceManager(
-            self,
-            self.include_resources_by_default,
-            self.default_resource_filter,
-            self.bundle_resource_stats,
-            self.cache_resource_links,
-        )
-
-
-class FastHttpUserWithResources(FastHttpUser):
-    """
-    provides embedded resource management for FastHttpUser
-    """
-
-    abstract = True
-
-    include_resources_by_default = True
-    default_resource_filter = ".*"
-    bundle_resource_stats = True
-    cache_resource_links = True
-
-    def __init__(self, *args):
-        super().__init__(*args)
-        EmbeddedResourceManager(
-            self,
-            self.include_resources_by_default,
-            self.default_resource_filter,
-            self.bundle_resource_stats,
-            self.cache_resource_links,
-        )
