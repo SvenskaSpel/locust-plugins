@@ -2,66 +2,57 @@
 # This is an example of how to use the WebdriverUser
 # You need to start selenium server first.
 # Download it from https://www.seleniumhq.org/download/ and run it by executing:
-# java -jar selenium-server-standalone-3.141.59.jar
-
-# WARNING: THIS HASNT BEEN UPDATED FOR A WHILE AND MIGHT HAVE ISSUES WITH LOCUST 1.0
+# java -jar selenium-server-4.0.0-beta-1.jar standalone
 from locust_plugins import run_single_user
 from locust_plugins.users import WebdriverUser
 
-import os
 import time
 from locust import task
 from selenium.webdriver.common.keys import Keys
-from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException
+from selenium.webdriver.common.by import By
+from selenium.common.exceptions import StaleElementReferenceException
 
 
 class MyUser(WebdriverUser):
-    min_wait = 0
-    max_wait = 0
-    host = f"https://spela.{os.environ['LOCUST_TEST_ENV']}.svenskaspel.se/"
-
     def __init__(self, parent):
         super().__init__(parent, headless=(__name__ != "__main__"))
 
     def on_start(self):
         self.client.set_window_size(1400, 1000)
-        self.client.implicitly_wait(10)
+        self.client.implicitly_wait(2)
 
+    # this is just an example, but it shows off some of the things you might want to do in a Webdriver test
     @task
     def my_task(self):
         short_sleep = 1 if __name__ == "__main__" else 0.1
-        # this is just an example, but it shows off some of the things you might want to do in a Webdriver test
         self.client.delete_all_cookies()
-
-        start_at = time.monotonic()
-        self.client.get(self.host)
-        try:
-            self.client.find_element_by_css_selector(".btn-inverted").click()
-        except NoSuchElementException:
-            pass  # dont really care about this
-
-        self.client.find_element_by_css_selector(".js-nav-list-item-link-login").click()
-        time.sleep(short_sleep)
-        self.client.find_element_by_xpath('//*[@id="bankidTab"]/button[1]').click()
-        time.sleep(short_sleep)
-        self.client.find_element_by_xpath('//*[@id="ssn"]')
-        ssn = "199901010101"
-        ssn_input = self.client.switch_to.active_element
-        # Sometimes send_keys has issues due to client side javascript. This is a workaround.
-        self.client.execute_script(
-            "arguments[0].setAttribute('value', arguments[1])", ssn_input, ssn[:8] + "-" + ssn[-4:]
+        self.client.get("https://spela.test4.svenskaspel.se/")
+        self.client.add_cookie(
+            {
+                "name": "cookie_consent",
+                "value": '{"ad":true,"personalized":true,"version":0}',
+                "path": "/",
+                "secure": True,
+            }
         )
-        time.sleep(short_sleep)
+        self.client.get("https://spela.test4.svenskaspel.se/logga-in/bankid/ssn")
+        start_at = time.monotonic()
+        ssn_input = self.client.find_element(By.CSS_SELECTOR, "#ssn")
+        ssn_input.click()
+        ssn_input.send_keys("199901010109")
         ssn_input.send_keys(Keys.RETURN)
-        time.sleep(short_sleep)
+        self.client.implicitly_wait(10)
         try:
-            self.client.find_element_by_xpath('//*[@id="last-login-time"]/div/div[4]/a/span').click()
+            self.client.find_element(By.XPATH, '//*[@id="last-login-time"]/div/div[4]/a/span').click()
         except StaleElementReferenceException:
             # retry...
-            self.client.find_element_by_xpath('//*[@id="last-login-time"]/div/div[4]/a/span').click()
-        # typically you would release the customer only after its task has finished,
-        # but in this case I dont care, and dont want to block another test run from using it
-        # (particularly if this test crashes)
+            self.client.find_element(By.XPATH, '//*[@id="last-login-time"]/div/div[4]/a/span').click()
+        # show balance
+        self.client.find_element(
+            By.CSS_SELECTOR,
+            "body > div.fixed-top-content.js-top-content-wrapper.balance-bar-ao-brand-small > div.balance-bar-account > span.balance-bar-account-item.balance-bar-left-border.pointer.js-balance-toggle.balance-bar-toggle > span",
+        ).click()
+
         self.environment.events.request_success.fire(
             request_type="Selenium",
             name="Log in",
