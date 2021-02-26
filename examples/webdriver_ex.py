@@ -1,12 +1,9 @@
-#!/usr/bin/env python3
-# This is an example of how to use the WebdriverUser
-# You need to start selenium server first.
+# You need to start selenium server first:
 # Download it from https://www.seleniumhq.org/download/ and run it by executing:
 # java -jar selenium-server-4.0.0-beta-1.jar standalone
+import time
 from locust_plugins import run_single_user
 from locust_plugins.users import WebdriverUser
-
-import time
 from locust import task
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
