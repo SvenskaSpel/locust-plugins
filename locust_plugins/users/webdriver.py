@@ -15,24 +15,27 @@ class WebdriverClient(webdriver.Remote):
 
     def find_element(self, *args, name=None, **kwargs):  # pylint: disable=arguments-differ
         name = name or args[1]
+        result = None
         if not self.start_time:
             self.start_time = time.time()
         try:
             result = super().find_element(*args, **kwargs)
         except Exception as e:
             total_time = int((time.time() - self.start_time) * 1000)
-            self._locust_environment.events.request_failure.fire(
-                request_type="Selenium", name=name, response_time=total_time, exception=e
-            )
             self.start_time = None
+            self._locust_environment.events.request_failure.fire(
+                request_type="Selenium", name=name, response_time=total_time, exception=e.args[0], response_length=None
+            )
+
             if not isinstance(e, WebDriverException):
                 raise
         else:
             total_time = int((time.time() - self.start_time) * 1000)
-            self._locust_environment.events.request_success.fire(
-                request_type="Selenium", name=name, response_time=total_time, response_length=0
-            )
             self.start_time = None
+            self._locust_environment.events.request_success.fire(
+                request_type="Selenium", name=name, response_time=total_time, response_length=None
+            )
+
         return result
 
 
