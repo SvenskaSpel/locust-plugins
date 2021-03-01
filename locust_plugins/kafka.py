@@ -22,7 +22,7 @@ def _on_delivery(environment, topic, response_length, start_time, err, _msg):
         environment.events.request_failure.fire(
             request_type="ENQUEUE",
             name=topic,
-            response_time=int((time.monotonic() - start_time) * 1000),
+            response_time=(time.monotonic() - start_time) * 1000,
             response_length=response_length,
             exception=err,
         )
@@ -30,7 +30,7 @@ def _on_delivery(environment, topic, response_length, start_time, err, _msg):
         environment.events.request_success.fire(
             request_type="ENQUEUE",
             name=topic,
-            response_time=int((time.monotonic() - start_time) * 1000),
+            response_time=(time.monotonic() - start_time) * 1000,
             response_length=response_length,
         )
 

@@ -18,11 +18,11 @@ class WebdriverClient(webdriver.Remote):
         name = name or args[1]
         result = None
         if not self.start_time:
-            self.start_time = time.time()
+            self.start_time = time.monotonic()
         try:
             result = super().find_element(*args, **kwargs)
         except Exception as e:
-            total_time = int((time.time() - self.start_time) * 1000)
+            total_time = (time.monotonic() - self.start_time) * 1000
             self.start_time = None
             error_message = e.args[0]
             try:
@@ -47,7 +47,7 @@ class WebdriverClient(webdriver.Remote):
             if not isinstance(e, WebDriverException):
                 raise
         else:
-            total_time = int((time.time() - self.start_time) * 1000)
+            total_time = (time.monotonic() - self.start_time) * 1000
             self.start_time = None
             self.environment.events.request_success.fire(
                 request_type="find_element", name=name, response_time=total_time, response_length=None
