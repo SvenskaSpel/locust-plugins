@@ -19,9 +19,9 @@ There are a couple of plugin types:
     - RescheduleTaskOnFailListener / ExitOnFailListener / StopUserOnFailListener / (perform actions when a request fails) ([source](locust_plugins/listeners.py))
 
 ## Users
-- New protocols ([source](locust_plugins/users.py))
+- New protocols ([source](locust_plugins/users/))
     - WebSockets/SocketIO ([example](examples/socketio_ex.py))
-    - Selenium/Webdriver ([example](examples/webdriver.py))
+    - Selenium/Webdriver ([example](examples/webdriver_ex.py))
     - HTTP users that load html page resources ([example](examples/embedded_resource_manager_ex.py))
     - Kafka ([example](examples/kafka_ex.py))
 
@@ -61,7 +61,7 @@ pip install locust-plugins
 
 # Configuration
 
-Configuration is mostly done through environment variables. You will get an exception if one is missing, and they should either be self-explanatory, or explained in the code where they are used. I recommend setting them permanently in your bash profile, so you dont have to set them every time or make your command line super-long.
+For configuration help, run `locust -f locustfile-that-imports-locust_plugins.py --help`. Some environment variables need to be set (mainly for Postgres, if you want to run the Timescale listener), but you should get clear error messages if one is missing.
 
 # Contributions
 
