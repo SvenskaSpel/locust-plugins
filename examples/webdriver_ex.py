@@ -6,7 +6,6 @@ from locust import task, constant, events
 from locust_plugins import run_single_user
 from locust_plugins.users import WebdriverUser
 from locust_plugins.listeners import RescheduleTaskOnFail
-from selenium.common.exceptions import StaleElementReferenceException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 
@@ -25,7 +24,8 @@ class MyUser(WebdriverUser):
     @task
     def my_task(self):
         self.client.delete_all_cookies()
-        self.client.start_time = time.time()
+        self.client.start_time = time.monotonic()  # to measure the time from now to first find_element finishes
+        scenario_start_time = self.client.start_time  # to measure the time for the whole scenario
         self.client.get("https://spela.test4.svenskaspel.se/")
         self.client.add_cookie(
             {
@@ -35,23 +35,14 @@ class MyUser(WebdriverUser):
                 "secure": True,
             }
         )
-        start_at = time.monotonic()
         self.client.get("https://spela.test4.svenskaspel.se/logga-in/bankid/ssn")
-        ssn_input = self.client.find_element(By.CSS_SELECTOR, "#ssn", name="ssn page ready")
+        ssn_input = self.client.find_element(By.CSS_SELECTOR, "#ssn", name="ssn entry page ready")
         ssn_input.click()
         ssn_input.send_keys("199901010109")
         ssn_input.send_keys(Keys.RETURN)
         self.client.implicitly_wait(10)
-        try:
-            self.client.find_element(
-                By.XPATH, '//*[@id="last-login-time"]/div/div[4]/a/span', name="login complete"
-            ).click()
-        except StaleElementReferenceException:
-            # retry...
-            self.client.find_element(
-                By.XPATH, '//*[@id="last-login-time"]/div/div[4]/a/span', name="login complete"
-            ).click()
-        # show balance
+        self.client.find_element(By.XPATH, '//*[@id="last-login-time"]/div/div[4]/a/span', name="logged in").click()
+        # show balance (this is just client side so it will be really fast - it more of a validation of functionality)
         self.client.find_element(
             By.CSS_SELECTOR,
             "body > div.fixed-top-content.js-top-content-wrapper.balance-bar-ao-brand-small > div.balance-bar-account > span.balance-bar-account-item.balance-bar-left-border.pointer.js-balance-toggle.balance-bar-toggle > span",
@@ -59,17 +50,15 @@ class MyUser(WebdriverUser):
         ).click()
 
         self.environment.events.request_success.fire(
-            request_type="Selenium",
-            name="Log in",
-            response_time=(time.monotonic() - start_at) * 1000,
+            request_type="scenario",
+            name="log in flow",
+            response_time=(time.monotonic() - scenario_start_time) * 1000,
             response_length=0,
         )
 
 
 @events.init.add_listener
 def on_locust_init(environment, **_kwargs):
-    # make sure this is the last event handler you register, as later ones will not be triggered
-    # if there is a failure
     RescheduleTaskOnFail(environment)
 
 
