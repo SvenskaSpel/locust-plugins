@@ -3,7 +3,7 @@ import subprocess
 import time
 from locust import User
 from selenium import webdriver
-from selenium.common.exceptions import WebDriverException
+from selenium.common.exceptions import NoSuchElementException, WebDriverException
 from selenium.webdriver.chrome.options import Options
 
 
@@ -23,8 +23,24 @@ class WebdriverClient(webdriver.Remote):
         except Exception as e:
             total_time = int((time.time() - self.start_time) * 1000)
             self.start_time = None
+            error_message = e.args[0]
+            try:
+                if isinstance(e, NoSuchElementException):
+                    implicit_wait_time = self.execute(webdriver.remote.command.Command.GET_TIMEOUTS)["value"][
+                        "implicit"
+                    ]
+                    error_message = error_message.replace("Unable to locate element: ", "")
+                    error_message = error_message.replace(
+                        "\n  (Session info: ", f" (waited {implicit_wait_time/1000}s, "
+                    )
+            except:
+                pass  # if this failed then we dont know how long we waited for, but it doesnt matter
             self._locust_environment.events.request_failure.fire(
-                request_type="Selenium", name=name, response_time=total_time, exception=e.args[0], response_length=None
+                request_type="Selenium",
+                name=name,
+                response_time=total_time,
+                exception=error_message,
+                response_length=None,
             )
 
             if not isinstance(e, WebDriverException):
