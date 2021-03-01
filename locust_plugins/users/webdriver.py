@@ -9,8 +9,11 @@ from selenium.webdriver.chrome.options import Options
 
 
 class WebdriverClient(webdriver.Remote):
-    def __init__(self, environment: Environment, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, environment: Environment, headless: bool):
+        chrome_options = Options()
+        if headless:
+            chrome_options.add_argument("--headless")
+        super().__init__(desired_capabilities=chrome_options.to_capabilities())
         self.environment = environment
         self.start_time = None
 
@@ -69,11 +72,4 @@ class WebdriverUser(User):
             subprocess.Popen(["killall", "chromedriver"], stderr=subprocess.DEVNULL)
             subprocess.Popen(["pkill", "-f", " --test-type=webdriver"], stderr=subprocess.DEVNULL)
 
-        chrome_options = Options()
-        if headless:
-            chrome_options.add_argument("--headless")
-        self.client = WebdriverClient(
-            self.environment,
-            command_executor="http://127.0.0.1:4444/wd/hub",
-            desired_capabilities=chrome_options.to_capabilities(),
-        )
+        self.client = WebdriverClient(self.environment, headless)
