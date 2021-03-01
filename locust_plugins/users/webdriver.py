@@ -49,8 +49,8 @@ class WebdriverUser(User):
         if WebdriverUser._first_instance:
             WebdriverUser._first_instance = False
             # kill old webdriver browser instances
-            subprocess.Popen(["killall", "chromedriver"])
-            subprocess.Popen(["pkill", "-f", " --test-type=webdriver"])
+            subprocess.Popen(["killall", "chromedriver"], stderr=subprocess.DEVNULL)
+            subprocess.Popen(["pkill", "-f", " --test-type=webdriver"], stderr=subprocess.DEVNULL)
 
         chrome_options = Options()
         if headless:
