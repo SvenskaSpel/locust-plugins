@@ -13,5 +13,9 @@
         "**/.mypy_cache": true,
         "**/.tox": true
     },
-    "python.linting.pylintEnabled": true
+    "python.linting.pylintEnabled": true,
+    "python.linting.pylintArgs": [
+        "--init-hook",
+        "import sys; sys.path.insert(0, '.')"
+    ]
 }
