@@ -2,15 +2,16 @@
 import subprocess
 import time
 from locust import User
+from locust.env import Environment
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException, WebDriverException
 from selenium.webdriver.chrome.options import Options
 
 
 class WebdriverClient(webdriver.Remote):
-    def __init__(self, environment, *args, **kwargs):
+    def __init__(self, environment: Environment, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._locust_environment = environment
+        self.environment = environment
         self.start_time = None
 
     def find_element(self, *args, name=None, **kwargs):  # pylint: disable=arguments-differ
@@ -35,8 +36,8 @@ class WebdriverClient(webdriver.Remote):
                     )
             except:
                 pass  # if this failed then we dont know how long we waited for, but it doesnt matter
-            self._locust_environment.events.request_failure.fire(
-                request_type="Selenium",
+            self.environment.events.request_failure.fire(
+                request_type="find_element",
                 name=name,
                 response_time=total_time,
                 exception=error_message,
@@ -48,8 +49,8 @@ class WebdriverClient(webdriver.Remote):
         else:
             total_time = int((time.time() - self.start_time) * 1000)
             self.start_time = None
-            self._locust_environment.events.request_success.fire(
-                request_type="Selenium", name=name, response_time=total_time, response_length=None
+            self.environment.events.request_success.fire(
+                request_type="find_element", name=name, response_time=total_time, response_length=None
             )
 
         return result
