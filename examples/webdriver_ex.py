@@ -2,9 +2,10 @@
 # Download it from https://www.seleniumhq.org/download/ and run it by executing:
 # java -jar selenium-server-4.0.0-beta-1.jar standalone
 import time
-from locust import task, constant
+from locust import task, constant, events
 from locust_plugins import run_single_user
 from locust_plugins.users import WebdriverUser
+from locust_plugins.listeners import RescheduleTaskOnFail
 from selenium.common.exceptions import StaleElementReferenceException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -65,5 +66,12 @@ class MyUser(WebdriverUser):
         )
 
 
+@events.init.add_listener
+def on_locust_init(environment, **_kwargs):
+    # make sure this is the last event handler you register, as later ones will not be triggered
+    # if there is a failure
+    RescheduleTaskOnFail(environment)
+
+
 if __name__ == "__main__":
-    run_single_user(MyUser)
+    run_single_user(MyUser, init_listener=on_locust_init)
