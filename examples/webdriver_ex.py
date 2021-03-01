@@ -42,11 +42,10 @@ class MyUser(WebdriverUser):
         ssn_input.send_keys(Keys.RETURN)
         self.client.implicitly_wait(10)
         self.client.find_element(By.XPATH, '//*[@id="last-login-time"]/div/div[4]/a/span', name="logged in").click()
-        # show balance (this is just client side so it will be really fast - it more of a validation of functionality)
         self.client.find_element(
             By.CSS_SELECTOR,
             "body > div.fixed-top-content.js-top-content-wrapper.balance-bar-ao-brand-small > div.balance-bar-account > span.balance-bar-account-item.balance-bar-left-border.pointer.js-balance-toggle.balance-bar-toggle > span",
-            name="balance visible",
+            name="balance clickable",  # this is just client side so it will be really fast
         ).click()
 
         self.environment.events.request_success.fire(
