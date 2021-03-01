@@ -2,14 +2,12 @@
 # Download it from https://www.seleniumhq.org/download/ and run it by executing:
 # java -jar selenium-server-4.0.0-beta-1.jar standalone
 import time
-
-from locust.user.wait_time import constant
+from locust import task, constant
 from locust_plugins import run_single_user
 from locust_plugins.users import WebdriverUser
-from locust import task
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.common.by import By
 from selenium.common.exceptions import StaleElementReferenceException
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 
 
 class MyUser(WebdriverUser):
