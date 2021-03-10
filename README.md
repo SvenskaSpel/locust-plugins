@@ -12,11 +12,11 @@ There are a couple of plugin types:
 
 ## Listeners 
 - Listen to events and log things
-    - Log and graph results using TimescaleDB and Grafana ([source](locust_plugins/listeners.py), [example](examples/timescale_listener_ex.py))
-    - PrintListener (prints prints every request with response time etc) ([source](locust_plugins/listeners.py))
-    - JmeterListener (writes a jmeter-like output file) ([source](locust_plugins/jmeter_listener.py), [example](examples/timescale_listener_example.py))
-     - ApplicationInsightsListener (writes the test logs to Azure Application Insights) ([source](locust_plugins/appinsights_listener.py), [example](examples/appinsights_listener_ex.py))
-    - RescheduleTaskOnFailListener / ExitOnFailListener / StopUserOnFailListener / (perform actions when a request fails) ([source](locust_plugins/listeners.py))
+    - Log and graph results using TimescaleDB and Grafana ([example](examples/timescale_listener_ex.py), [source](locust_plugins/listeners.py))
+    - Print (prints prints every request with response time etc) ([source](locust_plugins/listeners.py))
+    - Jmeter (writes a jmeter-like output file) ([example](examples/timescale_listener_example.py), [source](locust_plugins/jmeter_listener.py))
+     - ApplicationInsights (writes the test logs to Azure Application Insights) ([example](examples/appinsights_listener_ex.py), [source](locust_plugins/appinsights_listener.py))
+    - RescheduleTaskOnFail / ExitOnFail / StopUserOnFail / (perform actions when a request fails) ([source](locust_plugins/listeners.py))
 
 ## Users
 - New protocols ([source](locust_plugins/users/))
@@ -27,20 +27,20 @@ There are a couple of plugin types:
 
 ## Readers 
 - Provide ways to get test data into your tests
-    - CSV ([source](https://github.com/SvenskaSpel/locust-plugins/blob/master/locust_plugins/csvreader.py), [example](examples/csvreader_ex.py))
-    - MongoDB ([source](https://github.com/SvenskaSpel/locust-plugins/blob/master/locust_plugins/mongoreader.py), [example](examples/mongoreader_ex.py))
+    - CSV ([example](examples/csvreader_ex.py), [source](https://github.com/SvenskaSpel/locust-plugins/blob/master/locust_plugins/readers/csvreader.py))
+    - MongoDB ([example](examples/mongoreader_ex.py), [source](https://github.com/SvenskaSpel/locust-plugins/blob/master/locust_plugins/mongoreader.py))
 
 ## Wait time 
-- Custom wait time functions ([source](locust_plugins/wait_time.py), [example](examples/constant_total_ips_ex.py))
+- Custom wait time functions ([example](examples/constant_total_ips_ex.py), [source](locust_plugins/wait_time.py))
 
 ## Debug 
-- Support for running a single User in the debugger ([source](locust_plugins/debug.py), [example](examples/debug_ex.py))
+- Support for running a single User in the debugger ([example](examples/debug_ex.py), [source](locust_plugins/debug.py))
 
 ## Transaction manager
-- Support for logging transactions (aggregating multiple requests or other actions) ([source](locust_plugins/transaction_manager.py), [example](examples/transaction_example.py))
+- Support for logging transactions (aggregating multiple requests or other actions) ([example](examples/transaction_example.py), [source](locust_plugins/transaction_manager.py))
 
 ## Command line options 
-- Additional locust command line options provided ([source](locust_plugins/__init__.py), [examples](examples/cmd_line_examples.sh))
+- Additional locust command line options provided ([examples](examples/cmd_line_examples.sh), [source](locust_plugins/__init__.py))
     - Iteration limit (`-i`), stops Locust after a certain number of task iterations
     - Checks (`--check-rps`, `--check-fail-ratio`, `--check-avg-response-time`), gives an error return code if certain conditions are not met
 
