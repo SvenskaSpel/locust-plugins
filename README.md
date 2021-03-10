@@ -27,8 +27,8 @@ There are a couple of plugin types:
 
 ## Readers 
 - Provide ways to get test data into your tests
-    - CSV ([example](examples/csvreader_ex.py), [source](https://github.com/SvenskaSpel/locust-plugins/blob/master/locust_plugins/readers/csvreader.py))
-    - MongoDB ([example](examples/mongoreader_ex.py), [source](https://github.com/SvenskaSpel/locust-plugins/blob/master/locust_plugins/mongoreader.py))
+    - CSV ([example](examples/csvreader_ex.py), [source](locust_plugins/csvreader.py))
+    - MongoDB ([example](examples/mongoreader_ex.py), [source](locust_plugins/mongoreader.py))
 
 ## Wait time 
 - Custom wait time functions ([example](examples/constant_total_ips_ex.py), [source](locust_plugins/wait_time.py))
