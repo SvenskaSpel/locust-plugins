@@ -12,11 +12,11 @@ There are a couple of plugin types:
 
 ## Listeners 
 - Listen to events and log things
-    - Log and graph results using TimescaleDB and Grafana ([example](examples/timescale_listener_ex.py), [source](locust_plugins/listeners.py))
-    - Print (prints prints every request with response time etc) ([source](locust_plugins/listeners.py))
-    - Jmeter (writes a jmeter-like output file) ([example](examples/timescale_listener_example.py), [source](locust_plugins/jmeter_listener.py))
-     - ApplicationInsights (writes the test logs to Azure Application Insights) ([example](examples/appinsights_listener_ex.py), [source](locust_plugins/appinsights_listener.py))
-    - RescheduleTaskOnFail / ExitOnFail / StopUserOnFail / (perform actions when a request fails) ([source](locust_plugins/listeners.py))
+    - Timescale: Log and graph results using TimescaleDB and Grafana ([example](examples/timescale_listener_ex.py), [source](locust_plugins/listeners.py))
+    - Print: Prints prints every request to standard out with response time etc ([source](locust_plugins/listeners.py))
+    - Jmeter: Writes a jmeter-like output file ([example](examples/timescale_listener_example.py), [source](locust_plugins/jmeter_listener.py))
+    - ApplicationInsights: Writes the test logs to Azure Application Insights ([example](examples/appinsights_listener_ex.py), [source](locust_plugins/appinsights_listener.py))
+    - RescheduleTaskOnFail / ExitOnFail / StopUserOnFail: Perform actions when a request fails ([source](locust_plugins/listeners.py))
 
 ## Users
 - New protocols ([source](locust_plugins/users/))
