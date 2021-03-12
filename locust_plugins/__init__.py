@@ -1,4 +1,4 @@
-__version__ = "1.1.0"
+__version__ = "1.1.1"
 
 from .wait_time import constant_ips, constant_total_ips
 from .debug import run_single_user
@@ -80,7 +80,7 @@ def add_checks_arguments(parser: configargparse.ArgumentParser):
     )
     other.add_argument(
         "--console-stats-interval",
-        type=str,
+        type=int,
         help="Interval at which to print locust stats to command line",
         env_var="LOCUST_CONSOLE_STATS_INTERVAL",
         default=locust.stats.CONSOLE_STATS_INTERVAL_SEC,
