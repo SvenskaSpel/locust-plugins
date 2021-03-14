@@ -38,4 +38,5 @@ class CSVDictReader:
         except StopIteration:
             # reuse file on EOF
             self.file.seek(0, 0)
+            next(self.reader)  # skip header line
             return next(self.reader)
