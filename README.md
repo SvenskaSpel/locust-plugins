@@ -1,5 +1,11 @@
 # Locust Plugins
 
+[![Build Status](https://travis-ci.com/SvenskaSpel/locust-plugins.svg?branch=master)](https://travis-ci.com/SvenskaSpel/locust-plugins)
+[![license](https://img.shields.io/github/license/SvenskaSpel/locust-plugins.svg)](https://github.com/SvenskaSpel/locust-plugins/blob/master/LICENSE)
+[![PyPI](https://img.shields.io/pypi/v/locust-plugins.svg)](https://pypi.org/project/locust-plugins/)
+[![PyPI](https://img.shields.io/pypi/pyversions/locust-plugins.svg)](https://pypi.org/project/locust-plugins/)
+[![GitHub contributors](https://img.shields.io/github/contributors/SvenskaSpel/locust-plugins.svg)](https://github.com/SvenskaSpel/locust-plugins/graphs/contributors)
+
 The purpose of this project is to gather a curated set of plugins/extensions for [Locust](https://github.com/locustio/locust). 
 
 Locust itself is a "bare bones" load generation tool (compared to for example JMeter or Gatling) and it is left to the user to build even basic functionality (like reading test data from a database, limiting the request rate to a certain value, etc). Forcing everyone to reinvent the wheel is a big waste, and makes using Locust harder than it needs to be.
