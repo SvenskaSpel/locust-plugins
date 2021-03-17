@@ -241,8 +241,9 @@ class Timescale:  # pylint: disable=R0902
                 # The AND time > run_id clause in the following statements are there to help Timescale performance
                 # We dont use start_time / end_time to calculate RPS, instead we use the time between the actual first and last request
                 # (as this is a more accurate measurement of the actual test)
-                cur.execute(
-                    """
+                try:
+                    cur.execute(
+                        """
 UPDATE testrun 
 SET (requests, resp_time_avg, rps_avg, fail_ratio) = 
 (SELECT reqs, resp_time, reqs / GREATEST(duration, 1), fails / reqs) FROM 
@@ -256,8 +257,12 @@ SET (requests, resp_time_avg, rps_avg, fail_ratio) =
  COUNT(*)::numeric AS fails 
  FROM request WHERE run_id = %s AND time > %s AND success = 0) AS ___
 WHERE id = %s""",
-                    [self._run_id] * 7,
-                )
+                        [self._run_id] * 7,
+                    )
+                except psycopg2.errors.DivisionByZero:  # pylint: disable=no-member
+                    logging.debug(
+                        "Got DivisionByZero error when trying to update testrun into events, most likely because there were no requests logged"
+                    )
         except psycopg2.Error as error:
             logging.error(
                 "Failed to update testrun record (or events) with end time to Postgresql timescale database: "
@@ -272,7 +277,7 @@ WHERE id = %s""",
             self.log_stop_test_run()
 
 
-class Print:  # pylint: disable=R0902
+class Print:
     """
     Print every response (useful when debugging a single locust)
     """
