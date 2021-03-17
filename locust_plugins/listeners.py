@@ -44,9 +44,7 @@ class Timescale:  # pylint: disable=R0902
         self._events_conn = self._dbconn()
         assert testplan != ""
         self._testplan = testplan
-        assert env != ""
-        # self._env = env.parsed_options.target_env
-        self._env = target_env
+        self._target_env = target_env if target_env else env.parsed_options.target_env
         self.env = env
         self._hostname = socket.gethostname()
         self._username = os.getenv("USER", "unknown")
@@ -208,7 +206,7 @@ class Timescale:  # pylint: disable=R0902
                     self.env.parsed_options.num_users or 1,
                     self._rps,
                     self._description,
-                    self._env,
+                    self._target_env,
                     self._username,
                     self._gitrepo,
                     self._test_version,
