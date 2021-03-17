@@ -33,7 +33,6 @@ class Timescale:  # pylint: disable=R0902
         self,
         env: locust.env.Environment,
         testplan: str,
-        target_env: str = "",
         profile_name: str = "",
         description: str = "",
     ):
@@ -44,7 +43,7 @@ class Timescale:  # pylint: disable=R0902
         self._events_conn = self._dbconn()
         assert testplan != ""
         self._testplan = testplan
-        self._target_env = target_env if target_env else env.parsed_options.target_env
+        self._test_env = env.parsed_options.test_env
         self.env = env
         self._hostname = socket.gethostname()
         self._username = os.getenv("USER", "unknown")
@@ -206,7 +205,7 @@ class Timescale:  # pylint: disable=R0902
                     self.env.parsed_options.num_users or 1,
                     self._rps,
                     self._description,
-                    self._target_env,
+                    self._test_env,
                     self._username,
                     self._gitrepo,
                     self._test_version,
