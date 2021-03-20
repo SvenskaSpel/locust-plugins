@@ -44,7 +44,7 @@ class WebdriverClient(webdriver.Remote):
                 name=name,
                 response_time=total_time,
                 exception=error_message,
-                response_length=None,
+                response_length=0,
             )
 
             if not isinstance(e, WebDriverException):
@@ -53,7 +53,7 @@ class WebdriverClient(webdriver.Remote):
             total_time = (time.monotonic() - self.start_time) * 1000
             self.start_time = None
             self.environment.events.request_success.fire(
-                request_type="find_element", name=name, response_time=total_time, response_length=None
+                request_type="find_element", name=name, response_time=total_time, response_length=0
             )
 
         return result
