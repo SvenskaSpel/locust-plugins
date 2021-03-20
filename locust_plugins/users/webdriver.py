@@ -13,7 +13,11 @@ class WebdriverClient(webdriver.Remote):
         chrome_options = Options()
         if headless:
             chrome_options.add_argument("--headless")
-        super().__init__(desired_capabilities=chrome_options.to_capabilities())
+        capabilities = chrome_options.to_capabilities()
+        # workaround for the first page being way to slow to load
+        # ~2 minutes for my case (caused by some useless element being slow?)
+        capabilities["pageLoadStrategy"] = "eager"
+        super().__init__(desired_capabilities=capabilities)
         self.environment = environment
         self.start_time = None
 
