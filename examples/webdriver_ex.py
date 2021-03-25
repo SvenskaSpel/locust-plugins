@@ -1,6 +1,7 @@
 # You need to start selenium server first:
 # Download it from https://www.seleniumhq.org/download/ and run it by executing:
-# java -jar selenium-server-4.0.0-beta-1.jar standalone
+# java -jar selenium-server-4.0.0-beta-2.jar standalone
+# Also, make sure you have installed chromedriver first. On macOS you would do: brew install --cask chromedriver
 import time
 from locust import task, constant, events
 from locust_plugins import run_single_user
@@ -18,12 +19,13 @@ class MyUser(WebdriverUser):
 
     def on_start(self):
         self.client.set_window_size(1400, 1000)
-        self.client.implicitly_wait(2)
+        self.client.implicitly_wait(5)
 
     # this is just an example, but it shows off some of the things you might want to do in a Webdriver test
     @task
     def my_task(self):
         self.client.delete_all_cookies()
+        self.client.clear_cache()
         self.client.start_time = time.monotonic()  # to measure the time from now to first find_element finishes
         scenario_start_time = self.client.start_time  # to measure the time for the whole scenario
         self.client.get("https://spela.test4.svenskaspel.se/")
@@ -49,7 +51,7 @@ class MyUser(WebdriverUser):
         ).click()
 
         self.environment.events.request_success.fire(
-            request_type="scenario",
+            request_type="flow",
             name="log in flow",
             response_time=(time.monotonic() - scenario_start_time) * 1000,
             response_length=0,
