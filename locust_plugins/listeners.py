@@ -151,12 +151,7 @@ class Timescale:  # pylint: disable=R0902
         self.exit()
 
     def _log_request(self, request_type, name, response_time, response_length, success, exception):
-        current_greenlet = greenlet.getcurrent()  # pylint: disable=I1101
-        if hasattr(current_greenlet, "minimal_ident"):
-            greenlet_id = current_greenlet.minimal_ident
-        else:
-            greenlet_id = -1  # if no greenlet has been spawned (typically when debugging)
-
+        greenlet_id = getattr(greenlet.getcurrent(), "minimal_ident", 0)  # if we're debugging there is no greenlet
         sample = {
             "time": datetime.now(timezone.utc).isoformat(),
             "run_id": self._run_id,
@@ -309,7 +304,7 @@ class Print:
             errortext = e  # should be empty but who knows, maybe there is such a case...
         else:
             errortext = "Failed: " + e[:500]
-        n = name.ljust(30)
+        n = name.ljust(30) if name else ""
         if self.include_time:
             print(datetime.now(), end="\t")
         if self.include_length:
