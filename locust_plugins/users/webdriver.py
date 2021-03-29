@@ -28,7 +28,7 @@ class WebdriverClient(webdriver.Remote):
         self.command_executor._commands["SEND_COMMAND"] = ("POST", "/session/$sessionId/chromium/send_command")
         self.execute("SEND_COMMAND", dict(cmd="Network.clearBrowserCache", params={}))
 
-    def find_element(self, by=By.ID, value=None, name=None, prefix=None, retry=0):  # pylint: disable=arguments-differ
+    def find_element(self, by=By.ID, value=None, name=None, prefix="", retry=0):  # pylint: disable=arguments-differ
         result = None
         if name and prefix:
             raise Exception("dont specify both name and prefix, that makes no sense")
