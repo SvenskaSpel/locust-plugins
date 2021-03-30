@@ -14,6 +14,7 @@ import datetime
 class WebdriverClient(webdriver.Remote):
     def __init__(self, environment: Environment, headless: bool):
         chrome_options = Options()
+        self.headless = headless
         if headless:
             chrome_options.add_argument("--headless")
         capabilities = chrome_options.to_capabilities()
@@ -29,7 +30,7 @@ class WebdriverClient(webdriver.Remote):
         self.execute("SEND_COMMAND", dict(cmd="Network.clearBrowserCache", params={}))
 
     def find_element(self, by=By.ID, value=None, name=None, prefix="", retry=0):  # pylint: disable=arguments-differ
-        result = None
+        element = None
         if name and prefix:
             raise Exception("dont specify both name and prefix, that makes no sense")
         if not name:
@@ -37,7 +38,15 @@ class WebdriverClient(webdriver.Remote):
         if not self.start_time:
             self.start_time = time.monotonic()
         try:
-            result = super().find_element(by=by, value=value)
+            element = super().find_element(by=by, value=value)
+            self.execute_script("arguments[0].scrollIntoView(true);", element)
+            if not self.headless:
+                # show a visual indication on the element we've found (and probably are about to interact with)
+                self.execute_script("arguments[0].style.border='3px solid red'", element)
+                time.sleep(1)
+                self.execute_script("arguments[0].style.border='0px'", element)
+                time.sleep(0.1)
+
         except Exception as e:
             if retry < 2:
                 return self.find_element(by=by, value=value, name=name, retry=retry + 1)
@@ -75,8 +84,7 @@ class WebdriverClient(webdriver.Remote):
             self.environment.events.request_success.fire(
                 request_type="find", name=name, response_time=total_time, response_length=0
             )
-
-        return result
+        return element
 
 
 class WebdriverUser(User):
