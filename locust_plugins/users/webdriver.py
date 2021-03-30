@@ -31,8 +31,9 @@ class WebdriverClient(webdriver.Remote):
             ),
         )
 
-    def clear_cache(self):
+    def clear(self):
         self.execute("SEND_COMMAND", dict(cmd="Network.clearBrowserCache", params={}))
+        self.execute("SEND_COMMAND", dict(cmd="Network.clearBrowserCookies", params={}))
 
     def find_element(self, by=By.ID, value=None, name=None, prefix="", retry=0):  # pylint: disable=arguments-differ
         element = None
