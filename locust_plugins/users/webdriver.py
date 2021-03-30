@@ -22,9 +22,16 @@ class WebdriverClient(webdriver.Remote):
         super().__init__(options=chrome_options)
         self.environment = environment
         self.start_time = None
+        self.command_executor._commands["SEND_COMMAND"] = ("POST", "/session/$sessionId/chromium/send_command")
+        self.execute(
+            "SEND_COMMAND",
+            dict(
+                cmd="Network.emulateNetworkConditions",
+                params={"offline": False, "latency": 100, "downloadThroughput": 50000, "uploadThroughput": 50000},
+            ),
+        )
 
     def clear_cache(self):
-        self.command_executor._commands["SEND_COMMAND"] = ("POST", "/session/$sessionId/chromium/send_command")
         self.execute("SEND_COMMAND", dict(cmd="Network.clearBrowserCache", params={}))
 
     def find_element(self, by=By.ID, value=None, name=None, prefix="", retry=0):  # pylint: disable=arguments-differ
