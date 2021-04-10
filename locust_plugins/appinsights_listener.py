@@ -5,7 +5,7 @@ from opencensus.ext.azure.log_exporter import AzureLogHandler
 
 
 class ApplicationInsights:
-    def __init__(self, env: locust.env.Environment, testplan="", instrumentation_key=""):
+    def __init__(self, env: locust.env.Environment, testplan="", instrumentation_key="", propagate_logs=True):
         self.testplan = testplan or "appinsightstestplan"
         self.env = env
         self.logger = logging.getLogger(__name__)
@@ -16,6 +16,7 @@ class ApplicationInsights:
             formated_key = "InstrumentationKey=" + str(os.getenv("APP_INSIGHTS_INSTRUMENTATION_KEY"))
 
         self.logger.addHandler(AzureLogHandler(connection_string=formated_key))
+        self.logger.propagate(propagate_logs)
 
         env.events.request_success.add_listener(self.request_success)
         env.events.request_failure.add_listener(self.request_failure)
