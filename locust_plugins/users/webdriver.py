@@ -1,5 +1,4 @@
 # See examples/webdriver_ex.py for more documentation
-import logging
 import subprocess
 import time
 from locust import User
