@@ -46,13 +46,13 @@ class WebdriverClient(webdriver.Remote):
         self.start_time = None
         time.sleep(1)
         self.command_executor._commands["SEND_COMMAND"] = ("POST", "/session/$sessionId/chromium/send_command")
-        self.execute(
-            "SEND_COMMAND",
-            dict(
-                cmd="Network.emulateNetworkConditions",
-                params={"offline": False, "latency": 100, "downloadThroughput": 200, "uploadThroughput": 200},
-            ),
-        )
+        # self.execute(
+        #     "SEND_COMMAND",
+        #     dict(
+        #         cmd="Network.emulateNetworkConditions",
+        #         params={"offline": False, "latency": 100, "downloadThroughput": 10000, "uploadThroughput": 10000},
+        #     ),
+        # )
 
     def find_element(self, by=By.ID, value=None, name=None, prefix="", retry=0):  # pylint: disable=arguments-differ
         element = None
