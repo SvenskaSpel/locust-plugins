@@ -29,7 +29,7 @@ class JmeterListener:
         row_delimiter="\n",
         timestamp_format="%Y-%m-%d %H:%M:%S",
         flush_size=100,
-        results_filename=""
+        results_filename=None
     ):
         self.env = env
         self.runner = self.env.runner
@@ -43,10 +43,9 @@ class JmeterListener:
         self.timestamp_format = timestamp_format
         # how many records should be held before flushing to disk
         self.flush_size = flush_size
-        if results_filename == "":
+        if not results_filename:
             # results filename format
-            self.results_timestamp_format = "%Y_%m_%d_%H_%M_%S"
-            self.results_filename = f"results_{datetime.fromtimestamp(time()).strftime(self.results_timestamp_format)}.csv"
+            self.results_filename = f"results_{datetime.fromtimestamp(time()).strftime('%Y_%m_%d_%H_%M_%S')}.csv"
         else:
             self.results_filename = results_filename
 
@@ -105,7 +104,7 @@ class JmeterListener:
         filename = Path(self.results_filename)
         filename.parent.mkdir(exist_ok=True,parents=True)
         filename.touch(exist_ok=True)
-        results_file = open(filename, "w")
+        results_file = open(filename, "w") # pylint: disable=consider-using-with
         results_file.write(self.field_delimiter.join(self.csv_headers) + self.row_delimiter)
         results_file.flush()
         return results_file
