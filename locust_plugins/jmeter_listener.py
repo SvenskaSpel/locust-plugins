@@ -104,7 +104,7 @@ class JmeterListener:
         filename = Path(self.results_filename)
         filename.parent.mkdir(exist_ok=True, parents=True)
         filename.touch(exist_ok=True)
-        results_file = open(filename, "w")  # pylint: disable=consider-using-with
+        results_file = open(filename, "w")
         results_file.write(self.field_delimiter.join(self.csv_headers) + self.row_delimiter)
         results_file.flush()
         return results_file
