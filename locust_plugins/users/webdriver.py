@@ -4,7 +4,7 @@ import time
 from locust import User
 from locust.env import Environment
 from selenium import webdriver
-from selenium.common.exceptions import NoSuchElementException, WebDriverException
+from selenium.common.exceptions import NoSuchElementException, WebDriverException, InvalidSessionIdException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 import greenlet
@@ -13,23 +13,49 @@ import datetime
 
 class WebdriverClient(webdriver.Remote):
     def __init__(self, environment: Environment, headless: bool):
-        chrome_options = Options()
-        if headless:
-            chrome_options.add_argument("--headless")
-        capabilities = chrome_options.to_capabilities()
+        options = Options()
+        self.headless = headless
+        options.headless = self.headless
+        for arg in [
+            "--disable-translate",
+            "--disable-extensions",
+            "--disable-background-networking",
+            "--safebrowsing-disable-auto-update",
+            "--disable-sync",
+            "--metrics-recording-only",
+            "--disable-default-apps",
+            "--no-first-run",
+            "--disable-setuid-sandbox",
+            "--hide-scrollbars",
+            "--no-sandbox",
+            "--no-zygote",
+            "--autoplay-policy=no-user-gesture-required",
+            "--disable-notifications",
+            "--disable-logging",
+            "--disable-permissions-api",
+        ]:
+            options.add_argument(arg)
+        # hide infobar about automation
+        options.add_experimental_option("excludeSwitches", ["enable-automation"])
+        options.add_experimental_option("useAutomationExtension", False)
         # workaround for the first page being way to slow to load
         # ~2 minutes for my case (caused by some useless element being slow?)
-        capabilities["pageLoadStrategy"] = "eager"
-        super().__init__(desired_capabilities=capabilities)
+        options.page_load_strategy = "eager"
+        super().__init__(options=options)
         self.environment = environment
         self.start_time = None
-
-    def clear_cache(self):
+        time.sleep(1)
         self.command_executor._commands["SEND_COMMAND"] = ("POST", "/session/$sessionId/chromium/send_command")
-        self.execute("SEND_COMMAND", dict(cmd="Network.clearBrowserCache", params={}))
+        # self.execute(
+        #     "SEND_COMMAND",
+        #     dict(
+        #         cmd="Network.emulateNetworkConditions",
+        #         params={"offline": False, "latency": 100, "downloadThroughput": 10000, "uploadThroughput": 10000},
+        #     ),
+        # )
 
     def find_element(self, by=By.ID, value=None, name=None, prefix="", retry=0):  # pylint: disable=arguments-differ
-        result = None
+        element = None
         if name and prefix:
             raise Exception("dont specify both name and prefix, that makes no sense")
         if not name:
@@ -37,7 +63,16 @@ class WebdriverClient(webdriver.Remote):
         if not self.start_time:
             self.start_time = time.monotonic()
         try:
-            result = super().find_element(by=by, value=value)
+            element = super().find_element(by=by, value=value)
+            self.execute_script("arguments[0].scrollIntoView(true);", element)
+            if not self.headless:
+                time.sleep(0.1)
+                # show a visual indication on the element we've found (and probably are about to interact with)
+                self.execute_script("arguments[0].style.border='3px solid red'", element)
+                time.sleep(2)
+                self.execute_script("arguments[0].style.border='0px'", element)
+                time.sleep(0.1)
+
         except Exception as e:
             if retry < 2:
                 return self.find_element(by=by, value=value, name=name, retry=retry + 1)
@@ -75,8 +110,7 @@ class WebdriverClient(webdriver.Remote):
             self.environment.events.request_success.fire(
                 request_type="find", name=name, response_time=total_time, response_length=0
             )
-
-        return result
+        return element
 
 
 class WebdriverUser(User):
@@ -86,6 +120,7 @@ class WebdriverUser(User):
 
     def __init__(self, parent, headless=True):
         super().__init__(parent)
+        self.headless = headless
         if WebdriverUser._first_instance:
             WebdriverUser._first_instance = False
             # kill old webdriver browser instances
@@ -93,6 +128,21 @@ class WebdriverUser(User):
             subprocess.Popen(["pkill", "-f", " --test-type=webdriver"], stderr=subprocess.DEVNULL)
 
         self.client = WebdriverClient(self.environment, headless)
+        time.sleep(1)
+
+    def clear(self):
+        for _ in range(3):
+            try:
+                self.client.execute("SEND_COMMAND", dict(cmd="Network.clearBrowserCache", params={}))
+                # clearBrowserCookies is better than self.delete_all_cookies(), because it also clears http-only cookies
+                self.client.execute("SEND_COMMAND", dict(cmd="Network.clearBrowserCookies", params={}))
+                break
+            except (InvalidSessionIdException, WebDriverException):
+                time.sleep(1)
+        else:
+            self.client.quit()
+            self.client = WebdriverClient(self.environment, self.headless)
+            raise Exception("could not clear, spawned new client instead")
 
     def on_stop(self):
         self.client.close()

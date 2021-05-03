@@ -24,8 +24,7 @@ class MyUser(WebdriverUser):
     # this is just an example, but it shows off some of the things you might want to do in a Webdriver test
     @task
     def my_task(self):
-        self.client.delete_all_cookies()
-        self.client.clear_cache()
+        self.clear()
         self.client.start_time = time.monotonic()  # to measure the time from now to first find_element finishes
         scenario_start_time = self.client.start_time  # to measure the time for the whole scenario
         self.client.get("https://spela.test4.svenskaspel.se/")
