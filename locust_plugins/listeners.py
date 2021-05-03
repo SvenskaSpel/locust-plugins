@@ -281,7 +281,7 @@ class Print:
         self.include_time = "time                    \t" if include_time else ""
         print(f"\n{self.include_time}type\t{'name'.ljust(50)}\tresponse time\t{self.include_length}exception")
 
-    def on_request(self, request_type, name, response_time, response_length, exception, context, **kwargs):
+    def on_request(self, request_type, name, response_time, response_length, exception, context, **_kwargs):
         if exception:
             self._log_request(request_type, name, response_time, response_length, False, exception, context)
         else:
