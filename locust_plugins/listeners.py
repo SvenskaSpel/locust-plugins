@@ -279,12 +279,6 @@ class Print:
 
     def on_request(self, request_type, name, response_time, response_length, exception, context, **_kwargs):
         if exception:
-            self._log_request(request_type, name, response_time, response_length, False, exception, context)
-        else:
-            self._log_request(request_type, name, response_time, response_length, True, exception, context)
-
-    def _log_request(self, request_type, name, response_time, response_length, success, exception, context):
-        if exception:
             if isinstance(exception, CatchResponseError):
                 e = str(exception)
             else:
@@ -294,7 +288,7 @@ class Print:
                     e = f"{exception.__class__} (and it has no string representation)"
         else:
             e = ""
-        if success:
+        if exception:
             errortext = e  # should be empty but who knows, maybe there is such a case...
         else:
             errortext = "Failed: " + e[:500]
