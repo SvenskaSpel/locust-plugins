@@ -149,7 +149,9 @@ class Timescale:  # pylint: disable=R0902
             self._user_count_logger.kill()
         self.exit()
 
-    def _log_request(self, request_type, name, response_time, response_length, success, exception, context):
+    def on_request(self, request_type, name, response_time, response_length, exception, context, **_kwargs):
+        success = 0 if exception else 1
+
         greenlet_id = getattr(greenlet.getcurrent(), "minimal_ident", 0)  # if we're debugging there is no greenlet
         sample = {
             "time": datetime.now(timezone.utc).isoformat(),
@@ -182,12 +184,6 @@ class Timescale:  # pylint: disable=R0902
             sample["exception"] = None
 
         self._samples.append(sample)
-
-    def on_request(self, request_type, name, response_time, response_length, exception, context, **_kwargs):
-        if exception:
-            self._log_request(request_type, name, response_time, response_length, 0, exception, context)
-        else:
-            self._log_request(request_type, name, response_time, response_length, 1, exception, context)
 
     def log_start_testrun(self):
         with self._testrun_conn.cursor() as cur:
