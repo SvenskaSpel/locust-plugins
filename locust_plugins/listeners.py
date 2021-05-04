@@ -3,6 +3,7 @@ import gevent.monkey
 
 gevent.monkey.patch_all()
 import psycogreen.gevent
+import json
 
 psycogreen.gevent.patch_psycopg()
 import psycopg2
@@ -22,6 +23,11 @@ import locust.env
 from typing import List
 
 # pylint: disable=trailing-whitespace # pylint is confused by multiline strings used for SQL
+
+
+def safe_serialize(obj):
+    default = lambda o: f"<<non-serializable: {type(o).__qualname__}>>"
+    return json.dumps(obj, default=default)
 
 
 class Timescale:  # pylint: disable=R0902
@@ -164,7 +170,7 @@ class Timescale:  # pylint: disable=R0902
             "success": success,
             "testplan": self._testplan,
             "pid": self._pid,
-            "context": psycopg2.extras.Json(context),
+            "context": psycopg2.extras.Json(context, safe_serialize),
         }
 
         if response_length >= 0:
