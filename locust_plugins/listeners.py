@@ -84,8 +84,7 @@ class Timescale:  # pylint: disable=R0902
 
         self._background = gevent.spawn(self._run)
         events = self.env.events
-        events.request_success.add_listener(self.request_success)
-        events.request_failure.add_listener(self.request_failure)
+        events.request.add_listener(self.on_request)
         events.quitting.add_listener(self.quitting)
         events.spawning_complete.add_listener(self.spawning_complete)
         atexit.register(self.exit)
@@ -135,9 +134,9 @@ class Timescale:  # pylint: disable=R0902
             with self._conn.cursor() as cur:
                 psycopg2.extras.execute_values(
                     cur,
-                    """INSERT INTO request(time,run_id,greenlet_id,loadgen,name,request_type,response_time,success,testplan,response_length,exception,pid) VALUES %s""",
+                    """INSERT INTO request(time,run_id,greenlet_id,loadgen,name,request_type,response_time,success,testplan,response_length,exception,pid,context) VALUES %s""",
                     samples,
-                    template="(%(time)s, %(run_id)s, %(greenlet_id)s, %(loadgen)s, %(name)s, %(request_type)s, %(response_time)s, %(success)s, %(testplan)s, %(response_length)s, %(exception)s, %(pid)s)",
+                    template="(%(time)s, %(run_id)s, %(greenlet_id)s, %(loadgen)s, %(name)s, %(request_type)s, %(response_time)s, %(success)s, %(testplan)s, %(response_length)s, %(exception)s, %(pid)s, %(context)s)",
                 )
         except psycopg2.Error as error:
             logging.error("Failed to write samples to Postgresql timescale database: " + repr(error))
@@ -150,7 +149,9 @@ class Timescale:  # pylint: disable=R0902
             self._user_count_logger.kill()
         self.exit()
 
-    def _log_request(self, request_type, name, response_time, response_length, success, exception):
+    def on_request(self, request_type, name, response_time, response_length, exception, context, **_kwargs):
+        success = 0 if exception else 1
+
         greenlet_id = getattr(greenlet.getcurrent(), "minimal_ident", 0)  # if we're debugging there is no greenlet
         sample = {
             "time": datetime.now(timezone.utc).isoformat(),
@@ -163,6 +164,7 @@ class Timescale:  # pylint: disable=R0902
             "success": success,
             "testplan": self._testplan,
             "pid": self._pid,
+            "context": psycopg2.extras.Json(context),
         }
 
         if response_length >= 0:
@@ -182,12 +184,6 @@ class Timescale:  # pylint: disable=R0902
             sample["exception"] = None
 
         self._samples.append(sample)
-
-    def request_success(self, request_type, name, response_time, response_length, **_kwargs):
-        self._log_request(request_type, name, response_time, response_length, 1, None)
-
-    def request_failure(self, request_type, name, response_time, response_length, exception, **_kwargs):
-        self._log_request(request_type, name, response_time, response_length, 0, exception)
 
     def log_start_testrun(self):
         with self._testrun_conn.cursor() as cur:
@@ -275,21 +271,13 @@ class Print:
     """
 
     def __init__(self, env: locust.env.Environment, include_length=False, include_time=False):
-        env.events.request_success.add_listener(self.request_success)
-        env.events.request_failure.add_listener(self.request_failure)
+        env.events.request.add_listener(self.on_request)
+
         self.include_length = "length\t" if include_length else ""
         self.include_time = "time                    \t" if include_time else ""
         print(f"\n{self.include_time}type\t{'name'.ljust(50)}\tresponse time\t{self.include_length}exception")
 
-    # @self._events.request_success.add_listener
-    def request_success(self, request_type, name, response_time, response_length, **_kwargs):
-        self._log_request(request_type, name, response_time, response_length, True, None)
-
-    # @self._events.request_failure.add_listener
-    def request_failure(self, request_type, name, response_time, response_length, exception, **_kwargs):
-        self._log_request(request_type, name, response_time, response_length, False, exception)
-
-    def _log_request(self, request_type, name, response_time, response_length, success, exception):
+    def on_request(self, request_type, name, response_time, response_length, exception, context, **_kwargs):
         if exception:
             if isinstance(exception, CatchResponseError):
                 e = str(exception)
@@ -300,7 +288,7 @@ class Print:
                     e = f"{exception.__class__} (and it has no string representation)"
         else:
             e = ""
-        if success:
+        if exception:
             errortext = e  # should be empty but who knows, maybe there is such a case...
         else:
             errortext = "Failed: " + e[:500]
@@ -308,9 +296,9 @@ class Print:
         if self.include_time:
             print(datetime.now(), end="\t")
         if self.include_length:
-            print(f"{request_type}\t{n.ljust(50)}\t{round(response_time)}\t{response_length}\t{errortext}")
+            print(f"{request_type}\t{n.ljust(50)}\t{round(response_time)}\t{response_length}\t{errortext}\t{context}")
         else:
-            print(f"{request_type}\t{n.ljust(50)}\t{round(response_time)}\t{errortext}")
+            print(f"{request_type}\t{n.ljust(50)}\t{round(response_time)}\t{errortext}\t{context}")
 
 
 class RescheduleTaskOnFail:
