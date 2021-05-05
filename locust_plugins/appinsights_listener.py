@@ -16,7 +16,7 @@ class ApplicationInsights:
             formated_key = "InstrumentationKey=" + str(os.getenv("APP_INSIGHTS_INSTRUMENTATION_KEY"))
 
         self.logger.addHandler(AzureLogHandler(connection_string=formated_key))
-        self.logger.propagate(propagate_logs)
+        self.logger.propagate = propagate_logs
 
         env.events.request_success.add_listener(self.request_success)
         env.events.request_failure.add_listener(self.request_failure)
