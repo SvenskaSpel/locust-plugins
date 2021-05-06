@@ -311,41 +311,45 @@ class RescheduleTaskOnFail:
     def __init__(self, env: locust.env.Environment):
         # make sure to add this listener LAST, because any failures will throw an exception,
         # causing other listeners to be skipped
-        env.events.request_failure.add_listener(self.request_failure)
+        env.events.request.add_listener(self.request)
 
-    def request_failure(self, request_type, name, response_time, response_length, exception, **_kwargs):
-        raise RescheduleTask()
+    def request(self, request_type, name, response_time, response_length, exception, **_kwargs):
+        if exception:
+            raise RescheduleTask()
 
 
 class InterruptTaskOnFail:
     def __init__(self, env: locust.env.Environment):
         # make sure to add this listener LAST, because any failures will throw an exception,
         # causing other listeners to be skipped
-        env.events.request_failure.add_listener(self.request_failure)
+        env.events.request.add_listener(self.request)
 
-    def request_failure(self, request_type, name, response_time, response_length, exception, **_kwargs):
-        raise InterruptTaskSet()
+    def request(self, request_type, name, response_time, response_length, exception, **_kwargs):
+        if exception:
+            raise InterruptTaskSet()
 
 
 class StopUserOnFail:
     def __init__(self, env: locust.env.Environment):
         # make sure to add this listener LAST, because any failures will throw an exception,
         # causing other listeners to be skipped
-        env.events.request_failure.add_listener(self.request_failure)
+        env.events.request.add_listener(self.request)
 
-    def request_failure(self, request_type, name, response_time, response_length, exception, **_kwargs):
-        raise StopUser()
+    def request(self, request_type, name, response_time, response_length, exception, **_kwargs):
+        if exception:
+            raise StopUser()
 
 
 class ExitOnFail:
     def __init__(self, env: locust.env.Environment):
         # make sure to add this listener LAST, because any failures will throw an exception,
         # causing other listeners to be skipped
-        env.events.request_failure.add_listener(self.request_failure)
+        env.events.request.add_listener(self.request)
 
-    def request_failure(self, **_kwargs):
-        gevent.sleep(0.2)  # wait for other listeners output to flush / write to db
-        os._exit(1)
+    def request(self, exception, **_kwargs):
+        if exception:
+            gevent.sleep(0.2)  # wait for other listeners output to flush / write to db
+            os._exit(1)
 
 
 def is_worker():
