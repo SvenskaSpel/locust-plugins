@@ -292,12 +292,11 @@ class Print:
                     e = repr(exception)
                 except AttributeError:
                     e = f"{exception.__class__} (and it has no string representation)"
-        else:
-            e = ""
-        if exception:
-            errortext = e  # should be empty but who knows, maybe there is such a case...
-        else:
             errortext = "Failed: " + e[:500]
+        else:
+            errortext = ""
+        if not context:
+            context = ""
         n = name.ljust(30) if name else ""
         if self.include_time:
             print(datetime.now(), end="\t")
