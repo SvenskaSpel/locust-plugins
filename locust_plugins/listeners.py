@@ -312,7 +312,7 @@ class RescheduleTaskOnFail:
         # causing other listeners to be skipped
         env.events.request.add_listener(self.request)
 
-    def request(self, request_type, name, response_time, response_length, exception, **_kwargs):
+    def request(self, exception, **_kwargs):
         if exception:
             raise RescheduleTask()
 
@@ -323,7 +323,7 @@ class InterruptTaskOnFail:
         # causing other listeners to be skipped
         env.events.request.add_listener(self.request)
 
-    def request(self, request_type, name, response_time, response_length, exception, **_kwargs):
+    def request(self, exception, **_kwargs):
         if exception:
             raise InterruptTaskSet()
 
@@ -334,7 +334,7 @@ class StopUserOnFail:
         # causing other listeners to be skipped
         env.events.request.add_listener(self.request)
 
-    def request(self, request_type, name, response_time, response_length, exception, **_kwargs):
+    def request(self, exception, **_kwargs):
         if exception:
             raise StopUser()
 
