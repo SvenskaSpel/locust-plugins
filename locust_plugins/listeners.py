@@ -292,12 +292,11 @@ class Print:
                     e = repr(exception)
                 except AttributeError:
                     e = f"{exception.__class__} (and it has no string representation)"
-        else:
-            e = ""
-        if exception:
-            errortext = e  # should be empty but who knows, maybe there is such a case...
-        else:
             errortext = "Failed: " + e[:500]
+        else:
+            errortext = ""
+        if not context:
+            context = ""
         n = name.ljust(30) if name else ""
         if self.include_time:
             print(datetime.now(), end="\t")
@@ -311,41 +310,45 @@ class RescheduleTaskOnFail:
     def __init__(self, env: locust.env.Environment):
         # make sure to add this listener LAST, because any failures will throw an exception,
         # causing other listeners to be skipped
-        env.events.request_failure.add_listener(self.request_failure)
+        env.events.request.add_listener(self.request)
 
-    def request_failure(self, request_type, name, response_time, response_length, exception, **_kwargs):
-        raise RescheduleTask()
+    def request(self, exception, **_kwargs):
+        if exception:
+            raise RescheduleTask()
 
 
 class InterruptTaskOnFail:
     def __init__(self, env: locust.env.Environment):
         # make sure to add this listener LAST, because any failures will throw an exception,
         # causing other listeners to be skipped
-        env.events.request_failure.add_listener(self.request_failure)
+        env.events.request.add_listener(self.request)
 
-    def request_failure(self, request_type, name, response_time, response_length, exception, **_kwargs):
-        raise InterruptTaskSet()
+    def request(self, exception, **_kwargs):
+        if exception:
+            raise InterruptTaskSet()
 
 
 class StopUserOnFail:
     def __init__(self, env: locust.env.Environment):
         # make sure to add this listener LAST, because any failures will throw an exception,
         # causing other listeners to be skipped
-        env.events.request_failure.add_listener(self.request_failure)
+        env.events.request.add_listener(self.request)
 
-    def request_failure(self, request_type, name, response_time, response_length, exception, **_kwargs):
-        raise StopUser()
+    def request(self, exception, **_kwargs):
+        if exception:
+            raise StopUser()
 
 
 class ExitOnFail:
     def __init__(self, env: locust.env.Environment):
         # make sure to add this listener LAST, because any failures will throw an exception,
         # causing other listeners to be skipped
-        env.events.request_failure.add_listener(self.request_failure)
+        env.events.request.add_listener(self.request)
 
-    def request_failure(self, **_kwargs):
-        gevent.sleep(0.2)  # wait for other listeners output to flush / write to db
-        os._exit(1)
+    def request(self, exception, **_kwargs):
+        if exception:
+            gevent.sleep(0.2)  # wait for other listeners output to flush / write to db
+            os._exit(1)
 
 
 def is_worker():

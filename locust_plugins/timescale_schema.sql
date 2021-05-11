@@ -66,7 +66,8 @@ CREATE TABLE public.request (
     response_length integer,
     response_time double precision,
     success smallint NOT NULL,
-    testplan character varying(30) NOT NULL
+    testplan character varying(30) NOT NULL,
+    context jsonb
 );
 
 
