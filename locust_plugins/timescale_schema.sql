@@ -27,7 +27,9 @@ CREATE TABLE public.testrun (
     gitrepo character varying(40),
     rps_avg numeric,
     resp_time_avg numeric,
-    changeset_guid character varying(36)
+    changeset_guid character varying(36),
+    fail_ratio double precision,
+    requests integer
 );
 
 
