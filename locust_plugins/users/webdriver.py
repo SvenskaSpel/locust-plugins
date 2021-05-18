@@ -95,12 +95,13 @@ class WebdriverClient(webdriver.Remote):
             self.save_screenshot(
                 f"{timestring}_{name.replace(' ', '_').replace('{','_').replace('}','_').replace(':','_')}_{greenlet_id}.png"
             )
-            self.environment.events.request_failure.fire(
+            self.environment.events.request.fire(
                 request_type="find",
                 name=name,
                 response_time=total_time,
-                exception=error_message,
                 response_length=0,
+                context={},
+                exception=error_message,
             )
             if not isinstance(e, WebDriverException):
                 raise

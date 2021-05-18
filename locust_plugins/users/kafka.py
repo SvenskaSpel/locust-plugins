@@ -17,22 +17,15 @@ class KafkaUser(User):
         self.client.producer.flush(5)
 
 
-def _on_delivery(environment, topic, response_length, start_time, err, _msg):
-    if err:
-        environment.events.request_failure.fire(
-            request_type="ENQUEUE",
-            name=topic,
-            response_time=(time.monotonic() - start_time) * 1000,
-            response_length=response_length,
-            exception=err,
-        )
-    else:
-        environment.events.request_success.fire(
-            request_type="ENQUEUE",
-            name=topic,
-            response_time=(time.monotonic() - start_time) * 1000,
-            response_length=response_length,
-        )
+def _on_delivery(environment, identifier, response_length, start_time, context, err, _msg):
+    environment.events.request.fire(
+        request_type="ENQUEUE",
+        name=identifier,
+        response_time=(time.monotonic() - start_time) * 1000,
+        response_length=response_length,
+        context=context,
+        exception=err,
+    )
 
 
 class KafkaClient:
@@ -40,9 +33,12 @@ class KafkaClient:
         self.environment = environment
         self.producer = Producer({"bootstrap.servers": bootstrap_servers})
 
-    def send(self, topic: str, value: bytes, key=None, response_length_override=None):
+    def send(self, topic: str, value: bytes, key=None, response_length_override=None, name=None, context={}):
         start_time = time.monotonic()
+        identifier = name if name else topic
         response_length = response_length_override if response_length_override else len(value)
-        callback = functools.partial(_on_delivery, self.environment, topic, response_length, start_time)
+        callback = functools.partial(_on_delivery, self.environment, identifier, response_length, start_time, context)
         self.producer.produce(topic, value, key, on_delivery=callback)
         response_length = response_length_override if response_length_override else len(value)
+
+        self.producer.poll()
