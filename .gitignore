@@ -10,3 +10,4 @@ src
 .mypy_cache
 .tox
 env
+.python-version
