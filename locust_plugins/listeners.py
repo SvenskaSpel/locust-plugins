@@ -62,7 +62,7 @@ class Timescale:  # pylint: disable=R0902
         self._pid = os.getpid()
         self._gitrepo = (
             subprocess.check_output(
-                "git remote show origin -n 2>/dev/null | grep h.URL | sed 's/.*://;s/.git$//'",
+                "git remote show origin -n 2>/dev/null | grep h.URL | sed 's/.*://;s/.git$//' || true",
                 shell=True,
                 stderr=None,
                 universal_newlines=True,
