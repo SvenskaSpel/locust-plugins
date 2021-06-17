@@ -30,6 +30,10 @@ def safe_serialize(obj):
     return json.dumps(obj, default=default)
 
 
+def print_t(s):
+    print(str(s), end="\t")
+
+
 class Timescale:  # pylint: disable=R0902
     """
     See timescale_listener_ex.py for documentation
@@ -276,12 +280,15 @@ class Print:
     Print every response (useful when debugging a single locust)
     """
 
-    def __init__(self, env: locust.env.Environment, include_length=False, include_time=False):
+    def __init__(self, env: locust.env.Environment, include_length=False, include_time=False, include_context=False):
         env.events.request.add_listener(self.on_request)
 
         self.include_length = "length\t" if include_length else ""
         self.include_time = "time                    \t" if include_time else ""
-        print(f"\n{self.include_time}type\t{'name'.ljust(50)}\tresponse time\t{self.include_length}exception")
+        self.include_context = "context\t" if include_context else ""
+        print(
+            f"\n{self.include_time}type\t{'name'.ljust(50)}\tresp_ms\t{self.include_length}exception\t{self.include_context}"
+        )
 
     def on_request(self, request_type, name, response_time, response_length, exception, context: dict, **_kwargs):
         if exception:
@@ -297,13 +304,29 @@ class Print:
             errortext = ""
         if not context:
             context = ""
-        n = name.ljust(30) if name else ""
-        if self.include_time:
-            print(datetime.now(), end="\t")
-        if self.include_length:
-            print(f"{request_type}\t{n.ljust(50)}\t{round(response_time)}\t{response_length}\t{errortext}\t{context}")
         else:
-            print(f"{request_type}\t{n.ljust(50)}\t{round(response_time)}\t{errortext}\t{context}")
+            # sometimes context is a mongo object, in which case we dont want the _id field
+            context.pop("_id", None)
+        if response_time is None:
+            response_time = -1
+        n = name.ljust(30) if name else ""
+
+        if self.include_time:
+            print_t(datetime.now())
+
+        print_t(request_type)
+        print_t(n.ljust(50))
+        print_t(str(round(response_time)).ljust(7))
+
+        if self.include_length:
+            print_t(response_length)
+
+        print_t(errortext.ljust(9))
+
+        if self.include_context:
+            print_t(context)
+
+        print()
 
 
 class RescheduleTaskOnFail:

@@ -48,6 +48,7 @@ def run_single_user(
     catch_exceptions=False,
     include_length=False,
     include_time=False,
+    include_context=False,
     init_listener=None,
     loglevel=None,
 ):
@@ -57,7 +58,8 @@ def run_single_user(
     if env is None:
         env = Environment()
         env.parsed_options = argument_parser.parse_options()
-        listeners.Print(env, include_length=include_length, include_time=include_time)
+        listeners.Print(env, include_length=include_length, include_time=include_time, include_context=include_context)
+    env.events.init.fire(environment=env, runner=None, web_ui=None)
     if init_listener:
         init_listener(env)
     locust_class._catch_exceptions = catch_exceptions

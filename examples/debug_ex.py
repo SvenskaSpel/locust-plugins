@@ -20,11 +20,17 @@ from locust_plugins import run_single_user
 class MyUser(HttpUser):
     @task
     def t(self):
-        self.client.get("/")
+        self.client.get("/", context={"foo": 1})
+        self.client.get("/", context={"bar": 2})
         raise StopUser()
 
 
 # when executed as a script, run a single locust in a way suitable for the vs code debugger
 if __name__ == "__main__":
     MyUser.host = "http://example.edu"
-    run_single_user(MyUser)
+    run_single_user(MyUser, include_length=True, include_time=True, include_context=True)
+    # You should get output similar to this:
+    #
+    # time                            type    name                                                    resp_ms length  exception       context
+    # 2021-06-18 01:37:23.029486      GET     /                                                       358     1256                    {'foo': 1}
+    # 2021-06-18 01:37:23.188831      GET     /                                                       159     1256                    {'bar': 2}
