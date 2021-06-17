@@ -49,10 +49,11 @@ def run_single_user(
     include_length=False,
     include_time=False,
     init_listener=None,
-    loglevel="INFO",
+    loglevel=None,
 ):
     _gevent_debugger_patch()
-    locust.log.setup_logging(loglevel)
+    if loglevel:
+        locust.log.setup_logging(loglevel)
     if env is None:
         env = Environment()
         env.parsed_options = argument_parser.parse_options()
