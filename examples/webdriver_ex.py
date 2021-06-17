@@ -1,6 +1,6 @@
 # You need to start selenium server first:
 # Download it from https://www.seleniumhq.org/download/ and run it by executing:
-# java -jar selenium-server-4.0.0-beta-2.jar standalone
+# java -jar selenium-server-4.0.0-beta-3.jar standalone
 # Also, make sure you have installed chromedriver first. On macOS you would do: brew install --cask chromedriver
 import time
 from locust import task, constant, events
