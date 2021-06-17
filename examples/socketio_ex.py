@@ -5,6 +5,7 @@ from locust_plugins.users import SocketIOUser
 class MySocketIOUser(SocketIOUser):
     @task
     def my_task(self):
+        self.connect("wss://example.com/socket.io/?EIO=3&transport=websocket")
         # example of subscribe
         self.send('42["subscribe",{"url":"/sport/matches/11995208/draws","sendInitialUpdate": true}]')
         # you can do http in the same taskset as well

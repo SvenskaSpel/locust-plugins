@@ -4,28 +4,29 @@ import re
 import time
 import gevent
 import websocket
-from locust import HttpUser
+from locust import User
+from datetime import datetime
 
 
-class SocketIOUser(HttpUser):
+class SocketIOUser(User):
     """
     A locust that includes a socket io websocket connection.
     You could easily use this a template for plain WebSockets,
-    socket.io just happens to be my use case
+    socket.io just happens to be my use case. You can use multiple
+    inheritance to combine this with an HttpUser
+    (class MyUser(HttpUser, SocketIOUser)
     """
 
     abstract = True
 
-    def __init__(self, parent):
-        super().__init__(parent)
-        ws_host = re.sub(r"https*://", "", self.host)
-        self.ws = websocket.create_connection(f"wss://{ws_host}/socket.io/?EIO=3&transport=websocket")
+    def connect(self, host, header):
+        self.ws = websocket.create_connection(host, header=header)
         gevent.spawn(self.receive)
 
     def receive(self):
         message_regex = re.compile(r"(\d*)(.*)")
         description_regex = re.compile(r"<([0-9]+)>$")
-        response_time = None
+        response_time = 0
         while True:
             message = self.ws.recv()
             logging.debug(f"WSR: {message}")
@@ -45,28 +46,42 @@ class SocketIOUser(HttpUser):
                 # this is rather specific to our use case. Some messages contain an originating timestamp,
                 # and we use that to calculate the delay & report it as locust response time
                 # see it as inspiration rather than something you just pick up and use
+                current_timestamp = time.time()
                 obj = json.loads(json_string)
-                name = f"{code} {obj[0]} apiUri: {obj[1]['apiUri']}"
-                if obj[1]["value"] != "":
-                    description = obj[1]["value"]["draw"]["description"]
-                    description_match = description_regex.search(description)
-                    if description_match:
-                        sent_timestamp = int(description_match.group(1))
-                        current_timestamp = round(time.monotonic() * 1000)
-                        response_time = current_timestamp - sent_timestamp
-                    else:
-                        # differentiate samples that have no timestamps from ones that do
-                        name += "_"
+                logging.debug(json_string)
+                ts_type, payload = obj
+                name = f"{code} {ts_type} apiUri: {payload['apiUri']}"
+
+                if payload["value"] != "":
+                    value = payload["value"]
+
+                    if "draw" in value:
+                        description = value["draw"]["description"]
+                        description_match = description_regex.search(description)
+                        if description_match:
+                            sent_timestamp = int(description_match.group(1))
+                            response_time = current_timestamp - sent_timestamp
+                        else:
+                            # differentiate samples that have no timestamps from ones that do
+                            name += "_"
+                    elif "source_ts" in value:
+                        sent_timestamp = value["source_ts"]
+                        response_time = (current_timestamp - sent_timestamp) * 1000
                 else:
                     name += "_missingTimestamp"
             else:
                 print(f"Received unexpected message: {message}")
                 continue
-            self.environment.events.request_success.fire(
-                request_type="WSR", name=name, response_time=response_time, response_length=len(message)
+            self.environment.events.request.fire(
+                request_type="WSR",
+                name=name,
+                response_time=response_time,
+                response_length=len(message),
+                exception=None,
+                context={},
             )
 
-    def send(self, body):
+    def send(self, body, context={}):
         if body == "2":
             action = "2 heartbeat"
         else:
@@ -79,8 +94,13 @@ class SocketIOUser(HttpUser):
             url = re.sub(r"/[0-9_]*/", "/:id/", url_part.group(1))
             action = f"{code} {action} url: {url}"
 
-        self.environment.events.request_success.fire(
-            request_type="WSS", name=action, response_time=None, response_length=len(body)
+        self.environment.events.request.fire(
+            request_type="WSS",
+            name=action,
+            response_time=None,
+            response_length=len(body),
+            exception=None,
+            context=context,
         )
         logging.debug(f"WSS: {body}")
         self.ws.send(body)
