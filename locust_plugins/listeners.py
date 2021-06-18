@@ -304,9 +304,7 @@ class Print:
             errortext = ""
         if not context:
             context = ""
-        else:
-            # sometimes context is a mongo object, in which case we dont want the _id field
-            context.pop("_id", None)
+
         if response_time is None:
             response_time = -1
         n = name.ljust(30) if name else ""
