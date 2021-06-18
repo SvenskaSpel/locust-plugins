@@ -5,7 +5,6 @@ import time
 import gevent
 import websocket
 from locust import User
-from datetime import datetime
 
 
 class SocketIOUser(User):
