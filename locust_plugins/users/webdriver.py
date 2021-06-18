@@ -33,11 +33,12 @@ class WebdriverClient(webdriver.Remote):
             "--disable-notifications",
             "--disable-logging",
             "--disable-permissions-api",
+            "--ignore-certificate-errors",
         ]:
             options.add_argument(arg)
         # hide infobar about automation
         options.add_experimental_option("excludeSwitches", ["enable-automation"])
-        options.add_experimental_option("useAutomationExtension", False)
+        options.capabilities["acceptInsecureCerts"] = True
         # workaround for the first page being way to slow to load
         # ~2 minutes for my case (caused by some useless element being slow?)
         options.page_load_strategy = "eager"

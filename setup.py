@@ -45,7 +45,7 @@ setup(
         "python-dateutil",
         "pymongo",
         "confluent-kafka",
-        "selenium==4.0.0.b3",
+        "selenium==4.0.0.b4",
         "lxml",
         "opencensus-ext-azure",
     ],
