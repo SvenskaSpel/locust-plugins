@@ -15,7 +15,7 @@ class MyUser(HttpUser):
 
 @events.init.add_listener
 def on_locust_init(environment, **_kwargs):
-    # make sure this is the last event handler you register, as later ones will not be triggered
+    # make sure this is the last request event handler you register, as later ones will not get triggered
     # if there is a failure
     locust_plugins.listeners.RescheduleTaskOnFail(environment)
 
