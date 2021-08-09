@@ -39,7 +39,7 @@ def add_checks_arguments(parser: configargparse.ArgumentParser):
         type=float,
         help="Average response time",
         env_var="LOCUST_CHECK_AVG_RESPONSE_TIME",
-        default=float("inf"),
+        default=-1,
     )
     run_info = parser.add_argument_group(
         "locust-plugins - Run info",
@@ -57,14 +57,14 @@ def add_checks_arguments(parser: configargparse.ArgumentParser):
         type=str,
         help="Identifier for version of the loadtest/system under test (typically a git hash or GUID)",
         env_var="LOCUST_TEST_VERSION",
-        default=None,
+        default="",
     )
     run_info.add_argument(
         "--grafana-url",
         type=str,
         help="URL to Grafana dashboard (used by TimescaleListener)",
         env_var="LOCUST_GRAFANA_URL",
-        default=None,
+        default="",
     )
     other = parser.add_argument_group(
         "locust-plugins - Extras",
@@ -148,12 +148,13 @@ def do_checks(environment, **_kw):
     else:
         logging.debug(f"CHECK SUCCESSFUL: total rps was {total_rps:.1f} (threshold {check_rps:.1f})")
 
-    if avg_response_time > check_avg_response_time:
-        logging.info(
-            f"CHECK FAILED: avg response time was {avg_response_time:.1f} (threshold {check_avg_response_time:.1f})"
-        )
-        environment.process_exit_code = 3
-    else:
-        logging.debug(
-            f"CHECK SUCCESSFUL: avg response time was {avg_response_time:.1f} (threshold {check_avg_response_time:.1f})"
-        )
+    if check_avg_response_time > 0:
+        if avg_response_time > check_avg_response_time:
+            logging.info(
+                f"CHECK FAILED: avg response time was {avg_response_time:.1f} (threshold {check_avg_response_time:.1f})"
+            )
+            environment.process_exit_code = 3
+        else:
+            logging.debug(
+                f"CHECK SUCCESSFUL: avg response time was {avg_response_time:.1f} (threshold {check_avg_response_time:.1f})"
+            )
