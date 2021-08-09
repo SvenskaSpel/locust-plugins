@@ -45,4 +45,3 @@ class RestUser(FastHttpUser):
                         error_lines.append(filename + ":" + m.group(2) + m.group(3))
                     short_resp = resp.text[:200] if resp.text else resp.text
                     resp.failure(f"{e.__class__.__name__}: {e} at {', '.join(error_lines)}. Response was {short_resp}")
-
