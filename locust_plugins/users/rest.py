@@ -4,6 +4,7 @@ import traceback
 import re
 from json.decoder import JSONDecodeError
 
+
 class RestUser(FastHttpUser):
     """
     A convenience class for testing RESTful JSON endpoints.

@@ -299,7 +299,7 @@ class Print:
                     e = repr(exception)
                 except AttributeError:
                     e = f"{exception.__class__} (and it has no string representation)"
-            errortext = "Failed: " + e[:500].replace("\n"," ")
+            errortext = "Failed: " + e[:500].replace("\n", " ")
         else:
             errortext = ""
         if not context:
