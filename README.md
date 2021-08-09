@@ -30,6 +30,7 @@ There are a couple of plugin types:
     - Selenium/Webdriver ([example](examples/webdriver_ex.py))
     - HTTP users that load html page resources ([example](examples/embedded_resource_manager_ex.py))
     - Kafka ([example](examples/kafka_ex.py))
+    - RestUser ([example](examples/rest_ex.py))
 
 ## Readers 
 - Provide ways to get test data into your tests
