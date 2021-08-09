@@ -208,7 +208,7 @@ class TransactionManager:
             ]
             + locust.stats.get_readable_percentiles(locust.stats.PERCENTILES_TO_REPORT)
         )
-        for tname in cls.completed_transactions:
+        for tname in cls.completed_transactions: # pylint: disable=consider-using-dict-items
             fields = []
             # fill the field that holds request method
             fields.append("Transaction")
