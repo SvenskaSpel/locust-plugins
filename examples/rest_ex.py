@@ -7,7 +7,9 @@ RestUser extends FastHttpUser by adding the `rest`-method, a wrapper around self
 * catches any exceptions thrown in your with-block and fails the sample (this probably should have been the default behaviour in Locust)
 """
 
+from contextlib import contextmanager
 from locust import task
+from locust.contrib.fasthttp import ResponseContextManager
 from locust.user.wait_time import constant
 import locust_plugins
 from locust_plugins.users import RestUser
@@ -44,6 +46,22 @@ class MyUser(RestUser):
 
         # connection closed
         with self.rest("GET", "http://example.com:42/", json={"foo": 1}) as resp:
+            pass
+
+class RestUserThatLooksAtErrors(RestUser):
+    abstract = True
+    @contextmanager
+    def rest(self, method, url, **kwargs) -> ResponseContextManager:
+        with super().rest(method, url, **kwargs) as resp:
+            # 
+            if "error" in resp.js and resp.js["error"] is not None:
+                resp.failure(resp.js["error"])
+            yield resp
+
+class MyOtherRestUser(RestUserThatLooksAtErrors):
+    @task
+    def t(self):
+        with self.rest("GET", "/") as resp:
             pass
 
 
