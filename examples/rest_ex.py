@@ -51,8 +51,11 @@ class MyUser(RestUser):
 class RestUserThatLooksAtErrors(RestUser):
     abstract = True
     @contextmanager
+
     def rest(self, method, url, **kwargs) -> ResponseContextManager:
-        with super().rest(method, url, **kwargs) as resp:
+        extra_headers = {"X-Tenant": "SVS_LB"}
+        headers = kwargs.pop("headers", {"Content-Type": "application/json", "accept": "application/json", **extra_headers})
+        with super().rest(method, url, headers=headers, **kwargs) as resp:
             # 
             if "error" in resp.js and resp.js["error"] is not None:
                 resp.failure(resp.js["error"])
