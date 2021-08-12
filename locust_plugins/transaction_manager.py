@@ -19,6 +19,8 @@ class TransactionManager:
     when running in master/worker mode, all data is sent to the master during execution
     """
 
+    transactions_filename = ""
+    transactions_summary_filename = ""
     flush_size = 100
     field_delimiter = ","
     row_delimiter = "\n"
@@ -180,7 +182,7 @@ class TransactionManager:
                 headers = {}
                 headers["Content-type"] = "text/csv"
                 headers["Content-disposition"] = f"attachment;filename={cls.transactions_summary_filename}"
-                with StringIO as buffer:
+                with StringIO() as buffer:
                     writer = cls._create_csv_writer(buffer)
                     writer.writerows(cls._get_transactions_summary())
                     response = buffer.getvalue()
