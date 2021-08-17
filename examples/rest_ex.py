@@ -1,5 +1,5 @@
 """
-A convenience class for testing RESTful JSON endpoints.
+RestUser is a convenience class for testing RESTful JSON endpoints.
 RestUser extends FastHttpUser by adding the `rest`-method, a wrapper around self.client.request() that:
 * automatically passes catch_response=True
 * automatically sets content-type and accept headers to application/json (unless you have provided your own headers)
