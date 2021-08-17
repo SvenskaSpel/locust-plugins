@@ -5,6 +5,9 @@ It extends FastHttpUser by adding the `rest`-method, a wrapper around self.clien
 * automatically sets content-type and accept headers to application/json (unless you have provided your own headers)
 * automatically checks that the response is valid json, parses it into a dict and saves it in a field called `js` in the response object
 * catches any exceptions thrown in your with-block and fails the sample (this probably should have been the default behaviour in Locust)
+
+You can use it directly, or use your own intermediate class (RestUserThatLooksAtErrors in this example) to further customize its behaviour
+for your particular rest api (doing things like adding extra headers or always checking some property of the response)
 """
 
 from contextlib import contextmanager
