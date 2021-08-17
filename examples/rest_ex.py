@@ -54,8 +54,7 @@ class MyUser(RestUser):
 class RestUserThatLooksAtErrors(RestUser):
     abstract = True
     @contextmanager
-
-    def rest(self, method, url, headers, **kwargs) -> ResponseContextManager:
+    def rest(self, method, url, headers={}, **kwargs) -> ResponseContextManager:
         extra_headers = {"my_header": "my_value"}
         with super().rest(method, url, headers={**headers, **extra_headers}, **kwargs) as resp:
             # 
