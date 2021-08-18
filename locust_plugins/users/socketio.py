@@ -74,7 +74,7 @@ class SocketIOUser(User):
             response_time=response_time,
             response_length=len(message),
             exception=None,
-            context={},
+            context=self.user.context(),
         )
 
     def receive_loop(self):
@@ -104,7 +104,7 @@ class SocketIOUser(User):
             response_time=None,
             response_length=len(body),
             exception=None,
-            context=context,
+            context={**self.context(), **context},
         )
         logging.debug(f"WSS: {body}")
         self.ws.send(body)
