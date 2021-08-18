@@ -74,7 +74,7 @@ class SocketIOUser(User):
             response_time=response_time,
             response_length=len(message),
             exception=None,
-            context=self.user.context(),
+            context=self.context(),
         )
 
     def receive_loop(self):
