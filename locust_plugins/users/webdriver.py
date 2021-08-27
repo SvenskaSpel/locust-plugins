@@ -109,8 +109,8 @@ class WebdriverClient(webdriver.Remote):
         else:
             total_time = (time.monotonic() - self.start_time) * 1000
             self.start_time = None
-            self.environment.events.request_success.fire(
-                request_type="find", name=name, response_time=total_time, response_length=0
+            self.environment.events.request.fire(
+                request_type="find", name=name, response_time=total_time, response_length=0, exception=None
             )
         return element
 

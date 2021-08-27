@@ -49,11 +49,12 @@ class MyUser(WebdriverUser):
             name="balance clickable",  # this is just client side so it will be really fast
         ).click()
 
-        self.environment.events.request_success.fire(
+        self.environment.events.request.fire(
             request_type="flow",
             name="log in flow",
             response_time=(time.monotonic() - scenario_start_time) * 1000,
             response_length=0,
+            exception=None
         )
 
 

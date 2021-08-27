@@ -79,8 +79,7 @@ class JmeterListener:
             events.quitting.add_listener(self._write_final_log)
             events.worker_report.add_listener(self._worker_report)
 
-        events.request_success.add_listener(self._request_success)
-        events.request_failure.add_listener(self._request_failure)
+        events.request.add_listener(self._request)
 
         if self.env.web_ui:
 
@@ -154,11 +153,8 @@ class JmeterListener:
         if len(self.csv_results) >= self.flush_size and not self.is_worker_runner:
             self._flush_to_log()
 
-    def _request_success(self, request_type, name, response_time, response_length, **kw):
-        self.add_result("true", request_type, name, response_time, response_length, "", **kw)
-
-    def _request_failure(self, request_type, name, response_time, response_length, exception, **kw):
-        self.add_result("false", request_type, name, response_time, response_length, str(exception), **kw)
+    def _request(self, request_type, name, response_time, response_length, exception, **kw):
+        self.add_result("true" if exception else "false", request_type, name, response_time, response_length, str(exception), **kw)
 
     def _report_to_master(self, data, **_kwargs):
         data["csv_results"] = self.csv_results
