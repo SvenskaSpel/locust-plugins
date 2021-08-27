@@ -38,3 +38,24 @@ jobs:
         run: echo "PY=$(python -VV | sha256sum | cut -d' ' -f1)" >> $GITHUB_ENV
       - run: pip install tox codecov
       - run: tox -e ${{ matrix.tox }}
+
+  publish:
+    name: PyPI - Publish if this is a tagged commit
+    needs: tests
+    if: startsWith(github.event.ref, 'refs/tags') && github.repository_owner == 'SvenskaSpel'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.x"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install setuptools wheel
+      - name: Build
+        run: |
+          make release
