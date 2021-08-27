@@ -23,6 +23,7 @@ class RestUser(FastHttpUser):
         headers = kwargs.pop("headers", {"Content-Type": "application/json", "Accept": "application/json"})
         with self.client.request(method, url, catch_response=True, headers=headers, **kwargs) as resp:
             resp: ResponseContextManager
+            resp.js = None
             if resp.text is None:
                 # round the response time to nearest second to improve error grouping
                 response_time = round(resp.request_meta["response_time"] / 1000, 1)
@@ -33,7 +34,6 @@ class RestUser(FastHttpUser):
                 try:
                     resp.js = resp.json()
                 except JSONDecodeError:
-                    resp.js = None
                     resp.failure(f"Could not parse response: {resp.text[:200]}")
             try:
                 yield resp
