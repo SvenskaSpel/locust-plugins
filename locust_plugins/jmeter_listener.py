@@ -154,7 +154,9 @@ class JmeterListener:
             self._flush_to_log()
 
     def _request(self, request_type, name, response_time, response_length, exception, **kw):
-        self.add_result("true" if exception else "false", request_type, name, response_time, response_length, str(exception), **kw)
+        self.add_result(
+            "false" if exception else "true", request_type, name, response_time, response_length, str(exception), **kw
+        )
 
     def _report_to_master(self, data, **_kwargs):
         data["csv_results"] = self.csv_results
