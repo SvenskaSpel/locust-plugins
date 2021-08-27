@@ -18,30 +18,25 @@ class ApplicationInsights:
         self.logger.addHandler(AzureLogHandler(connection_string=formated_key))
         self.logger.propagate = propagate_logs
 
-        env.events.request_success.add_listener(self.request_success)
-        env.events.request_failure.add_listener(self.request_failure)
+        env.events.request.add_listener(self.request)
 
-    def request_success(self, request_type, name, response_time, response_length, **_kwargs):
-        custom_dimensions = self._create_custom_dimensions_dict(
-            request_type, "Success", response_time, response_length, name
-        )
-
-        message_to_log = "Success: {} {} Response time: {} Number of Threads: {}.".format(
-            str(request_type), str(name), str(response_time), custom_dimensions["thread_count"]
-        )
-
-        self.logger.info(message_to_log, extra={"custom_dimensions": custom_dimensions})
-
-    def request_failure(self, request_type, name, response_time, response_length, exception, **_kwargs):
-        custom_dimensions = self._create_custom_dimensions_dict(
-            request_type, "Failure", response_time, response_length, name, exception
-        )
-
-        message_to_log = "Failure: {} {} Response time: {} Number of Threads: {} Exception: {}.".format(
-            str(request_type), str(name), str(response_time), custom_dimensions["thread_count"], str(exception)
-        )
-
-        self.logger.error(message_to_log, extra={"custom_dimensions": custom_dimensions})
+    def request(self, request_type, name, response_time, response_length, exception, **_kwargs):
+        if exception:
+            custom_dimensions = self._create_custom_dimensions_dict(
+                request_type, "Failure", response_time, response_length, name, exception
+            )
+            message_to_log = "Failure: {} {} Response time: {} Number of Threads: {} Exception: {}.".format(
+                str(request_type), str(name), str(response_time), custom_dimensions["thread_count"], str(exception)
+            )
+            self.logger.error(message_to_log, extra={"custom_dimensions": custom_dimensions})
+        else:
+            custom_dimensions = self._create_custom_dimensions_dict(
+                request_type, "Success", response_time, response_length, name
+            )
+            message_to_log = "Success: {} {} Response time: {} Number of Threads: {}.".format(
+                str(request_type), str(name), str(response_time), custom_dimensions["thread_count"]
+            )
+            self.logger.info(message_to_log, extra={"custom_dimensions": custom_dimensions})
 
     def _create_custom_dimensions_dict(self, method, result, response_time, response_length, endpoint, exception=None):
         custom_dimensions = self._safe_return_runner_values()
