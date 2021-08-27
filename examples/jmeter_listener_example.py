@@ -12,4 +12,4 @@ class DemoBlazeUser(HttpUser):
 
 @events.init.add_listener
 def on_locust_init(environment, **_kwargs):
-    jmeter_listener.Jmeter(env=environment, testplan="examplePlan")
+    jmeter_listener.JmeterListener(env=environment, testplan="examplePlan")
