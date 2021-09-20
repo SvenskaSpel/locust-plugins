@@ -372,6 +372,20 @@ class ExitOnFail:
             os._exit(1)
 
 
+class QuitOnFail:
+    def __init__(self, env: locust.env.Environment, name=None):
+        # make sure to add this listener LAST, because any failures will throw an exception,
+        # causing other listeners to be skipped
+        self.name = name
+        self.env = env
+        env.events.request.add_listener(self.request)
+
+    def request(self, exception, name, **_kwargs):
+        if exception and (name == self.name or not self.name):
+            gevent.sleep(0.2)  # wait for other listeners output to flush / write to db
+            self.env.runner.quit()
+
+
 def is_worker():
     return "--worker" in sys.argv
 
