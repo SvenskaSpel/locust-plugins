@@ -47,7 +47,11 @@ class Timescale:  # pylint: disable=R0902
         description: str = "",
     ):
         self.grafana_url = env.parsed_options.grafana_url
-        self._conn = self._dbconn()
+        try:
+            self._conn = self._dbconn()
+        except psycopg2.OperationalError as e:
+            logging.error(e)
+            os._exit(1)
         self._user_conn = self._dbconn()
         self._testrun_conn = self._dbconn()
         self._events_conn = self._dbconn()
@@ -55,7 +59,7 @@ class Timescale:  # pylint: disable=R0902
         self._testplan = testplan
         self._test_env = env.parsed_options.test_env
         self.env = env
-        self._hostname = socket.gethostname()
+        self._hostname = socket.gethostname()  # pylint: disable=no-member
         self._username = os.getenv("USER", "unknown")
         self._test_version = env.parsed_options.test_version
         self._samples: List[dict] = []
