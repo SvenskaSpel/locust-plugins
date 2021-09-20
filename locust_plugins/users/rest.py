@@ -1,5 +1,6 @@
 from contextlib import contextmanager
-from locust.contrib.fasthttp import FastHttpUser, ResponseContextManager
+from locust.contrib.fasthttp import FastHttpUser
+from locust.clients import ResponseContextManager
 import traceback
 import re
 from json.decoder import JSONDecodeError
@@ -31,10 +32,13 @@ class RestUser(FastHttpUser):
                     f"response body None, error {resp.error}, response code {resp.status_code}, response time ~{response_time}s"
                 )
             else:
-                try:
-                    resp.js = resp.json()
-                except JSONDecodeError:
-                    resp.failure(f"Could not parse response: {resp.text[:200]}")
+                if resp.text:
+                    try:
+                        resp.js = resp.json()
+                    except JSONDecodeError:
+                        resp.failure(
+                            f"Could not parse response as JSON. {resp.text[:200]}, response code {resp.status_code}"
+                        )
             try:
                 yield resp
             except Exception as e:
