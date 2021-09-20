@@ -92,10 +92,6 @@ class TransactionManager:
         if not group:
             group = parser.add_argument_group(title="Request statistics options")
 
-        # keep the old argument so that the user can be notified
-        group.add_argument(
-            "--log_transactions_in_file", help=SUPPRESS, default=None, dest="old_log_transactions_in_file"
-        )
         group.add_argument(
             "--log-transactions-in-file",
             help="Log transactions in a file rather than using the web ui (added by locust-plugins)",
@@ -135,10 +131,6 @@ class TransactionManager:
     def _init_filenames(cls):
         # determine whether to output to file, (if options parsed)
         if cls.env.parsed_options:
-            # notify replaced argument and quit
-            if cls.env.parsed_options.old_log_transactions_in_file is not None:
-                sys.stderr.write("--log_transactions_in_file=True has been replaced by --log-transactions-in-file\n")
-                sys.exit(1)
             cls.log_transactions_in_file = cls.env.parsed_options.log_transactions_in_file
             if cls.env.parsed_options.csv_prefix:
                 cls.transactions_filename = f"{cls.env.parsed_options.csv_prefix}_transactions.csv"
