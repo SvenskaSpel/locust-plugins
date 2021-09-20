@@ -1,10 +1,8 @@
 from locust import events
 from time import time
 from datetime import datetime
-from configargparse import SUPPRESS
 from csv import writer as csv_writer
 from io import StringIO
-import sys
 import locust.stats
 from locust.runners import WorkerRunner
 
