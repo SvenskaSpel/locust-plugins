@@ -6,8 +6,6 @@ import time
 from contextlib import contextmanager
 import os
 from abc import ABC, abstractmethod
-import random
-import re
 
 
 class NoUserException(Exception):
