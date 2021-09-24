@@ -5,6 +5,9 @@ import logging
 import time
 from contextlib import contextmanager
 import os
+from abc import ABC, abstractmethod
+import random
+import re
 
 
 class NoUserException(Exception):
@@ -26,7 +29,14 @@ class User(dict):
         self.coll.find_one_and_update({"_id": self["_id"]}, {"$set": {key: value}})
 
 
-class MongoReader:
+class Reader(ABC):
+    @abstractmethod
+    @contextmanager
+    def user(self):
+        pass
+
+
+class MongoReader(Reader):
     def __init__(self, uri=None, database=None, collection=None, filters=[]):
         uri = uri or os.environ["LOCUST_MONGO"]
         database = database or os.environ["LOCUST_MONGO_DATABASE"]
