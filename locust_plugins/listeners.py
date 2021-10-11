@@ -13,7 +13,7 @@ import logging
 import os
 import socket
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 import greenlet
 from dateutil import parser
@@ -163,12 +163,19 @@ class Timescale:  # pylint: disable=R0902
             self._user_count_logger.kill()
         self.exit()
 
-    def on_request(self, request_type, name, response_time, response_length, exception, context, **_kwargs):
+    def on_request(
+        self, request_type, name, response_time, response_length, exception, context, start_time=None, **_kwargs
+    ):
         success = 0 if exception else 1
-
+        if start_time:
+            time = datetime.fromtimestamp(start_time, tz=timezone.utc)
+        else:
+            # some users may not send start_time, so we just make an educated guess
+            # (which will be horribly wrong if users spend a lot of time in a with/catch_response-block)
+            time = datetime.now(timezone.utc) - timedelta(milliseconds=response_time or 0)
         greenlet_id = getattr(greenlet.getcurrent(), "minimal_ident", 0)  # if we're debugging there is no greenlet
         sample = {
-            "time": datetime.now(timezone.utc).isoformat(),
+            "time": time,
             "run_id": self._run_id,
             "greenlet_id": greenlet_id,
             "loadgen": self._hostname,
@@ -294,7 +301,9 @@ class Print:
             f"\n{self.include_time}type\t{'name'.ljust(50)}\tresp_ms\t{self.include_length}exception\t{self.include_context}"
         )
 
-    def on_request(self, request_type, name, response_time, response_length, exception, context: dict, **_kwargs):
+    def on_request(
+        self, request_type, name, response_time, response_length, exception, context: dict, start_time=None, **_kwargs
+    ):
         if exception:
             if isinstance(exception, CatchResponseError):
                 e = str(exception)
@@ -303,7 +312,7 @@ class Print:
                     e = repr(exception)
                 except AttributeError:
                     e = f"{exception.__class__} (and it has no string representation)"
-            errortext = "Failed: " + e[:500].replace("\n", " ")
+            errortext = e[:500].replace("\n", " ")
         else:
             errortext = ""
         if not context:
@@ -314,7 +323,10 @@ class Print:
         n = name.ljust(30) if name else ""
 
         if self.include_time:
-            print_t(datetime.now())
+            if start_time:
+                print_t(datetime.fromtimestamp(start_time, tz=timezone.utc))
+            else:
+                print_t(datetime.now())
 
         print_t(request_type)
         print_t(n.ljust(50))

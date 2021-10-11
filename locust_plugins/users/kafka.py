@@ -17,11 +17,12 @@ class KafkaUser(User):
         self.client.producer.flush(5)
 
 
-def _on_delivery(environment, identifier, response_length, start_time, context, err, _msg):
+def _on_delivery(environment, identifier, response_length, start_time, start_perf_counter, context, err, _msg):
     environment.events.request.fire(
         request_type="ENQUEUE",
         name=identifier,
-        response_time=(time.monotonic() - start_time) * 1000,
+        start_time=start_time,
+        response_time=(time.perf_counter() - start_perf_counter) * 1000,
         response_length=response_length,
         context=context,
         exception=err,
@@ -34,10 +35,13 @@ class KafkaClient:
         self.producer = Producer({"bootstrap.servers": bootstrap_servers})
 
     def send(self, topic: str, value: bytes, key=None, response_length_override=None, name=None, context={}):
-        start_time = time.monotonic()
+        start_perf_counter = time.perf_counter()
+        start_time = time.time()
         identifier = name if name else topic
         response_length = response_length_override if response_length_override else len(value)
-        callback = functools.partial(_on_delivery, self.environment, identifier, response_length, start_time, context)
+        callback = functools.partial(
+            _on_delivery, self.environment, identifier, response_length, start_time, start_perf_counter, context
+        )
         self.producer.produce(topic, value, key, on_delivery=callback)
         response_length = response_length_override if response_length_override else len(value)
 

@@ -62,7 +62,7 @@ class WebdriverClient(webdriver.Remote):
         if not name:
             name = f"{prefix.ljust(13)} {by[0:5]} {value}"
         if not self.start_time:
-            self.start_time = time.monotonic()
+            self.start_time = time.perf_counter()
         try:
             element = super().find_element(by=by, value=value)
             self.execute_script("arguments[0].scrollIntoView(true);", element)
@@ -77,8 +77,7 @@ class WebdriverClient(webdriver.Remote):
         except Exception as e:
             if retry < 2:
                 return self.find_element(by=by, value=value, name=name, retry=retry + 1)
-            total_time = (time.monotonic() - self.start_time) * 1000
-            self.start_time = None
+            total_time = (time.perf_counter() - self.start_time) * 1000
             error_message = e.args[0]
             try:
                 if isinstance(e, NoSuchElementException):
@@ -99,19 +98,27 @@ class WebdriverClient(webdriver.Remote):
             self.environment.events.request.fire(
                 request_type="find",
                 name=name,
+                start_time=self.start_time,
                 response_time=total_time,
                 response_length=0,
                 context={},
                 exception=error_message,
             )
+            self.start_time = None
             if not isinstance(e, WebDriverException):
                 raise
         else:
-            total_time = (time.monotonic() - self.start_time) * 1000
-            self.start_time = None
+            total_time = (time.perf_counter() - self.start_time) * 1000
             self.environment.events.request.fire(
-                request_type="find", name=name, response_time=total_time, response_length=0, exception=None
+                request_type="find",
+                name=name,
+                start_time=self.start_time,
+                response_time=total_time,
+                response_length=0,
+                context={},
+                exception=None,
             )
+            self.start_time = None
         return element
 
 
