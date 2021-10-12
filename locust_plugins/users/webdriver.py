@@ -12,10 +12,10 @@ import datetime
 
 
 class WebdriverClient(webdriver.Remote):
-    def __init__(self, environment: Environment, headless: bool):
+    def __init__(self, user: User):
+        self.user = user
         options = Options()
-        self.headless = headless
-        options.headless = self.headless
+        options.headless = self.user.headless
         for arg in [
             "--disable-translate",
             "--disable-extensions",
@@ -43,7 +43,6 @@ class WebdriverClient(webdriver.Remote):
         # ~2 minutes for my case (caused by some useless element being slow?)
         options.page_load_strategy = "eager"
         super().__init__(options=options)
-        self.environment = environment
         self.start_time = None
         time.sleep(1)
         self.command_executor._commands["SEND_COMMAND"] = ("POST", "/session/$sessionId/chromium/send_command")
@@ -55,8 +54,13 @@ class WebdriverClient(webdriver.Remote):
         #     ),
         # )
 
-    def find_element(self, by=By.ID, value=None, name=None, prefix="", retry=0):  # pylint: disable=arguments-differ
+    def find_element(
+        self, by=By.ID, value=None, name=None, prefix="", retry=0, context=None
+    ):  # pylint: disable=arguments-differ
         element = None
+        context = context or {}
+        if self.user:
+            context = {**self.user.context(), **context}
         if name and prefix:
             raise Exception("dont specify both name and prefix, that makes no sense")
         if not name:
@@ -65,8 +69,8 @@ class WebdriverClient(webdriver.Remote):
             self.start_time = time.perf_counter()
         try:
             element = super().find_element(by=by, value=value)
-            self.execute_script("arguments[0].scrollIntoView(true);", element)
-            if not self.headless:
+            # self.execute_script("arguments[0].scrollIntoView(true);", element)
+            if not self.user.headless:
                 time.sleep(0.1)
                 # show a visual indication on the element we've found (and probably are about to interact with)
                 self.execute_script("arguments[0].style.border='3px solid red'", element)
@@ -92,16 +96,17 @@ class WebdriverClient(webdriver.Remote):
                 pass  # if this failed then we dont know how long the implicit wait time was, but it doesnt matter
             timestring = datetime.datetime.now().replace(microsecond=0).isoformat().replace(":", ".")
             greenlet_id = getattr(greenlet.getcurrent(), "minimal_ident", 0)  # if we're debugging there is no greenlet
+            identifier = context.get("ssn", greenlet_id)  # kind of SvS specific
             self.save_screenshot(
-                f"{timestring}_{name.replace(' ', '_').replace('{','_').replace('}','_').replace(':','_')}_{greenlet_id}.png"
+                f"{timestring}_{name.replace(' ', '_').replace('{','_').replace('}','_').replace(':','_')}_{identifier}.png"
             )
-            self.environment.events.request.fire(
+
+            self.user.environment.events.request.fire(
                 request_type="find",
                 name=name,
-                start_time=self.start_time,
                 response_time=total_time,
                 response_length=0,
-                context={},
+                context=context,
                 exception=error_message,
             )
             self.start_time = None
@@ -109,13 +114,12 @@ class WebdriverClient(webdriver.Remote):
                 raise
         else:
             total_time = (time.perf_counter() - self.start_time) * 1000
-            self.environment.events.request.fire(
+            self.user.environment.events.request.fire(
                 request_type="find",
                 name=name,
-                start_time=self.start_time,
                 response_time=total_time,
                 response_length=0,
-                context={},
+                context=context,
                 exception=None,
             )
             self.start_time = None
@@ -126,17 +130,17 @@ class WebdriverUser(User):
 
     abstract = True
     _first_instance = True
+    headless = False  # overwrite this as needed
 
-    def __init__(self, parent, headless=True):
+    def __init__(self, parent):
         super().__init__(parent)
-        self.headless = headless
         if WebdriverUser._first_instance:
             WebdriverUser._first_instance = False
             # kill old webdriver browser instances
             subprocess.Popen(["killall", "chromedriver"], stderr=subprocess.DEVNULL)
             subprocess.Popen(["pkill", "-f", " --test-type=webdriver"], stderr=subprocess.DEVNULL)
 
-        self.client = WebdriverClient(self.environment, headless)
+        self.client = WebdriverClient(self)
         time.sleep(1)
 
     def clear(self):
@@ -150,7 +154,19 @@ class WebdriverUser(User):
                 time.sleep(1)
         else:
             self.client.quit()
-            self.client = WebdriverClient(self.environment, self.headless)
+            self.client = WebdriverClient(self.environment, self)
+            raise Exception("could not clear, spawned new client instead")
+
+    def clear_cookies(self):
+        for _ in range(3):
+            try:
+                self.client.execute("SEND_COMMAND", dict(cmd="Network.clearBrowserCookies", params={}))
+                break
+            except (InvalidSessionIdException, WebDriverException):
+                time.sleep(1)
+        else:
+            self.client.quit()
+            self.client = WebdriverClient(self.environment, self)
             raise Exception("could not clear, spawned new client instead")
 
     def on_stop(self):
