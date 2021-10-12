@@ -2,7 +2,6 @@
 import subprocess
 import time
 from locust import User
-from locust.env import Environment
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException, WebDriverException, InvalidSessionIdException
 from selenium.webdriver.chrome.options import Options
@@ -154,7 +153,7 @@ class WebdriverUser(User):
                 time.sleep(1)
         else:
             self.client.quit()
-            self.client = WebdriverClient(self.environment, self)
+            self.client = WebdriverClient(self)
             raise Exception("could not clear, spawned new client instead")
 
     def clear_cookies(self):
@@ -166,7 +165,7 @@ class WebdriverUser(User):
                 time.sleep(1)
         else:
             self.client.quit()
-            self.client = WebdriverClient(self.environment, self)
+            self.client = WebdriverClient(self)
             raise Exception("could not clear, spawned new client instead")
 
     def on_stop(self):

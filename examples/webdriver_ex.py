@@ -14,8 +14,12 @@ from selenium.webdriver.common.keys import Keys
 class MyUser(WebdriverUser):
     wait_time = constant(2)
 
-    def __init__(self, parent):
-        super().__init__(parent, headless=(__name__ != "__main__"))
+    if __name__ == "__main__":
+        # wait a bit at the end to make debugging easier
+        wait_time = constant(5)
+    else:
+        # headless by default if running real locust and not just debugging
+        headless = True
 
     def on_start(self):
         self.client.set_window_size(1400, 1000)
@@ -54,7 +58,7 @@ class MyUser(WebdriverUser):
             name="log in flow",
             response_time=(time.monotonic() - scenario_start_time) * 1000,
             response_length=0,
-            exception=None
+            exception=None,
         )
 
 
