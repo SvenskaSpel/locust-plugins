@@ -68,15 +68,17 @@ class Timescale:  # pylint: disable=R0902
         self._rps = os.getenv("LOCUST_RPS", "0")
         self._description = description
         self._pid = os.getpid()
-        self._gitrepo = (
-            subprocess.check_output(
+        try:
+            self._gitrepo = subprocess.check_output(
                 "git remote show origin -n 2>/dev/null | grep h.URL | sed 's/.*://;s/.git$//' || true",
                 shell=True,
                 stderr=None,
                 universal_newlines=True,
             )
-            or None  # default to None instead of empty string
-        )
+        except:
+            # happens on windows
+            self._gitrepo = None
+
         if is_worker() or is_master():
             # swarm generates the run id for its master and workers
             if "LOCUST_RUN_ID" in os.environ:
