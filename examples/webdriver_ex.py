@@ -31,7 +31,7 @@ class MyUser(WebdriverUser):
         self.clear()
         self.client.start_time = time.monotonic()  # to measure the time from now to first find_element finishes
         scenario_start_time = self.client.start_time  # to measure the time for the whole scenario
-        self.client.get("https://spela.test4.svenskaspel.se/")
+        self.client.get("https://example.com/")
         self.client.add_cookie(
             {
                 "name": "cookie_consent",
@@ -40,7 +40,7 @@ class MyUser(WebdriverUser):
                 "secure": True,
             }
         )
-        self.client.get("https://spela.test4.svenskaspel.se/logga-in/bankid/ssn")
+        self.client.get("https://example.com/")
         ssn_input = self.client.find_element(By.CSS_SELECTOR, "#ssn", name="ssn entry page ready")
         ssn_input.click()
         ssn_input.send_keys("199901010109")
