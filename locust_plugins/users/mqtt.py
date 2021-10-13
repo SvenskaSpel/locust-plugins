@@ -76,12 +76,14 @@ class MqttUser(User):
     transport = "tcp"
     ws_path = "/mqtt"
     tls_context = None
+    client_id = None
 
     def __init__(self, environment: Environment):
         super().__init__(environment)
         self.client: MqttClient = MqttClient(
             environment=self.environment,
             transport=self.transport,
+            client_id=self.client_id,
         )
 
         if self.tls_context:
@@ -131,7 +133,7 @@ class MqttClient(mqtt.Client):
         else:
             self.client_id = client_id
 
-        super().__init__(*args, client_id=client_id, **kwargs)
+        super().__init__(*args, client_id=self.client_id, **kwargs)
         self.environment = environment
         self.on_publish = self._on_publish_cb
         self.on_subscribe = self._on_subscribe_cb
