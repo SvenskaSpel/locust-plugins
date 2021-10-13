@@ -48,5 +48,6 @@ setup(
         "selenium==4.0.0.b4",
         "lxml",
         "opencensus-ext-azure",
+        "paho-mqtt>=1.5.0",
     ],
 )
