@@ -31,6 +31,7 @@ There are a couple of plugin types:
     - HTTP users that load html page resources ([example](examples/embedded_resource_manager_ex.py))
     - Kafka ([example](examples/kafka_ex.py))
     - RestUser ([example](examples/rest_ex.py))
+    - MqttUser ([example](examples/mqtt_ex.py))
 
 ## Readers 
 - Provide ways to get test data into your tests
