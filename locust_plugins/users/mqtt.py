@@ -131,7 +131,7 @@ class MqttClient(mqtt.Client):
         else:
             self.client_id = client_id
 
-        super().__init__(*args, client_id=client_id, **kwargs)
+        super().__init__(*args, client_id=self.client_id, **kwargs)
         self.environment = environment
         self.on_publish = self._on_publish_cb
         self.on_subscribe = self._on_subscribe_cb
