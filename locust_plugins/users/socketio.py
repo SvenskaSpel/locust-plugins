@@ -29,7 +29,7 @@ class SocketIOUser(User):
         m = self.message_regex.match(message)
         if m is None:
             # uh oh...
-            raise Exception(f"got no matches in {message}")
+            raise Exception(f"got no matches for {self.message_regex} in {message}")
         code = m.group(1)
         json_string = m.group(2)
         if code == "0":

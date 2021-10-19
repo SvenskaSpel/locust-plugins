@@ -17,7 +17,7 @@ class RestUser(FastHttpUser):
     """
 
     abstract = True
-    message_regex = re.compile(r'  File "(\/.[^"]*)", line (\d*),(.*)')
+    _callstack_regex = re.compile(r'  File "(\/.[^"]*)", line (\d*),(.*)')
 
     @contextmanager
     def rest(self, method, url, **kwargs) -> ResponseContextManager:
@@ -44,7 +44,7 @@ class RestUser(FastHttpUser):
             except Exception as e:
                 error_lines = []
                 for l in traceback.format_exc().split("\n"):
-                    m = self.message_regex.match(l)
+                    m = self._callstack_regex.match(l)
                     if m:
                         filename = re.sub(r"/(home|Users/\w*)/", "~/", m.group(1))
                         error_lines.append(filename + ":" + m.group(2) + m.group(3))
