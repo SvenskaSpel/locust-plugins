@@ -27,6 +27,7 @@ class SocketIOUser(User):
 
     def on_message(self, message):  # override this method in your subclass for custom handling
         m = self.message_regex.match(message)
+        response_time = 0  # unknown
         if m is None:
             # uh oh...
             raise Exception(f"got no matches for {self.message_regex} in {message}")
