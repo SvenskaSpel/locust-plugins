@@ -30,7 +30,7 @@ class User(dict):
 class Reader(ABC):
     @abstractmethod
     @contextmanager
-    def user(self):
+    def user(self, query: dict = None):
         pass
 
 
