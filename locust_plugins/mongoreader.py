@@ -46,9 +46,15 @@ class MongoReader(Reader):
         self.query = {"$and": filters + [{"logged_in": False}]}
 
     @contextmanager
-    def user(self):
+    def user(self, query: dict = None):
         start_at = time.monotonic()
-        user = User(self.coll, self.query)
+
+        if not query:
+            if not self.query:
+                raise Exception("no query specified on object or as parameter :(")
+            query = self.query
+
+        user = User(self.coll, query)
 
         if start_at + self.delay_warning < time.monotonic():
             if not self.delay_warning:
@@ -56,7 +62,7 @@ class MongoReader(Reader):
                 self.delay_warning = 1
             else:
                 logging.warning(
-                    f"Getting a user with filter more than {self.delay_warning} seconds (doubling warning threshold for next time, filter used was {self.filters})"
+                    f"Getting a user took more than {self.delay_warning} seconds (doubling warning threshold for next time, query used was {query})"
                 )
                 self.delay_warning *= 2
         try:
