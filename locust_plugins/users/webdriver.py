@@ -108,6 +108,7 @@ class WebdriverClient(webdriver.Remote):
                     response_length=0,
                     context=context,
                     exception=error_message,
+                    url=self.current_url,
                 )
                 self.start_time = None
                 if not isinstance(e, WebDriverException):
@@ -121,6 +122,7 @@ class WebdriverClient(webdriver.Remote):
                 response_length=0,
                 context=context,
                 exception=None,
+                url=self.current_url,
             )
             self.start_time = None
         return element
