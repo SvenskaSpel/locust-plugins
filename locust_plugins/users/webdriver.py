@@ -54,7 +54,7 @@ class WebdriverClient(webdriver.Remote):
         # )
 
     def find_element(
-        self, by=By.ID, value=None, name=None, prefix="", retry=0, context=None
+        self, by=By.ID, value=None, name=None, prefix="", retry=0, context=None, fake_success=False
     ):  # pylint: disable=arguments-differ
         element = None
         context = context or {}
@@ -96,21 +96,22 @@ class WebdriverClient(webdriver.Remote):
             timestring = datetime.datetime.now().replace(microsecond=0).isoformat().replace(":", ".")
             greenlet_id = getattr(greenlet.getcurrent(), "minimal_ident", 0)  # if we're debugging there is no greenlet
             identifier = context.get("ssn", greenlet_id)  # kind of SvS specific
-            self.save_screenshot(
-                f"{timestring}_{name.replace(' ', '_').replace('{','_').replace('}','_').replace(':','_')}_{identifier}.png"
-            )
+            if not fake_success:
+                self.save_screenshot(
+                    f"{timestring}_{name.replace(' ', '_').replace('{','_').replace('}','_').replace(':','_')}_{identifier}.png"
+                )
 
-            self.user.environment.events.request.fire(
-                request_type="find",
-                name=name,
-                response_time=total_time,
-                response_length=0,
-                context=context,
-                exception=error_message,
-            )
-            self.start_time = None
-            if not isinstance(e, WebDriverException):
-                raise
+                self.user.environment.events.request.fire(
+                    request_type="find",
+                    name=name,
+                    response_time=total_time,
+                    response_length=0,
+                    context=context,
+                    exception=error_message,
+                )
+                self.start_time = None
+                if not isinstance(e, WebDriverException):
+                    raise
         else:
             total_time = (time.perf_counter() - self.start_time) * 1000
             self.user.environment.events.request.fire(
