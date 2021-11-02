@@ -150,9 +150,9 @@ class Timescale:  # pylint: disable=R0902
             with self._conn.cursor() as cur:
                 psycopg2.extras.execute_values(
                     cur,
-                    """INSERT INTO request(time,run_id,greenlet_id,loadgen,name,request_type,response_time,success,testplan,response_length,exception,pid,context) VALUES %s""",
+                    """INSERT INTO request(time,run_id,greenlet_id,loadgen,name,request_type,response_time,success,testplan,response_length,exception,pid,url,context) VALUES %s""",
                     samples,
-                    template="(%(time)s, %(run_id)s, %(greenlet_id)s, %(loadgen)s, %(name)s, %(request_type)s, %(response_time)s, %(success)s, %(testplan)s, %(response_length)s, %(exception)s, %(pid)s, %(context)s)",
+                    template="(%(time)s, %(run_id)s, %(greenlet_id)s, %(loadgen)s, %(name)s, %(request_type)s, %(response_time)s, %(success)s, %(testplan)s, %(response_length)s, %(exception)s, %(pid)s, %(url)s, %(context)s)",
                 )
         except psycopg2.Error as error:
             logging.error("Failed to write samples to Postgresql timescale database: " + repr(error))
@@ -166,7 +166,16 @@ class Timescale:  # pylint: disable=R0902
         self.exit()
 
     def on_request(
-        self, request_type, name, response_time, response_length, exception, context, start_time=None, **_kwargs
+        self,
+        request_type,
+        name,
+        response_time,
+        response_length,
+        exception,
+        context,
+        start_time=None,
+        url=None,
+        **_kwargs,
     ):
         success = 0 if exception else 1
         if start_time:
@@ -185,6 +194,7 @@ class Timescale:  # pylint: disable=R0902
             "request_type": request_type,
             "response_time": response_time,
             "success": success,
+            "url": url[0:255] if url else None,
             "testplan": self._testplan,
             "pid": self._pid,
             "context": psycopg2.extras.Json(context, safe_serialize),

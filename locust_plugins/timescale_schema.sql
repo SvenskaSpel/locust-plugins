@@ -62,7 +62,8 @@ CREATE TABLE public.request (
     success smallint NOT NULL,
     testplan character varying(30) NOT NULL,
     pid integer,
-    context jsonb
+    context jsonb,
+    url character varying(255)
 );
 
 
