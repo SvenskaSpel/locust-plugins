@@ -47,6 +47,10 @@ There are a couple of plugin types:
 ## Transaction manager
 - Support for logging transactions (aggregating multiple requests or other actions) ([example](examples/transaction_example.py), [source](locust_plugins/transaction_manager.py))
 
+## Connection Pool
+- Allows users to occupy more ports when running tests, useful for dealing with strange behaviour from load balancers in low user count high throughput scenarios. ([example](examples/connection_pool_ex.py, [source](locust_plugins/connection_pools.py))
+scenarios. ([example](examples/connection_pool_ex.py, [source](locust_plugins/connection_pools.py))
+
 ## Command line options 
 - Additional locust command line options provided ([examples](examples/cmd_line_examples.sh), [source](locust_plugins/__init__.py))
     - Iteration limit (`-i`), stops Locust after a certain number of task iterations
