@@ -1,0 +1,29 @@
+interpreter: bash -c
+name: locust plugins
+
+options:
+
+tasks:
+  format:
+    usage: formats the examples/ and locust_plugins/ folders with black
+    run:
+      - command:
+          exec: |
+            black locust_plugins/
+            black examples/
+
+  pylint:
+    usage: runs pylint against all files in examples/ and locust_plugins/ folders
+    run:
+      - command:
+          exec: |
+            pylint --rcfile .pylintrc locust_plugins/
+            pylint --rcfile .pylintrc examples/
+
+  test:
+    usage: runs the tox suite in the 3.9 environment
+    run:
+      - command:
+          exec: |
+            tox -e py39
+
