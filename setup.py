@@ -38,6 +38,7 @@ setup(
     package_data={"locust_plugins": ["py.typed"]},
     zip_safe=False,
     install_requires=[
+        "playwright",
         "locust>=2.4.0",
         "psycogreen",
         "psycopg2-binary",
