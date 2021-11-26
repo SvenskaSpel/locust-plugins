@@ -43,8 +43,6 @@ class Timescale:  # pylint: disable=R0902
         self,
         env: locust.env.Environment,
         testplan: str,
-        profile_name: str = "",
-        description: str = "",
     ):
         self.grafana_url = env.parsed_options.grafana_url
         try:
@@ -57,16 +55,13 @@ class Timescale:  # pylint: disable=R0902
         self._events_conn = self._dbconn()
         assert testplan != ""
         self._testplan = testplan
-        self._test_env = env.parsed_options.test_env
         self.env = env
         self._hostname = socket.gethostname()  # pylint: disable=no-member
         self._username = os.getenv("USER", "unknown")
         self._test_version = env.parsed_options.test_version
         self._samples: List[dict] = []
         self._finished = False
-        self._profile_name = profile_name
         self._rps = os.getenv("LOCUST_RPS", "0")
-        self._description = description
         self._pid = os.getpid()
         try:
             self._gitrepo = subprocess.check_output(
@@ -221,15 +216,14 @@ class Timescale:  # pylint: disable=R0902
     def log_start_testrun(self):
         with self._testrun_conn.cursor() as cur:
             cur.execute(
-                "INSERT INTO testrun (id, testplan, profile_name, num_clients, rps, description, env, username, gitrepo, changeset_guid) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+                "INSERT INTO testrun (id, testplan, num_clients, rps, description, env, username, gitrepo, changeset_guid) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)",
                 (
                     self._run_id,
                     self._testplan,
-                    self._profile_name,
                     self.env.parsed_options.num_users or 1,
                     self._rps,
-                    self._description,
-                    self._test_env,
+                    self.env.parsed_options.description,
+                    self.env.parsed_options.test_env,
                     self._username,
                     self._gitrepo,
                     self._test_version,

@@ -66,6 +66,13 @@ def add_checks_arguments(parser: configargparse.ArgumentParser):
         env_var="LOCUST_GRAFANA_URL",
         default="",
     )
+    run_info.add_argument(
+        "--description",
+        type=str,
+        env_var="LOCUST_DESCRIPTION",
+        default="",
+        help="Description of the test being run",
+    )
     other = parser.add_argument_group(
         "locust-plugins - Extras",
     )

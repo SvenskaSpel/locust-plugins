@@ -17,7 +17,6 @@ SET row_security = off;
 CREATE TABLE public.testrun (
     id timestamp with time zone NOT NULL,
     testplan text NOT NULL,
-    profile_name text,
     num_clients integer NOT NULL,
     rps double precision,
     description text,
