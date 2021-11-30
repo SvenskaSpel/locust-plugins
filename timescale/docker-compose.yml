@@ -1,0 +1,53 @@
+version: "3"
+services:
+  timescaledb:
+    build: timescale/
+    hostname: postgres
+    networks:
+      timenet:
+        aliases:
+          - postgres
+    expose:
+      - 5432
+    ports:
+      - 5432:5432
+    volumes:
+      - ./data/postgresql:/var/lib/postgresql/data
+
+  grafana:
+    image: grafana/grafana:latest
+    environment:
+      # these settings are not particularly safe, dont go exposing Grafana externally without changing this.
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_SECURITY_ALLOW_EMBEDDING=true
+    ports:
+      - 3000:3000
+    networks:
+      - timenet
+    # define a health check so that setup doesnt start too soon
+    healthcheck:
+      test: [ "CMD", "nc", "-z", "-v", "localhost", "3000" ]
+      interval: 1s
+      timeout: 3s
+      retries: 60
+    # uncomment the following if you want to persist changes to your dashboards
+    # volumes:
+    #   - ./data/grafana:/var/lib/grafana
+
+
+  setup_grafana:
+    # sets up Grafana datasource and dashboards
+    depends_on:
+      grafana:
+        condition: service_healthy
+    image: timescale_timescaledb
+    networks:
+      - timenet
+    volumes:
+      - .:/commands:ro
+    command: [ "bash", "-c", "sleep 2 && /commands/grafana_setup.sh" ]
+
+networks:
+  timenet: null
