@@ -8,7 +8,7 @@ for d in "${ds[@]}"; do
     -d "{\"dashboard\":$j,\"overwrite\":true, \
         \"inputs\":[
             {\"name\":\"VAR_SEND_INTERVAL\",\"type\":\"constant\",\"value\": \"5\"},\
-            {\"name\":\"DS_LOCUST\",\"type\":\"datasource\", \"pluginId\":\"postgres\",\"value\":\"timescale\"}\
+            {\"name\":\"DS_LOCUST\",\"type\":\"datasource\", \"pluginId\":\"postgres\",\"value\":\"$DS_NAME\"}\
         ]}"\
     $GRAFANA_HOST/api/dashboards/import; echo ""
 done

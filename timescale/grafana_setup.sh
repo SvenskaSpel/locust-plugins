@@ -5,6 +5,7 @@ export GRAFANA_HOST="http://grafana:3000"
 export GRAFANA_CRED="admin:admin"
 export POSTGRES_HOST="postgres"
 export POSTGRES_PORT="5432"
+export DS_NAME="locust_timescale"
 
 ${BASH_SOURCE%/*}/create_datasource.sh
 ${BASH_SOURCE%/*}/import_dashboards.sh
