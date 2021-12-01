@@ -12,4 +12,4 @@ Grafana is now accessible on http://localhost:3000, and (postgres on localhost:5
 
 ## Manual setup
 
-If you already have a Grafana installed, edit the settings in [grafana_setup.sh](grafana_setup.sh) and run that to point Grafana to the correct datasource and import the Locust dashboards.
+If you already have a Grafana installed, edit the variables in [grafana_setup.sh](grafana_setup.sh) and run it. This will set up a datasource pointing to your Timescale and import the Locust dashboards from grafana.com. If you prefer, you can do it manually from here: https://grafana.com/grafana/dashboards/10878
