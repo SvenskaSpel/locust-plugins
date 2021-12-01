@@ -1,7 +1,7 @@
 version: "3"
 services:
-  timescaledb:
-    build: timescale/
+  postgres:
+    image: cyberw/locust-timescale:latest
     hostname: postgres
     networks:
       timenet:
@@ -22,6 +22,7 @@ services:
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
       - GF_SECURITY_ALLOW_EMBEDDING=true
+      - GF_LOG_LEVEL=warn # reduce log spamming. Remove this if you need to debug grafana.
     ports:
       - 3000:3000
     networks:
@@ -42,12 +43,18 @@ services:
     depends_on:
       grafana:
         condition: service_healthy
-    image: timescale_timescaledb
+    image: cyberw/locust-timescale:latest
     networks:
       - timenet
     volumes:
       - .:/commands:ro
-    command: [ "bash", "-c", "sleep 2 && /commands/grafana_setup.sh" ]
+    command:
+      [
+        "bash",
+        "-c",
+        "sleep 2 && /commands/grafana_setup.sh && echo 'You can now connect to
+          grafana on http://localhost:3000'"
+      ]
 
 networks:
   timenet: null
