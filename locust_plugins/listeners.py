@@ -1,7 +1,10 @@
+from locust.exception import (
+    RescheduleTask,
+    StopUser,
+    CatchResponseError,
+    InterruptTaskSet,
+)  # need to do this first to make sure monkey patching is done
 import gevent
-import gevent.monkey
-
-gevent.monkey.patch_all()
 import psycogreen.gevent
 import json
 
@@ -17,7 +20,6 @@ from datetime import datetime, timezone, timedelta
 
 import greenlet
 from dateutil import parser
-from locust.exception import RescheduleTask, StopUser, CatchResponseError, InterruptTaskSet
 import subprocess
 import locust.env
 from typing import List
