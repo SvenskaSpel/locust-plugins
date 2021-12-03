@@ -49,8 +49,13 @@ services:
       [
         "bash",
         "-c",
-        "sleep 2 && /commands/grafana_setup.sh && echo 'You can now connect to
-          grafana on http://localhost:3000'"
+        "sleep 2 && /commands/grafana_setup.sh && echo
+          '--------------------------------------------------------------------\
+          ------------------------------------------' && echo 'You can now
+          connect to Grafana, the main dashboard is at
+          http://localhost:3000/d/qjIIww4Zz?from=now-15m&to=now' && echo
+          '--------------------------------------------------------------------\
+          ------------------------------------------ '"
       ]
 
 networks:
