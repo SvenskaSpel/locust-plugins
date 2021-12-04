@@ -45,8 +45,6 @@ services:
     image: cyberw/locust-timescale:latest
     networks:
       - timenet
-    volumes:
-      - .:/commands:ro
     command:
       [
         "bash",
