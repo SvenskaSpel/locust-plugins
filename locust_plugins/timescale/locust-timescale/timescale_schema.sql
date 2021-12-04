@@ -1,9 +1,3 @@
---
--- TIMESCALEDB init schema
--- tested with version 11
---
-
-
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;

@@ -64,7 +64,7 @@ def add_checks_arguments(parser: configargparse.ArgumentParser):
         type=str,
         help="URL to Grafana dashboard (used by TimescaleListener)",
         env_var="LOCUST_GRAFANA_URL",
-        default="",
+        default="http://localhost:3000/d/qjIIww4Zz?",
     )
     run_info.add_argument(
         "--description",

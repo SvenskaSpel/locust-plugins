@@ -1,4 +1,5 @@
 version: "3"
+
 services:
   postgres:
     image: cyberw/locust-timescale:latest
@@ -8,8 +9,11 @@ services:
       - 5432
     ports:
       - 5432:5432
+    environment:
+      - POSTGRES_PASSWORD=password
+      - TIMESCALEDB_TELEMETRY=off
     volumes:
-      - ./data/postgresql:/var/lib/postgresql/data
+      - dbdata:/var/lib/postgresql/data
 
   grafana:
     image: grafana/grafana:latest
@@ -21,7 +25,7 @@ services:
       - GF_SECURITY_ALLOW_EMBEDDING=true
       - GF_LOG_LEVEL=warn # reduce log spamming. Remove this if you need to debug grafana.
     ports:
-      - 3000:3000
+      - 127.0.0.1:3000:3000
     networks:
       - timenet
     # define a health check so that setup doesnt start too soon
@@ -30,10 +34,8 @@ services:
       interval: 1s
       timeout: 3s
       retries: 60
-    # uncomment the following if you want to persist changes to your dashboards
-    # volumes:
-    #   - ./data/grafana:/var/lib/grafana
-
+    volumes:
+      - grafanadata:/var/lib/grafana
 
   setup_grafana:
     # sets up Grafana datasource and dashboards
@@ -60,3 +62,7 @@ services:
 
 networks:
   timenet: null
+
+volumes:
+  dbdata: null
+  grafanadata: null
