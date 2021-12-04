@@ -38,7 +38,7 @@ class MyUser(HttpUser):
 
 @events.init.add_listener
 def on_locust_init(environment, **_kwargs):
-    listeners.Timescale(env=environment, testplan="timescale_listener_ex")
+    listeners.Timescale(env=environment)
 
 
 if __name__ == "__main__":

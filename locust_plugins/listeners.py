@@ -44,7 +44,7 @@ class Timescale:  # pylint: disable=R0902
     def __init__(
         self,
         env: locust.env.Environment,
-        testplan: str,
+        testplan: str = None,
     ):
         self.grafana_url = env.parsed_options.grafana_url
         try:
@@ -55,8 +55,14 @@ class Timescale:  # pylint: disable=R0902
         self._user_conn = self._dbconn()
         self._testrun_conn = self._dbconn()
         self._events_conn = self._dbconn()
-        assert testplan != ""
-        self._testplan = testplan
+        if testplan:
+            self._testplan = testplan
+        else:
+            import inspect
+
+            frame = inspect.stack()[1]
+            filename = os.path.basename(frame[0].f_code.co_filename)
+            self._testplan = filename.rsplit(".py", 1)[0]
         self.env = env
         self._hostname = socket.gethostname()  # pylint: disable=no-member
         self._username = os.getenv("USER", "unknown")
@@ -105,11 +111,14 @@ class Timescale:  # pylint: disable=R0902
     def _dbconn(self) -> psycopg2.extensions.connection:
         try:
             conn = psycopg2.connect(
-                host=os.environ["PGHOST"], keepalives_idle=120, keepalives_interval=20, keepalives_count=6
+                host=os.environ.get("PGHOST", "localhost"),
+                keepalives_idle=120,
+                keepalives_interval=20,
+                keepalives_count=6,
             )
         except Exception:
             logging.error(
-                "Use standard postgres env vars to specify where to report locust samples (https://www.postgresql.org/docs/11/libpq-envars.html)"
+                "Could not connect to postgres. Use standard postgres env vars to specify where to report locust samples (https://www.postgresql.org/docs/11/libpq-envars.html)"
             )
             raise
         conn.autocommit = True
