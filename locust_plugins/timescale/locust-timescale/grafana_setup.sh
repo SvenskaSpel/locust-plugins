@@ -3,7 +3,7 @@
 # edit this as necessary, if you want to set up the DS/dashboards on a different environment
 export GRAFANA_HOST="http://grafana:3000"
 export GRAFANA_CRED="admin:admin"
-export GRAFANA_OVERWRITE="false" # change to true to overwrite any existing dashboards
+export GRAFANA_OVERWRITE="false" # change to true to overwrite pre-existing dashboards (update to latest version from grafana.com)
 export POSTGRES_HOST="postgres"
 export POSTGRES_PORT="5432"
 export DS_NAME="locust_timescale"
