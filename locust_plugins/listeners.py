@@ -41,11 +41,19 @@ class Timescale:  # pylint: disable=R0902
     See timescale_listener_ex.py for documentation
     """
 
+    first_instance = True
+
     def __init__(
         self,
         env: locust.env.Environment,
         testplan: str = None,
     ):
+        if not Timescale.first_instance:
+            # we should refactor this into a module as it is much more pythonic
+            raise Exception(
+                "You tried to initialize the Timescale listener twice, maybe both in your locustfile and using command line --timescale? Ignoring second initialization."
+            )
+        Timescale.first_instance = False
         self.grafana_url = env.parsed_options.grafana_url
         try:
             self._conn = self._dbconn()
