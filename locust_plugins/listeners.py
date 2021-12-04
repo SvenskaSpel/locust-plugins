@@ -16,6 +16,7 @@ import logging
 import os
 import socket
 import sys
+import inspect
 from datetime import datetime, timezone, timedelta
 
 import greenlet
@@ -66,8 +67,6 @@ class Timescale:  # pylint: disable=R0902
         if testplan:
             self._testplan = testplan
         else:
-            import inspect
-
             frame = inspect.stack()[1]
             filename = os.path.basename(frame[0].f_code.co_filename)
             self._testplan = filename.rsplit(".py", 1)[0]
