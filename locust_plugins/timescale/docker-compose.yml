@@ -8,7 +8,8 @@ services:
     expose:
       - 5432
     ports:
-      - 5432:5432
+      # remove the 127.0.0.1 to expose postgres externally (including load gen workers outside this machine) 
+      - 127.0.0.1:5432:5432
     environment:
       - POSTGRES_PASSWORD=password
       - TIMESCALEDB_TELEMETRY=off
@@ -38,7 +39,7 @@ services:
       - grafana_data:/var/lib/grafana
 
   setup_grafana:
-    # sets up Grafana datasource and dashboards
+    # sets up Grafana datasource and imports the latest dashboards from grafana.com
     depends_on:
       grafana:
         condition: service_healthy
