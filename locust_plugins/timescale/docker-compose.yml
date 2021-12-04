@@ -13,7 +13,7 @@ services:
       - POSTGRES_PASSWORD=password
       - TIMESCALEDB_TELEMETRY=off
     volumes:
-      - dbdata:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
 
   grafana:
     image: grafana/grafana:latest
@@ -35,7 +35,7 @@ services:
       timeout: 3s
       retries: 60
     volumes:
-      - grafanadata:/var/lib/grafana
+      - grafana_data:/var/lib/grafana
 
   setup_grafana:
     # sets up Grafana datasource and dashboards
@@ -64,5 +64,5 @@ networks:
   timenet: null
 
 volumes:
-  dbdata: null
-  grafanadata: null
+  postgres_data: null
+  grafana_data: null
