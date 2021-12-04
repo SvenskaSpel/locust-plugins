@@ -105,7 +105,7 @@ def add_checks_arguments(parser: configargparse.ArgumentParser):
 @events.init.add_listener
 def on_locust_init(environment, **_kwargs):
     if environment.parsed_options.timescale:
-        listeners.Timescale(env=environment)
+        Timescale(env=environment)
 
 
 @events.test_start.add_listener
