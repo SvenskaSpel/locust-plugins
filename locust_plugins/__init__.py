@@ -2,6 +2,7 @@ __version__ = "1.8.1"
 
 from .wait_time import constant_ips, constant_total_ips
 from .debug import run_single_user
+from .listeners import Timescale
 import locust
 from locust import TaskSet
 from locust.user.task import DefaultTaskSet
@@ -62,7 +63,7 @@ def add_checks_arguments(parser: configargparse.ArgumentParser):
     run_info.add_argument(
         "--grafana-url",
         type=str,
-        help="URL to Grafana dashboard (used by TimescaleListener)",
+        help="URL to Grafana dashboard (used by Timescale listener)",
         env_var="LOCUST_GRAFANA_URL",
         default="http://localhost:3000/d/qjIIww4Zz?",
     )
@@ -75,6 +76,13 @@ def add_checks_arguments(parser: configargparse.ArgumentParser):
     )
     other = parser.add_argument_group(
         "locust-plugins - Extras",
+    )
+    other.add_argument(
+        "--timescale",
+        action="store_true",
+        help="Log to a Timescale database, see https://github.com/SvenskaSpel/locust-plugins/blob/master/locust_plugins/timescale/",
+        env_var="LOCUST_TIMESCALE",
+        default=False,
     )
     # fix for https://github.com/locustio/locust/issues/1085
     other.add_argument(
@@ -92,6 +100,12 @@ def add_checks_arguments(parser: configargparse.ArgumentParser):
         env_var="LOCUST_CONSOLE_STATS_INTERVAL",
         default=locust.stats.CONSOLE_STATS_INTERVAL_SEC,
     )
+
+
+@events.init.add_listener
+def on_locust_init(environment, **_kwargs):
+    if environment.parsed_options.timescale:
+        listeners.Timescale(env=environment)
 
 
 @events.test_start.add_listener
