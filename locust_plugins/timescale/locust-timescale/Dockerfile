@@ -1,6 +1,4 @@
 FROM timescale/timescaledb:latest-pg13
-ENV POSTGRES_PASSWORD password
-ENV TIMESCALEDB_TELEMETRY off
 # Dependencies needed for doing setup against Grafana
 RUN apk add bash curl jq  
 # Grafana setup commands
