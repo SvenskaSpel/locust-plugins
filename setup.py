@@ -51,4 +51,5 @@ setup(
         "opencensus-ext-azure",
         "paho-mqtt>=1.5.0",
     ],
+    scripts=["bin/locust-compose"],
 )

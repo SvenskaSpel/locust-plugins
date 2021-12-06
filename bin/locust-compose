@@ -1,0 +1,4 @@
+#!/bin/bash
+module_location=$(python3 -c "import locust_plugins; print(locust_plugins.__path__[0])")
+set -x
+docker compose -f $module_location/timescale/docker-compose.yml "$@"

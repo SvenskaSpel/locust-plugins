@@ -1,0 +1,68 @@
+version: "3"
+
+services:
+  postgres:
+    image: cyberw/locust-timescale:latest
+    networks:
+      - timenet
+    expose:
+      - 5432
+    ports:
+      # remove the 127.0.0.1 to expose postgres to other machines (including load gen workers outside this machine) 
+      - 127.0.0.1:5432:5432
+    environment:
+      # change the password if you intend to expose postgres to other machines
+      - POSTGRES_PASSWORD=password
+      - TIMESCALEDB_TELEMETRY=off
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  grafana:
+    image: grafana/grafana:latest
+    environment:
+      # these settings are not particularly safe, dont go exposing Grafana externally without changing this.
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_SECURITY_ALLOW_EMBEDDING=true
+      - GF_LOG_LEVEL=warn # reduce log spamming. Remove this if you need to debug grafana.
+    ports:
+      - 127.0.0.1:3000:3000
+    networks:
+      - timenet
+    # define a health check so that setup doesnt start too soon
+    healthcheck:
+      test: [ "CMD", "nc", "-z", "-v", "localhost", "3000" ]
+      interval: 1s
+      timeout: 3s
+      retries: 60
+    volumes:
+      - grafana_data:/var/lib/grafana
+
+  setup_grafana:
+    # sets up Grafana datasource and imports the latest dashboards from grafana.com
+    depends_on:
+      grafana:
+        condition: service_healthy
+    image: cyberw/locust-timescale:latest
+    networks:
+      - timenet
+    command:
+      [
+        "bash",
+        "-c",
+        "sleep 2 && /commands/grafana_setup.sh && echo
+          '--------------------------------------------------------------------\
+          ------------------------------------------' && echo 'You can now
+          connect to Grafana, the main dashboard is at
+          http://localhost:3000/d/qjIIww4Zz?from=now-15m&to=now' && echo
+          '--------------------------------------------------------------------\
+          ------------------------------------------ '"
+      ]
+
+networks:
+  timenet: null
+
+volumes:
+  postgres_data: null
+  grafana_data: null
