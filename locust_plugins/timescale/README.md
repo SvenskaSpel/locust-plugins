@@ -31,8 +31,12 @@ You can now run a locust test like this:
 
 ```
 ~ locust --timescale --headless
-[2021-12-06 14:44:18,415] lafp-mac-JG5J.int.svenskaspel.se/INFO/root: Follow test run here: https://localhost:3000/d/qjIIww4Zz/locust?orgId=1&var-testplan=locustfile.py&from=1638798258415&to=now
+[2021-12-06 14:44:18,415] myhost/INFO/root: Follow test run here: http://localhost:3000/d/qjIIww4Zz?var-testplan=locustfile.py&from=1638798258415&to=now
 ...
+KeyboardInterrupt
+2021-12-06T13:49:03Z
+[2021-12-06 14:49:03,444] myhost/INFO/locust.main: Running teardowns...
+[2021-12-06 14:49:03,521] myhost/INFO/root: Report: http://localhost:3000/d/qjIIww4Zz?&var-testplan=locust/demo.py&from=1638798536901&to=1638798544471
 ```
 
 If you hadn't already guessed it from the output, `locust-compose` is just a thin wrapper around `docker-compose`. When you are finished testing, just press CTRL-C or run `locust-compose down`
