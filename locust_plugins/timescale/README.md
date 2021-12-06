@@ -1,4 +1,4 @@
-Locust enables you to log requests & run events to a Postgres/Timescale database.
+Locust-plugins enables you to log requests & run events to a Postgres/Timescale database.
 
 This data can then be monitored and analyzed in Grafana in real time, or after the test has completed. The dashboards also make it easy to find old test runs and compare results over time.
 
