@@ -6,7 +6,7 @@ In order to log Locust's requests and run data into Timescale you add `--timesca
 
 # docker-compose-based Timescale + Grafana
 
-Assuming you have docker installed, you can start Postgres/Timescale and Grafana, with the correct tables set up in Timescale and the appropriate dashboards just run `locust-compose up`:
+Assuming you have docker installed you can just run `locust-compose up`. It will give you a timescale witht the 
 
 ```
 ~ locust-compose up
@@ -39,14 +39,7 @@ For security reasons, the ports for logging to Timescale and accessing Grafana o
 
 ## Manual setup
 
-1. Set up a Postgres instance (or use the dockerized one provided by the above command, which uses cyberw/locust-timescale:latest)
-2. Export the regular Postgres environment variables to point to your instance (PGHOST, PGPORT, PGUSER, PGPASSWORD)
-3. If you didnt Set up the tables  (run it something like this: psql < timescale_schema.sql)
-https://github.com/SvenskaSpel/locust-plugins/blob/master/locust_plugins/timescale/locust-timescale/timescale_schema.sql
-
-If you already have a Grafana installed, edit the variables in [grafana_setup.sh](locust-timescale/grafana_setup.sh) and use it to set up a datasource pointing to your Timescale and import the Locust dashboards from grafana.com. If you prefer, you can do it manually from here: https://grafana.com/grafana/dashboards/10878
-
-
-# 2. Set up the tables  (run it something like this: PGPORT=5432 PGHOST=localhost psql < timescale_schema.sql)
-# 6. Run your tests. If you get an error about "Make sure the TimescaleDB extension has been preloaded", have a look at
-#    https://github.com/SvenskaSpel/locust-plugins/issues/11
+1. Set up a Postgres instance, install Timescale (or use the one in docker-compose.yml, cyberw/locust-timescale:latest)
+2. Set/export Postgres environment variables to point to your instance (PGHOST, PGPORT, PGUSER, PGPASSWORD)
+3. If you didnt use the pre-built docker image, set up the tables by running something like `psql < timescale_schema.sql` (https://github.com/SvenskaSpel/locust-plugins/blob/master/locust_plugins/timescale/locust-timescale/timescale_schema.sql)
+4. Set up Grafana. Edit the variables in [grafana_setup.sh](locust-timescale/grafana_setup.sh) and use it to set up a datasource pointing to your Timescale and import the Locust dashboards from grafana.com. If you prefer, you can do it manually from here: https://grafana.com/grafana/dashboards/10878
