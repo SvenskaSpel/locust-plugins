@@ -1,10 +1,11 @@
 from gevent import monkey
 import os
 import sys
+import inspect
 from locust.env import Environment
 from locust_plugins import listeners
 import locust.log
-from locust import User, argument_parser
+from locust import User, argument_parser, events
 
 
 def _gevent_debugger_patch():
@@ -56,8 +57,10 @@ def run_single_user(
     if loglevel:
         locust.log.setup_logging(loglevel)
     if env is None:
-        env = Environment()
+        env = Environment(events=events)
         env.parsed_options = argument_parser.parse_options()
+        frame = inspect.stack()[1]
+        env.parsed_options.locustfile = os.path.basename(frame[0].f_code.co_filename)
         listeners.Print(env, include_length=include_length, include_time=include_time, include_context=include_context)
     env.events.init.fire(environment=env, runner=None, web_ui=None)
     if init_listener:
