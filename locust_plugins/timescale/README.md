@@ -29,7 +29,10 @@ Follow the link and you will find your fresh (empty) main Locust dashboard, used
 
 You can now run a locust test like this:
 
+```
 locust --timescale --headless
+[2021-12-06 14:44:18,415] lafp-mac-JG5J.int.svenskaspel.se/INFO/root: Follow test run here: https://localhost:3000/d/qjIIww4Zz/locust?orgId=1&var-testplan=locustfile.py&from=1638798258415&to=now
+```
 
 If you hadn't already guessed it from the output, `locust-compose` is just a thin wrapper around `docker-compose`. When you are finished testing, just press CTRL-C or run `locust-compose down`
 
