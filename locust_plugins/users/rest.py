@@ -4,7 +4,7 @@ from locust.clients import ResponseContextManager
 import traceback
 import re
 from json.decoder import JSONDecodeError
-import json
+
 
 class RestUser(FastHttpUser):
     """
