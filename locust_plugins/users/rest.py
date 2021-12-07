@@ -4,7 +4,7 @@ from locust.clients import ResponseContextManager
 import traceback
 import re
 from json.decoder import JSONDecodeError
-
+import json
 
 class RestUser(FastHttpUser):
     """
@@ -35,9 +35,9 @@ class RestUser(FastHttpUser):
                 if resp.text:
                     try:
                         resp.js = resp.json()
-                    except JSONDecodeError:
+                    except JSONDecodeError as e:
                         resp.failure(
-                            f"Could not parse response as JSON. {resp.text[:200]}, response code {resp.status_code}"
+                            f"Could not parse response as JSON. {resp.text[:250]}, response code {resp.status_code}, error {e}"
                         )
             try:
                 yield resp
