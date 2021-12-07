@@ -30,7 +30,7 @@ Follow the link and you will find your fresh (empty) main Locust dashboard, used
 You can now run a locust test like this:
 
 ```
-~ locust --timescale --headless
+~ locust --timescale --headless -f locustfile_that_imports_locust_plugins.py
 [2021-12-06 14:44:18,415] myhost/INFO/root: Follow test run here: http://localhost:3000/d/qjIIww4Zz?var-testplan=locustfile.py&from=1638798258415&to=now
 ...
 KeyboardInterrupt
@@ -41,7 +41,7 @@ KeyboardInterrupt
 
 If you hadn't already guessed it from the output, `locust-compose` is just a thin wrapper around `docker-compose`. When you are finished testing, just press CTRL-C or run `locust-compose down`
 
-Both timescale data and any grafana dashboard edits are persisted as docker volumes even if you shut it down. To remove the data run `locust-compose rm`.
+Both timescale data and any grafana dashboard edits are persisted as docker volumes even if you shut it down. To remove the data volumes run `locust-compose down -v`.
 
 For security reasons, the ports for logging to Timescale and accessing Grafana only accessible on localhost. If you want them to be reachable from the outside (e.g. to run a distributed test with workers running on a different machine), edit the docker-compose.yml file.
 
