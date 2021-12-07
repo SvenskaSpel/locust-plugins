@@ -5581,25 +5581,27 @@ CREATE INDEX testrun_id_idx ON public.testrun USING btree (id DESC);
 CREATE INDEX user_count_time_idx ON public.user_count USING btree ("time" DESC);
 
 
---
--- Name: request ts_insert_blocker; Type: TRIGGER; Schema: public; Owner: postgres
---
+-- Dont create blockers for insertion. Timescale will be ready by the time anybody has a chance to start inserting.
 
-CREATE TRIGGER ts_insert_blocker BEFORE INSERT ON public.request FOR EACH ROW EXECUTE PROCEDURE _timescaledb_internal.insert_blocker();
+-- --
+-- -- Name: request ts_insert_blocker; Type: TRIGGER; Schema: public; Owner: postgres
+-- --
 
-
---
--- Name: testrun ts_insert_blocker; Type: TRIGGER; Schema: public; Owner: postgres
---
-
-CREATE TRIGGER ts_insert_blocker BEFORE INSERT ON public.testrun FOR EACH ROW EXECUTE PROCEDURE _timescaledb_internal.insert_blocker();
+-- CREATE TRIGGER ts_insert_blocker BEFORE INSERT ON public.request FOR EACH ROW EXECUTE PROCEDURE _timescaledb_internal.insert_blocker();
 
 
---
--- Name: user_count ts_insert_blocker; Type: TRIGGER; Schema: public; Owner: postgres
---
+-- --
+-- -- Name: testrun ts_insert_blocker; Type: TRIGGER; Schema: public; Owner: postgres
+-- --
 
-CREATE TRIGGER ts_insert_blocker BEFORE INSERT ON public.user_count FOR EACH ROW EXECUTE PROCEDURE _timescaledb_internal.insert_blocker();
+-- CREATE TRIGGER ts_insert_blocker BEFORE INSERT ON public.testrun FOR EACH ROW EXECUTE PROCEDURE _timescaledb_internal.insert_blocker();
+
+
+-- --
+-- -- Name: user_count ts_insert_blocker; Type: TRIGGER; Schema: public; Owner: postgres
+-- --
+
+-- CREATE TRIGGER ts_insert_blocker BEFORE INSERT ON public.user_count FOR EACH ROW EXECUTE PROCEDURE _timescaledb_internal.insert_blocker();
 
 
 --
