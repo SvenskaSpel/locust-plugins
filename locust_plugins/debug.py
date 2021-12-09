@@ -50,7 +50,6 @@ def run_single_user(
     include_length=False,
     include_time=False,
     include_context=False,
-    init_listener=None,
     loglevel=None,
 ):
     _gevent_debugger_patch()
@@ -63,7 +62,5 @@ def run_single_user(
         env.parsed_options.locustfile = os.path.basename(frame[0].f_code.co_filename)
         listeners.Print(env, include_length=include_length, include_time=include_time, include_context=include_context)
     env.events.init.fire(environment=env, runner=None, web_ui=None)
-    if init_listener:
-        init_listener(env)
     locust_class._catch_exceptions = catch_exceptions
     locust_class(env).run()
