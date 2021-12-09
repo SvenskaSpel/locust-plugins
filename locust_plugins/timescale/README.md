@@ -1,6 +1,6 @@
 Locust-plugins enables you to log requests & run events to a Postgres/Timescale database.
 
-This data can then be monitored and analyzed in Grafana in real time, or after the test has completed. The dashboards also make it easy to find old test runs and compare results over time. It aims to be a more or less complete replacement for the reporting/graphing parts of the Locust web UI.
+This data can then be monitored and analyzed in Grafana in real time, or after the test has completed. The dashboards also make it easy to find old test runs and compare results over time. It aims to be a more or less complete replacement for the reporting/graphing parts of the Locust web UI (but it is possible to use both at the same time).
 
 In order to log Locust's requests and run data into Timescale you add `--timescale` to the command line. But first you need to set up Timescale:
 
