@@ -1,12 +1,12 @@
 # Locust Dashboards
 
-locust-plugins enables you to log Locust's results to a database and to analyze them using Grafana in real time. 
+locust-plugins enables you to log Locust's results to a Postgres/Timescale database and to analyze them using Grafana in real time. 
 
-Every request is logged, enabling you to analyze your runs in detail. It also logs important other events (number of active users, ramp up finished etc) as well as aggregated results after the test has finished. Because the data is persisted, you can also track any changes in the performance of your system over time.
+The dashboards provide a good overview as well as detail, as each request is logged individually. It also logs important other events (number of active users, ramp up finished etc) as well as aggregated results after the test has finished. Because the data is persisted, you can also track any changes in the performance of your system over time.
 
 This aims to be a complete replacement for the reporting/graphing parts of the Locust web UI, so it is often used with Locust in [--headless](https://docs.locust.io/en/stable/running-without-web-ui.html#running-without-the-web-ui) mode.
 
-Because Timescale is queried using regular SQL (PostgreSQL) it is relatively straightforward make your own custom dashboards or edit the existing ones.
+Because Timescale is queried using regular SQL it is relatively straightforward make your own custom dashboards or edit the existing ones. You can even calculate your own completely custom metrics (e.g. number of requests above a certain response time threshold).
 
 ## `Locust` is the main dashboard, used for analyzing a whole test run
 
