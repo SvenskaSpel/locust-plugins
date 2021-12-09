@@ -2,9 +2,9 @@
 
 locust-plugins enables you to log requests & events to a Postgres/Timescale database and analyzing them using Grafana. 
 
-The dashboards can be used while the test is running, but also make it easy find and analyze previous runs. 
+The dashboards can be used while the test is running, but also make it easy find and analyze previous runs.
 
-It aims to be a more or less complete replacement for the reporting/graphing parts of the Locust web UI (but it is possible to use both at the same time). 
+This aims to be a complete replacement for the reporting/graphing parts of the Locust web UI, so it is often used with Locust in [--headless](https://docs.locust.io/en/stable/running-without-web-ui.html#running-without-the-web-ui) mode.
 
 There are three built-in dasbhoards. Because Timescale is queried using regular SQL (PostgreSQL) it is relatively straightforward make your own custom dashboards or edit the existing ones.
 
