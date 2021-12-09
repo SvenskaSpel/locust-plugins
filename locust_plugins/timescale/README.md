@@ -6,7 +6,7 @@ The dashboards can be used while the test is running, but also make it easy find
 
 It aims to be a more or less complete replacement for the reporting/graphing parts of the Locust web UI (but it is possible to use both at the same time). 
 
-There are three built-in dasbhoards, but feel free to add your own/reconfigure these ones. Because Timescale is queried using regular SQL (PostgreSQL) it is relatively straight forward to do so.
+There are three built-in dasbhoards. Because Timescale is queried using regular SQL (PostgreSQL) it is relatively straightforward make your own custom dashboards or edit the existing ones.
 
 ## `Locust` is the main dashboard, used for analyzing a whole test run:
 
@@ -31,11 +31,11 @@ Use the settings at the top of the page to filter out only tests against the sam
 
 # Setup
 
-In order to log Locust's requests and run data into Timescale you add `--timescale` to the command line. But first you need to set up Timescale:
+In order to log Locust's requests and run data into Timescale you add `--timescale` to the command line. But first you need to set up Timescale & Grafana:
 
 ## docker-compose-based Timescale + Grafana
 
-Assuming you have docker installed you can just run `locust-compose up`. It will give you a timescale witht the 
+Assuming you have docker installed you can just run `locust-compose up`. It will give you a Timescale & Grafana container. 
 
 ```
 ~ locust-compose up
@@ -54,7 +54,7 @@ setup_grafana_1  | You can now connect to Grafana, the main dashboard is at http
 ---------------------------------------------------------------------------------------------------------------------------------
 ```
 
-Follow the link and you will find your fresh (empty) main Locust dashboard, used for analyzing test runs.
+Follow the link and you will find your fresh (empty) main Locust dashboard.
 
 You can now run a locust test like this:
 
@@ -72,18 +72,18 @@ If you hadn't already guessed it from the output, `locust-compose` is just a thi
 
 Both timescale data and any grafana dashboard edits are persisted as docker volumes even if you shut it down. To remove the data volumes run `locust-compose down -v`.
 
-For security reasons, the ports for logging to Timescale and accessing Grafana only accessible on localhost. If you want them to be reachable from the outside (e.g. to run a distributed test with workers running on a different machine), edit the docker-compose.yml file.
+For security reasons, the ports for logging to Timescale and accessing Grafana only accessible on localhost. If you want them to be reachable from the outside (e.g. to run a distributed test with workers running on a different machine), copy the docker-compose.yml file and change it as needed.
 
 ## Manual setup
 
-1. Set up a Postgres instance, install Timescale (or use the one in docker-compose.yml, cyberw/locust-timescale:latest)
+1. Set up a Postgres instance, install Timescale (or use the ready-made one from Docker Hub: cyberw/locust-timescale:latest)
 2. Set/export Postgres environment variables to point to your instance (PGHOST, PGPORT, PGUSER, PGPASSWORD)
 3. If you didnt use the pre-built docker image, set up the tables by running something like `psql < timescale_schema.sql` (https://github.com/SvenskaSpel/locust-plugins/blob/master/locust_plugins/timescale/locust-timescale/timescale_schema.sql)
-4. Set up Grafana. Edit the variables in [grafana_setup.sh](locust-timescale/grafana_setup.sh) and use it to set up a datasource pointing to your Timescale and import the Locust dashboards from grafana.com. If you prefer, you can do it manually from here: https://grafana.com/grafana/dashboards/10878
+4. Set up Grafana. Edit the variables in [grafana_setup.sh](locust-timescale/grafana_setup.sh) and run it to set up a datasource pointing to your Timescale and import the Locust dashboards from grafana.com (or you can do it manually from [here](https://grafana.com/grafana/dashboards/10878)).
 
 # Limitations
 
 * Because each request is logged, it adds some CPU overhead to Locust workers (but the DB writes are batched & async so the impact should be minor)
-* Timescale is really fast, but if you are running big tests you might overload timescale (which would cause Locust to stop writing to the database and throwing lots of errors). We have succesfully run >5000 req/s tests writing to a very modest Timescale server with no issues.
+* Timescale is very efficient at writing data, but if you are running big tests you might overload it (which would cause Locust to stop writing to the database and probably throwing lots of errors). We have succesfully run >5000 req/s tests writing to a very modest Timescale server with no issues.
 * Analyzing long high-throughput tests is slow (because Grafana will be querying Timescale for huge amounts of data). Zoom in to a smaller time interval or use the aggregated data instead.
-* See [listeners.py](../listeners.py) for details
+* See [listeners.py](../listeners.py) for the implementation
