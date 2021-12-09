@@ -1,18 +1,18 @@
 # Locust Dashboards
 
-locust-plugins enables you to log requests & events to a Postgres/Timescale database and analyzing them using Grafana. 
+locust-plugins enables you to log Locust's results to a database and to analyze them using Grafana in real time. 
 
-The dashboards can be used while the test is running, but also make it easy find and analyze previous runs.
+Every request is logged, enabling you to analyze your runs in detail. It also logs important other events (number of active users, ramp up finished etc) as well as aggregated results after the test has finished. Because the data is persisted, you can also track any changes in the performance of your system over time.
 
 This aims to be a complete replacement for the reporting/graphing parts of the Locust web UI, so it is often used with Locust in [--headless](https://docs.locust.io/en/stable/running-without-web-ui.html#running-without-the-web-ui) mode.
 
-There are three built-in dasbhoards. Because Timescale is queried using regular SQL (PostgreSQL) it is relatively straightforward make your own custom dashboards or edit the existing ones.
+Because Timescale is queried using regular SQL (PostgreSQL) it is relatively straightforward make your own custom dashboards or edit the existing ones.
 
-## `Locust` is the main dashboard, used for analyzing a whole test run:
+## `Locust` is the main dashboard, used for analyzing a whole test run
 
 ![Main dashboard](screenshots/main_dashboard.png)
 
-Scroll down, and you'll find that it also provides graphs for individual request types (by name):
+You can easily zoom in to a particular time interval, using the normal Grafana controls. Scroll down to view graphs split by request name:
 
 ![Graphs by request](screenshots/main_dashboard_by_request_graphs.png)
 
@@ -22,12 +22,11 @@ Scroll down, and you'll find that it also provides graphs for individual request
 
 You can customize/expand this table to fit your needs, especially if you want to track [context variables](https://docs.locust.io/en/stable/extending-locust.html#request-context) that are specific for your requests/system. The ones included in the table (ssn, request_id, etc) can be seen as an example.
 
-
-## `Locust Testruns` is used to locate old test runs and follow performance changes over time. 
+## `Locust Testruns` is used to locate old test runs and graph performance changes between runs.
 
 ![Testruns](screenshots/testruns.png)
 
-Use the settings at the top of the page to filter out only tests against the same system, with the same user count, on the same environment, etc, to make sure your graphs are relevant.
+Click the link in the leftmost column to view the main dashboard for that particular run. You can filter your runs based on things like locustfile name, user count, and test environment environment. Do this before looking too much at the graphs or you may end up comparing apples to oranges (e.g. small tests against system A vs big tests against system B).
 
 # Setup
 
