@@ -2,7 +2,9 @@
 
 locust-plugins enables you to log requests & events to a Postgres/Timescale database.
 
-This data can then be monitored and analyzed in Grafana in real time, or after the test has completed. The dashboards also make it easy to find old test runs and compare results over time. It aims to be a more or less complete replacement for the reporting/graphing parts of the Locust web UI (but it is possible to use both at the same time).
+This data can then be monitored and analyzed in Grafana in real time, or after the test has completed. The dashboards also make it easy to find old test runs and compare results over time. 
+
+It aims to be a more or less complete replacement for the reporting/graphing parts of the Locust web UI (but it is possible to use both at the same time).
 
 ## The "Locust" dashboard is used for analyzing an individual test run:
 
