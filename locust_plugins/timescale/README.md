@@ -1,27 +1,29 @@
 # Locust Dashboards
 
-locust-plugins enables you to log requests & events to a Postgres/Timescale database.
+locust-plugins enables you to log requests & events to a Postgres/Timescale database and analyzing them using Grafana. 
 
-This data can then be monitored and analyzed in Grafana in real time, or after the test has completed. The dashboards also make it easy to find old test runs and compare results over time. 
+The dashboards can be used while the test is running, but also make it easy find and analyze previous runs. 
 
-It aims to be a more or less complete replacement for the reporting/graphing parts of the Locust web UI (but it is possible to use both at the same time).
+It aims to be a more or less complete replacement for the reporting/graphing parts of the Locust web UI (but it is possible to use both at the same time). 
 
-## The "Locust" dashboard is used for analyzing an individual test run:
+There are three built-in dasbhoards, but feel free to add your own/reconfigure these ones. Because Timescale is queried using regular SQL (PostgreSQL) it is relatively straight forward to do so.
+
+## `Locust` is the main dashboard, used for analyzing a whole test run:
 
 ![Main dashboard](screenshots/main_dashboard.png)
 
-It also provides graphs for individual request types (by name)
+Scroll down, and you'll find that it also provides graphs for individual request types (by name):
 
 ![Graphs by request](screenshots/main_dashboard_by_request_graphs.png)
 
-## "Locust Requests Table" is used for detailed analysis of individual requests
+## `Locust Requests Table` is used for detailed analysis of individual requests
 
 ![Requests table view](screenshots/requests_table.png)
 
 You can customize/expand this table to fit your needs, especially if you want to track [context variables](https://docs.locust.io/en/stable/extending-locust.html#request-context) that are specific for your requests/system. The ones included in the table (ssn, request_id, etc) can be seen as an example.
 
 
-## "Locust Testruns" is used to locate old test runs and follow performance changes over time. 
+## `Locust Testruns` is used to locate old test runs and follow performance changes over time. 
 
 ![Testruns](screenshots/testruns.png)
 
