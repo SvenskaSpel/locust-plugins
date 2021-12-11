@@ -26,8 +26,7 @@ You can customize/expand this table to fit your needs, especially if you want to
 
 ![Testruns](screenshots/testruns.png)
 
-Click the link in the leftmost column to view the main dashboard for that particular run. You can filter your runs based on things like locustfile name, user count, and test environment environment. Do this before looking too much at the graphs or you may end up comparing apples to oranges (e.g. small tests against system A vs big tests against system B).
-
+Click the link in the leftmost column to view the main dashboard for that particular run. You can filter your runs based on things like locustfile name, user count, and test environment environment. Your graphs can end up looking strange until you do this (as they will contain all your test runs, regardless of target system, user count, etc).
 # Setup
 
 In order to log Locust's requests and run data into Timescale you add `--timescale` to the command line. But first you need to set up Timescale & Grafana:
