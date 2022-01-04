@@ -59,14 +59,16 @@ class RestUserThatLooksAtErrors(RestUser):
     def rest(self, method, url, **kwargs) -> ResponseContextManager:
         extra_headers = {"my_header": "my_value"}
         with super().rest(method, url, headers=extra_headers, **kwargs) as resp:
-            #
-            if "error" in resp.js and resp.js["error"] is not None:
-                # pylint thinks this is a FASTUser, and not a ResponseContextManager
-                resp.failure(resp.js["error"])  # pylint: disable=E1101
+            resp: ResponseContextManager
+            if resp.js and "error" in resp.js and resp.js["error"] is not None:
+                resp.failure(resp.js["error"])
             yield resp
 
 
 class MyOtherRestUser(RestUserThatLooksAtErrors):
+    host = "https://postman-echo.com"
+    wait_time = constant(180)  # be nice to postman-echo.com, and dont run this at scale.
+
     @task
     def t(self):
         with self.rest("GET", "/") as resp:  # pylint: disable=W0612
