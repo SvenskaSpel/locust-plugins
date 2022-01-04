@@ -18,9 +18,6 @@ class MySocketIOUser(SocketIOUser):
         while not self.my_value:
             time.sleep(0.1)
 
-        # you can do http in the same taskset as well
-        self.client.get("/")
-
         # wait for additional pushes, while occasionally sending heartbeats, like a real client would
         self.sleep_with_heartbeat(10)
 

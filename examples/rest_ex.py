@@ -51,21 +51,25 @@ class MyUser(RestUser):
         with self.rest("GET", "http://example.com:42/", json={"foo": 1}) as resp:
             pass
 
+
 class RestUserThatLooksAtErrors(RestUser):
     abstract = True
+
     @contextmanager
-    def rest(self, method, url, headers={}, **kwargs) -> ResponseContextManager:
+    def rest(self, method, url, **kwargs) -> ResponseContextManager:
         extra_headers = {"my_header": "my_value"}
-        with super().rest(method, url, headers={**headers, **extra_headers}, **kwargs) as resp:
-            # 
+        with super().rest(method, url, headers=extra_headers, **kwargs) as resp:
+            #
             if "error" in resp.js and resp.js["error"] is not None:
-                resp.failure(resp.js["error"])
+                # pylint thinks this is a FASTUser, and not a ResponseContextManager
+                resp.failure(resp.js["error"])  # pylint: disable=E1101
             yield resp
+
 
 class MyOtherRestUser(RestUserThatLooksAtErrors):
     @task
     def t(self):
-        with self.rest("GET", "/") as resp:
+        with self.rest("GET", "/") as resp:  # pylint: disable=W0612
             pass
 
 

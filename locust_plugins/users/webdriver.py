@@ -201,9 +201,13 @@ class WebDriverResponseContextManager:
         """
         Report the response as successful
         Example::
-            with self.client.get("/does/not/exist", catch_response=True) as response:
-                if response.status_code == 404:
-                    response.success()
+            with self.request(name="helpful_name") as request:
+                request.client.get("https://example.com/")
+                title = request.client.find_element(By.CSS_SELECTOR, "body > div > h1")
+                if title.text == "Example Domain":
+                    request.success()
+                else:
+                    request.failure("Page title didn't match")
         """
         if not self._entered:
             raise LocustError(
@@ -218,9 +222,13 @@ class WebDriverResponseContextManager:
         if exc is anything other than a python exception (like a string) it will
         be wrapped inside a CatchResponseError.
         Example::
-            with self.client.get("/", catch_response=True) as response:
-                if response.content == b"":
-                    response.failure("No data")
+            with self.request(name="helpful_name") as request:
+                request.client.get("https://example.com/")
+                title = request.client.find_element(By.CSS_SELECTOR, "body > div > h1")
+                if title.text != "Example Domain":
+                    request.success()
+                else:
+                    request.failure("Page title didn't match")
         """
         if not self._entered:
             raise LocustError(

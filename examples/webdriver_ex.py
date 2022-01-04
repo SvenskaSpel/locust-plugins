@@ -106,6 +106,16 @@ class MyUser(WebdriverUser):
             wait = WebDriverWait(self.client, 5, poll_frequency=0.5)
             wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "body > div")))
 
+    @task
+    def example_with_context_manager(self):
+        with self.request(name="example_with_context_manager") as request:
+            request.client.get("https://example.com/")
+            title = request.client.find_element(By.CSS_SELECTOR, "body > div > h1")
+            if title.text == "Example Domain":
+                request.success()
+            else:
+                request.failure("Page title didn't match")
+
 
 @events.init.add_listener
 def on_locust_init(environment, **_kwargs):

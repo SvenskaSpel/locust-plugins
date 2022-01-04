@@ -18,7 +18,7 @@ tasks:
       - command:
           exec: |
             pylint --rcfile .pylintrc locust_plugins/
-            pylint --rcfile .pylintrc examples/
+            pylint --rcfile .pylintrc examples/*.py
 
   test:
     usage: runs the tox suite in the 3.9 environment
