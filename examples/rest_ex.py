@@ -40,15 +40,15 @@ class MyUser(RestUser):
                 pass
 
         # response isnt even json, but RestUser will already have been marked it as a failure, so we dont have to do it again
-        with self.rest("GET", "/", json={"foo": 1}) as resp:
+        with self.rest("GET", "/", json={"foo": 1}) as _resp:
             pass
 
         # 404
-        with self.rest("GET", "http://example.com/", json={"foo": 1}) as resp:
+        with self.rest("GET", "http://example.com/", json={"foo": 1}) as _resp:
             pass
 
         # connection closed
-        with self.rest("GET", "http://example.com:42/", json={"foo": 1}) as resp:
+        with self.rest("GET", "http://example.com:42/", json={"foo": 1}) as _resp:
             pass
 
 
@@ -71,7 +71,7 @@ class MyOtherRestUser(RestUserThatLooksAtErrors):
 
     @task
     def t(self):
-        with self.rest("GET", "/") as resp:  # pylint: disable=W0612
+        with self.rest("GET", "/") as _resp:
             pass
 
 
