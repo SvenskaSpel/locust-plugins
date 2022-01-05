@@ -22,4 +22,4 @@ def on_locust_init(environment, **_kwargs):
 
 if __name__ == "__main__":
     MyUser.host = "http://example.com"
-    run_single_user(MyUser, include_time=True, include_length=True, init_listener=on_locust_init)
+    run_single_user(MyUser, include_time=True, include_length=True)

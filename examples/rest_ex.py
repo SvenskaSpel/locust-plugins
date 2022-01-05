@@ -40,32 +40,38 @@ class MyUser(RestUser):
                 pass
 
         # response isnt even json, but RestUser will already have been marked it as a failure, so we dont have to do it again
-        with self.rest("GET", "/", json={"foo": 1}) as resp:
+        with self.rest("GET", "/", json={"foo": 1}) as _resp:
             pass
 
         # 404
-        with self.rest("GET", "http://example.com/", json={"foo": 1}) as resp:
+        with self.rest("GET", "http://example.com/", json={"foo": 1}) as _resp:
             pass
 
         # connection closed
-        with self.rest("GET", "http://example.com:42/", json={"foo": 1}) as resp:
+        with self.rest("GET", "http://example.com:42/", json={"foo": 1}) as _resp:
             pass
+
 
 class RestUserThatLooksAtErrors(RestUser):
     abstract = True
+
     @contextmanager
-    def rest(self, method, url, headers={}, **kwargs) -> ResponseContextManager:
+    def rest(self, method, url, **kwargs) -> ResponseContextManager:
         extra_headers = {"my_header": "my_value"}
-        with super().rest(method, url, headers={**headers, **extra_headers}, **kwargs) as resp:
-            # 
-            if "error" in resp.js and resp.js["error"] is not None:
+        with super().rest(method, url, headers=extra_headers, **kwargs) as resp:
+            resp: ResponseContextManager
+            if resp.js and "error" in resp.js and resp.js["error"] is not None:
                 resp.failure(resp.js["error"])
             yield resp
 
+
 class MyOtherRestUser(RestUserThatLooksAtErrors):
+    host = "https://postman-echo.com"
+    wait_time = constant(180)  # be nice to postman-echo.com, and dont run this at scale.
+
     @task
     def t(self):
-        with self.rest("GET", "/") as resp:
+        with self.rest("GET", "/") as _resp:
             pass
 
 

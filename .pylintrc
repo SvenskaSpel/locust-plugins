@@ -15,3 +15,7 @@ disable=logging-not-lazy,logging-fstring-interpolation,missing-docstring,wrong-i
 [MASTER]
 ignore=locustio,examples
 extension-pkg-whitelist=lxml
+
+[SIMILARITIES]
+# Minimum lines number of a similarity - set high to avoid issues with examples/transaction*
+min-similarity-lines=25
