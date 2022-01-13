@@ -1,5 +1,5 @@
 #!/bin/bash
-ds=(10878 14423 14422);
+ds=(10878 14423 14422 15419);
 for d in "${ds[@]}"; do
   echo -n "Processing $d: "
   j=$(curl -s -k -u "$GRAFANA_CRED" $GRAFANA_HOST/api/gnet/dashboards/$d | jq .json)

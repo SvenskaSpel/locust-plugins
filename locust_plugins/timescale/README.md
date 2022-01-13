@@ -27,6 +27,13 @@ You can customize/expand this table to fit your needs, especially if you want to
 ![Testruns](screenshots/testruns.png)
 
 Click the link in the leftmost column to view the main dashboard for that particular run. You can filter your runs based on things like locustfile name, user count, and test environment environment. Your graphs can end up looking strange until you do this (as they will contain all your test runs, regardless of target system, user count, etc).
+
+## `Locust scatter plot` is used to visualize the response times of individual requests
+
+![Scatter plot](screenshots/scatter_plot.png)
+
+This is useful to know if your requests are being sent unevenly (like in this example) or if response times are very uneven (to tell the difference between, for example, most requests being fast, but a few being *very slow* and all requests being a *little* slow - something that might otherwise be hidden in a regular graph showing only averages)
+
 # Setup
 
 In order to log Locust's requests and run data into Timescale you add `--timescale` to the command line. But first you need to set up Timescale & Grafana:
