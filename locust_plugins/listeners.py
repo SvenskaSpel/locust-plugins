@@ -54,7 +54,25 @@ class Timescale:  # pylint: disable=R0902
                 "You tried to initialize the Timescale listener twice, maybe both in your locustfile and using command line --timescale? Ignoring second initialization."
             )
         Timescale.first_instance = False
-        self.grafana_url = env.parsed_options.grafana_url
+        if testplan:
+            self._testplan = testplan
+        else:
+            self._testplan = env.parsed_options.locustfile
+        self.env = env
+        self._samples: List[dict] = []
+        self._background = gevent.spawn(self._run)
+        self._hostname = socket.gethostname()  # pylint: disable=no-member
+        self._username = os.getenv("USER", "unknown")
+        self._finished = False
+        self._pid = os.getpid()
+        events = self.env.events
+        events.test_start.add_listener(self.on_start)
+        events.request.add_listener(self.on_request)
+        events.quitting.add_listener(self.quitting)
+        events.spawning_complete.add_listener(self.spawning_complete)
+        atexit.register(self.log_stop_test_run)
+
+    def on_start(self, environment: locust.env.Environment):
         try:
             self._conn = self._dbconn()
         except psycopg2.OperationalError as e:
@@ -63,18 +81,7 @@ class Timescale:  # pylint: disable=R0902
         self._user_conn = self._dbconn()
         self._testrun_conn = self._dbconn()
         self._events_conn = self._dbconn()
-        if testplan:
-            self._testplan = testplan
-        else:
-            self._testplan = env.parsed_options.locustfile
-        self.env = env
-        self._hostname = socket.gethostname()  # pylint: disable=no-member
-        self._username = os.getenv("USER", "unknown")
-        self._test_version = env.parsed_options.test_version
-        self._samples: List[dict] = []
-        self._finished = False
         self._rps = os.getenv("LOCUST_RPS", "0")
-        self._pid = os.getpid()
         try:
             self._gitrepo = subprocess.check_output(
                 "git remote show origin -n 2>/dev/null | grep h.URL | sed 's/.*://;s/.git$//' || true",
@@ -88,8 +95,8 @@ class Timescale:  # pylint: disable=R0902
 
         if is_worker() or is_master():
             # swarm generates the run id for its master and workers
-            if "LOCUST_RUN_ID" in os.environ:
-                self._run_id = parser.parse(os.environ["LOCUST_RUN_ID"])
+            if getattr(environment.parsed_options, "run_id", False):
+                self._run_id = parser.parse(environment.parsed_options.run_id)
             else:
                 logging.info(
                     "You are running distributed, but without swarm. run_id:s in Timescale will not match exactly between load gens"
@@ -100,17 +107,10 @@ class Timescale:  # pylint: disable=R0902
             self._run_id = datetime.now(timezone.utc)
         if not is_worker():
             logging.info(
-                f"Follow test run here: {self.grafana_url}&var-testplan={self._testplan}&from={int(self._run_id.timestamp()*1000)}&to=now"
+                f"Follow test run here: {self.env.parsed_options.grafana_url}&var-testplan={self._testplan}&from={int(self._run_id.timestamp()*1000)}&to=now"
             )
             self.log_start_testrun()
             self._user_count_logger = gevent.spawn(self._log_user_count)
-
-        self._background = gevent.spawn(self._run)
-        events = self.env.events
-        events.request.add_listener(self.on_request)
-        events.quitting.add_listener(self.quitting)
-        events.spawning_complete.add_listener(self.spawning_complete)
-        atexit.register(self.exit)
 
     def _dbconn(self) -> psycopg2.extensions.connection:
         try:
@@ -140,6 +140,11 @@ class Timescale:  # pylint: disable=R0902
                     )
             except psycopg2.Error as error:
                 logging.error("Failed to write user count to Postgresql: " + repr(error))
+                try:
+                    # try to recreate connection
+                    self.user_conn = self._dbconn()
+                except:
+                    pass
             gevent.sleep(2.0)
 
     def _run(self):
@@ -173,7 +178,7 @@ class Timescale:  # pylint: disable=R0902
         self._background.join(timeout=10)
         if not is_worker():
             self._user_count_logger.kill()
-        self.exit()
+        self.log_stop_test_run()
 
     def on_request(
         self,
@@ -241,7 +246,7 @@ class Timescale:  # pylint: disable=R0902
                     self.env.parsed_options.test_env,
                     self._username,
                     self._gitrepo,
-                    self._test_version,
+                    self.env.parsed_options.test_version,
                 ),
             )
             cur.execute(
@@ -263,6 +268,10 @@ class Timescale:  # pylint: disable=R0902
                 )
 
     def log_stop_test_run(self):
+        if is_worker():
+            return  # only run on master or standalone
+        if not getattr(self, "_testrun_conn", False):
+            return  # run never started, so no need to log the end
         end_time = datetime.now(timezone.utc)
         try:
             with self._testrun_conn.cursor() as cur:
@@ -299,12 +308,8 @@ WHERE id = %s""",
                 + repr(error)
             )
         logging.info(
-            f"Report: {self.grafana_url}&var-testplan={self._testplan}&from={int(self._run_id.timestamp()*1000)}&to={int((end_time.timestamp()+1)*1000)}\n"
+            f"Report: {self.env.parsed_options.grafana_url}&var-testplan={self._testplan}&from={int(self._run_id.timestamp()*1000)}&to={int((end_time.timestamp()+1)*1000)}\n"
         )
-
-    def exit(self):
-        if not is_worker():  # on master or standalone locust run
-            self.log_stop_test_run()
 
 
 class Print:
