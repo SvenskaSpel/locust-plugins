@@ -176,7 +176,7 @@ class Timescale:  # pylint: disable=R0902
         self._finished = True
         atexit._clear()  # make sure we dont capture additional ctrl-c:s # pylint: disable=protected-access
         self._background.join(timeout=10)
-        if not is_worker():
+        if getattr(self, "_user_count_logger", False):
             self._user_count_logger.kill()
         self.log_stop_test_run()
 
