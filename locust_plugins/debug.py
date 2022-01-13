@@ -62,5 +62,6 @@ def run_single_user(
         env.parsed_options.locustfile = os.path.basename(frame[0].f_code.co_filename)
         listeners.Print(env, include_length=include_length, include_time=include_time, include_context=include_context)
     env.events.init.fire(environment=env, runner=None, web_ui=None)
+    env.events.test_start.fire(environment=env, runner=None, web_ui=None)
     locust_class._catch_exceptions = catch_exceptions
     locust_class(env).run()
