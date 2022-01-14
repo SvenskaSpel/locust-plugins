@@ -55,7 +55,9 @@ class Timescale:  # pylint: disable=R0902
             )
         Timescale.first_instance = False
         if testplan:
-            self._testplan = testplan
+            self._testplan = testplan  # legacy
+        elif env.parsed_options.override_plan_name:
+            self._testplan = env.parsed_options.override_plan_name
         else:
             self._testplan = env.parsed_options.locustfile
         self.env = env
