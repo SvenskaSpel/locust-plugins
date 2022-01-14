@@ -15,8 +15,8 @@ class MyUser(HttpUser):
         raise StopUser()
 
 
-@events.init.add_listener
-def on_locust_init(environment, **_kwargs):
+@events.test_start.add_listener
+def on_test_start(environment, **_kwargs):
     listeners.Timescale(environment)
 
 
