@@ -15,8 +15,8 @@ IPS_WINDOW_SIZE = 20
 @events.quitting.add_listener
 def quitting(**_kwargs: Any):
     if _warning_emitted:
-        print(
-            "Failed to reach targeted number of iterations per second (at some point during the test). Probably caused by target system overload or too few clients"
+        logging.warning(
+            "Failed to reach targeted number of iterations per second (at some point during the test). Probably caused by target system overload or too few Users"
         )
 
 

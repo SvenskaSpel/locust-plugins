@@ -83,7 +83,6 @@ class Timescale:  # pylint: disable=R0902
         self._user_conn = self._dbconn()
         self._testrun_conn = self._dbconn()
         self._events_conn = self._dbconn()
-        self._rps = os.getenv("LOCUST_RPS", "0")
         try:
             self._gitrepo = subprocess.check_output(
                 "git remote show origin -n 2>/dev/null | grep h.URL | sed 's/.*://;s/.git$//' || true",
@@ -243,7 +242,7 @@ class Timescale:  # pylint: disable=R0902
                     self._run_id,
                     self._testplan,
                     self.env.parsed_options.num_users or 1,
-                    self._rps,
+                    self.env.parsed_options.ips,  # this field is incorrectly called "rps" in db, it should be called something like "target_ips"
                     self.env.parsed_options.description,
                     self.env.parsed_options.test_env,
                     self._username,

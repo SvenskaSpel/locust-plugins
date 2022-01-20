@@ -139,6 +139,13 @@ def add_checks_arguments(parser: configargparse.ArgumentParser):
         env_var="LOCUST_CONSOLE_STATS_INTERVAL",
         default=locust.stats.CONSOLE_STATS_INTERVAL_SEC,
     )
+    other.add_argument(
+        "--ips",
+        type=float,
+        help="Replace all wait_time:s with global iterations-per-second limiter",
+        env_var="LOCUST_IPS",
+        default=0,
+    )
 
 
 @events.init.add_listener
@@ -177,6 +184,10 @@ def set_up_iteration_limit(environment: Environment, **_kwargs):
         # monkey patch TaskSets to add support for iterations limit. Not ugly at all :)
         TaskSet.execute_task = iteration_limit_wrapper(TaskSet.execute_task)
         DefaultTaskSet.execute_task = iteration_limit_wrapper(DefaultTaskSet.execute_task)
+
+    if options.ips:
+        for user_class in environment.runner.user_classes:
+            user_class.wait_time = wait_time.constant_total_ips(options.ips)
 
 
 @events.quitting.add_listener
