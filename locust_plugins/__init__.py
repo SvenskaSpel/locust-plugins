@@ -1,4 +1,4 @@
-__version__ = "2.2.2"
+__version__ = "2.3.0"
 import os
 from .wait_time import constant_ips, constant_total_ips
 from .debug import run_single_user
