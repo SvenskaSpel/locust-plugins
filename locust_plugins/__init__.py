@@ -1,4 +1,4 @@
-__version__ = "2.3.0"
+__version__ = "2.3.1"
 import os
 from .wait_time import constant_ips, constant_total_ips
 from .debug import run_single_user
@@ -187,7 +187,7 @@ def set_up_iteration_limit(environment: Environment, **_kwargs):
 
     if options.ips:
         for user_class in environment.runner.user_classes:
-            user_class.wait_time = wait_time.constant_total_ips(options.ips)
+            user_class.wait_time = constant_total_ips(options.ips)
 
 
 @events.quitting.add_listener
