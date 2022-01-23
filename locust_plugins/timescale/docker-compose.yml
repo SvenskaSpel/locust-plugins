@@ -32,7 +32,7 @@ services:
       - timenet
     # define a health check so that setup doesnt start too soon
     healthcheck:
-      test: [ "CMD", "nc", "-z", "-v", "localhost", "3000" ]
+      test: [ "CMD", "curl", "--fail", "localhost:3000" ]
       interval: 1s
       timeout: 3s
       retries: 60
