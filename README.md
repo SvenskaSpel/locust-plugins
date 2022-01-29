@@ -40,7 +40,7 @@ Having this separate from "Locust core" allows the plugins to evolve faster (at 
 - Custom wait time functions ([example](examples/constant_total_ips_ex.py), [source](locust_plugins/wait_time.py))
 
 ## Debug 
-- Support for running a single User in the debugger ([example](examples/debug_ex.py), [source](locust_plugins/debug.py))
+- Support for running a single User in the debugger (moved to [locust core](https://docs.locust.io/en/latest/running-in-debugger.html)!)
 
 ## Transaction manager
 - Support for logging transactions (aggregating multiple requests or other actions) ([example](examples/transaction_example.py), [source](locust_plugins/transaction_manager.py))
