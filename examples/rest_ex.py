@@ -12,7 +12,6 @@ from contextlib import contextmanager
 from locust import task, run_single_user
 from locust.contrib.fasthttp import ResponseContextManager
 from locust.user.wait_time import constant
-import locust_plugins
 from locust_plugins.users import RestUser
 
 
