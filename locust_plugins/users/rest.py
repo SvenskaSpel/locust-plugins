@@ -5,7 +5,7 @@ import traceback
 import re
 from json.decoder import JSONDecodeError
 import autoviv
-from typing import Iterator
+from typing import Generator
 
 
 class RestResponseContextManager(ResponseContextManager):
@@ -27,10 +27,9 @@ class RestUser(FastHttpUser):
     _callstack_regex = re.compile(r'  File "(\/.[^"]*)", line (\d*),(.*)')
 
     @contextmanager
-    def rest(self, method, url, **kwargs) -> Iterator[RestResponseContextManager]:
+    def rest(self, method, url, **kwargs) -> Generator[RestResponseContextManager, None, None]:
         headers = kwargs.pop("headers", {"Content-Type": "application/json", "Accept": "application/json"})
         with self.client.request(method, url, catch_response=True, headers=headers, **kwargs) as resp:
-            resp: RestResponseContextManager
             resp.js = None
             if resp.text is None:
                 # round the response time to nearest second to improve error grouping
@@ -47,6 +46,7 @@ class RestUser(FastHttpUser):
                             f"Could not parse response as JSON. {resp.text[:250]}, response code {resp.status_code}, error {e}"
                         )
             try:
+                resp: RestResponseContextManager  # pylint is stupid
                 yield resp
             except AssertionError as e:
                 if e.args:
