@@ -31,27 +31,56 @@ class MyUser(RestUser):
         with self.rest("POST", "/post", json={"foo": 1}) as resp:
             if resp.js["data"]["foo"] != 1:
                 resp.failure(f"Unexpected value of foo in response {resp.text}")
+            # assertions are a nice short way of expressiont your expectations about the response. The AssertionError thrown will be caught
+            # and fail the request, including the message and the payload in the failure content
+            assert resp.js["data"]["foo"] == 1, "Unexpected value of foo in response"
+            # to guard against complete failures (which may make resp.js None), only do the check when error is not already set:
+            assert resp.error or resp.js["data"]["foo"] == 1
 
         # RestResponse support safe navigation returning None if fields are missing (instead of throwing KeyError or
         with self.rest("POST", "/post", json={"foo": 1}) as resp:
             if resp.js["field that doesnt exist"]["status"] != "success":
                 resp.failure(f"Bad or missing status in {resp.text}")
 
-        # RestUser catches any most exceptions, so any programming mistakes you make automatically marks the request as a failure
+        # assertions are a nice short way to validate the response. The AssertionError they raise
+        # will be caught by rest() and mark the request as failed
+
+        with self.rest("POST", "/post", json={"foo": 1}) as resp:
+            # mark the request as failed with the message "Assertion failed"
+            assert resp.js["foo"] == 2
+
+        with self.rest("POST", "/post", json={"foo": 1}) as resp:
+            # custom failure message
+            assert resp.js["foo"] == 2, "my custom error message"
+
+        with self.rest("POST", "/post", json={"foo": 1}) as resp:
+            # use a trailing comma to append the response text to the custom message
+            assert resp.js["foo"] == 2, "my custom error message with response text,"
+
+        # rest() catches most exceptions, so any programming mistakes you make automatically marks the request as a failure
+        # and stores the callstack in the failure message
         with self.rest("POST", "/post", json={"foo": 1}) as resp:
             if True == True:  # this is just to make vscode think we progress after this, because we will...
                 raise Exception("oh no")
 
         # response isnt even json, but RestUser will already have been marked it as a failure, so we dont have to do it again
-        with self.rest("GET", "/", json={"foo": 1}) as _resp:
+        with self.rest("GET", "/") as _resp:
             pass
 
+        with self.rest("GET", "/") as resp:
+            # If resp.js is None (which it will be when there is a connection failure, a non-json responses etc),
+            # reading from resp.js will raise a TypeError (instead of an AssertionError), so lets avoid that:
+            if resp.js:
+                assert resp.js["foo"] == 2
+            # or, as a mildly confusing oneliner:
+            assert not resp.js or resp.js["foo"] == 2
+
         # 404
-        with self.rest("GET", "http://example.com/", json={"foo": 1}) as _resp:
+        with self.rest("GET", "http://example.com/") as _resp:
             pass
 
         # connection closed
-        with self.rest("GET", "http://example.com:42/", json={"foo": 1}) as _resp:
+        with self.rest("POST", "http://example.com:42/", json={"foo": 1}) as _resp:
             pass
 
 
@@ -79,4 +108,4 @@ class MyOtherRestUser(RestUserThatLooksAtErrors):
 
 
 if __name__ == "__main__":
-    locust_plugins.run_single_user(MyUser)
+    run_single_user(MyUser)
