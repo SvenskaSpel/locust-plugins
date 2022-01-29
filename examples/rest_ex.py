@@ -3,15 +3,13 @@ RestUser is a convenience class for testing RESTful JSON endpoints.
 It extends FastHttpUser by adding the `rest`-method, a wrapper around self.client.request() that:
 * automatically passes catch_response=True
 * automatically sets content-type and accept headers to application/json (unless you have provided your own headers)
-* automatically checks that the response is valid json, parses it into a dict and saves it in a field called `js` in the response object
+* automatically checks that the response is valid json, parses it into a RestResponse and saves it in a field called `js` in the response object.
+    (RestResponse support safe navication so if your json was {"foo": 42}, resp.js["bar"]["baz"] returns None instead of throwing an exception)
 * catches any exceptions thrown in your with-block and fails the sample (this probably should have been the default behaviour in Locust)
-
-You can use it directly, or use your own intermediate class (RestUserThatLooksAtErrors in this example) to further customize its behaviour
-for your particular rest api (doing things like adding extra headers or always checking some property of the response)
 """
 
 from contextlib import contextmanager
-from locust import task
+from locust import task, run_single_user
 from locust.contrib.fasthttp import ResponseContextManager
 from locust.user.wait_time import constant
 import locust_plugins
@@ -34,10 +32,15 @@ class MyUser(RestUser):
             if resp.js["data"]["foo"] != 1:
                 resp.failure(f"Unexpected value of foo in response {resp.text}")
 
-        # will cause an exception, but RestUser catches it and simply marks the request as a failure
+        # RestResponse support safe navigation returning None if fields are missing (instead of throwing KeyError or
         with self.rest("POST", "/post", json={"foo": 1}) as resp:
-            if resp.js["a field that doesnt exist"]:
-                pass
+            if resp.js["field that doesnt exist"]["status"] != "success":
+                resp.failure(f"Bad or missing status in {resp.text}")
+
+        # RestUser catches any most exceptions, so any programming mistakes you make automatically marks the request as a failure
+        with self.rest("POST", "/post", json={"foo": 1}) as resp:
+            if True == True:  # this is just to make vscode think we progress after this, because we will...
+                raise Exception("oh no")
 
         # response isnt even json, but RestUser will already have been marked it as a failure, so we dont have to do it again
         with self.rest("GET", "/", json={"foo": 1}) as _resp:
