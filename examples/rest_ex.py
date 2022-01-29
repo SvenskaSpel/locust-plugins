@@ -59,8 +59,7 @@ class MyUser(RestUser):
         # rest() catches most exceptions, so any programming mistakes you make automatically marks the request as a failure
         # and stores the callstack in the failure message
         with self.rest("POST", "/post", json={"foo": 1}) as resp:
-            if True == True:  # this is just to make vscode think we progress after this, because we will...
-                raise Exception("oh no")
+            1 / 0  # oh no!
 
         # response isnt even json, but RestUser will already have been marked it as a failure, so we dont have to do it again
         with self.rest("GET", "/") as _resp:
