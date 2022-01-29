@@ -30,6 +30,7 @@ class RestUser(FastHttpUser):
     def rest(self, method, url, **kwargs) -> Generator[RestResponseContextManager, None, None]:
         headers = kwargs.pop("headers", {"Content-Type": "application/json", "Accept": "application/json"})
         with self.client.request(method, url, catch_response=True, headers=headers, **kwargs) as resp:
+            resp: RestResponseContextManager
             resp.js = None
             if resp.text is None:
                 # round the response time to nearest second to improve error grouping
