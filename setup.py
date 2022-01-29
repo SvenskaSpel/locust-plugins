@@ -51,7 +51,7 @@ setup(
         "lxml",
         "opencensus-ext-azure",
         "paho-mqtt>=1.5.0",
-        "autoviv",
+        "python-autoviv",
     ],
     scripts=["bin/locust-compose"],
 )
