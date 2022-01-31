@@ -440,6 +440,17 @@ class RunOnFail:
             self.function(exception, **kwargs)
 
 
+class RunOnUserError:
+    def __init__(self, env: locust.env.Environment, function: Callable):
+        # execute the provided function on unhandled exception in a task
+        self.function = function
+        env.events.user_error.add_listener(self.user_error)
+
+    def user_error(self, user_instance, exception, tb, **kwargs):
+        if exception:
+            self.function(user_instance, exception, tb, **kwargs)
+
+
 def is_worker():
     return "--worker" in sys.argv
 
