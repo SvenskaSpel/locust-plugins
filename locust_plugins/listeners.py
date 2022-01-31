@@ -22,7 +22,7 @@ import greenlet
 from dateutil import parser
 import subprocess
 import locust.env
-from typing import List
+from typing import Callable, List
 
 # pylint: disable=trailing-whitespace # pylint is confused by multiline strings used for SQL
 
@@ -427,6 +427,17 @@ class QuitOnFail:
         if exception and (name == self.name or not self.name):
             gevent.sleep(0.2)  # wait for other listeners output to flush / write to db
             self.env.runner.quit()
+
+
+class RunOnFail:
+    def __init__(self, env: locust.env.Environment, function: Callable):
+        # execute the provided function on failure
+        self.function = function
+        env.events.request.add_listener(self.request)
+
+    def request(self, exception, **kwargs):
+        if exception:
+            self.function(exception, **kwargs)
 
 
 def is_worker():
