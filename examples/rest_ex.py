@@ -13,6 +13,7 @@ from locust import task, run_single_user
 from locust.contrib.fasthttp import ResponseContextManager
 from locust.user.wait_time import constant
 from locust_plugins.users import RestUser
+import sys
 
 
 class MyUser(RestUser):
@@ -57,11 +58,11 @@ class MyUser(RestUser):
             assert resp.js["foo"] == 2, "my custom error message with response text,"
 
         # this only works in python 3.8 and up, so it is commented out:
-
-        # with self.rest("", "/post", json={"foo": 1}) as resp:
-        #     assign an assert in one line
-        #     assert (foo := resp.js["foo"])
-        #     print(f"the number {foo} is awesome")
+        if sys.version_info >= (3, 8):
+            with self.rest("", "/post", json={"foo": 1}) as resp:
+                # assign and assert in one line
+                assert (foo := resp.js["foo"])
+                print(f"the number {foo} is awesome")
 
         # rest() catches most exceptions, so any programming mistakes you make automatically marks the request as a failure
         # and stores the callstack in the failure message
