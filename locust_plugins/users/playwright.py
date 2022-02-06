@@ -14,6 +14,8 @@ import types
 import time
 import os
 import contextvars
+import re
+from locust.exception import CatchResponseError
 
 loop: asyncio.AbstractEventLoop = None
 
@@ -22,7 +24,6 @@ class PlaywrightUser(User):
     abstract = True
     headless = None
     script = None
-    user_contextvar = contextvars.ContextVar("user")
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -71,7 +72,7 @@ class PlaywrightUser(User):
                 exception=None,
             )
         except Exception as e:
-            print(e)
+            message = re.sub("=======*", "", e.message).replace("\n", "").replace(" logs ", " ")
             self.environment.events.request.fire(
                 request_type="TASK",
                 name=self.__class__.__name__,
@@ -79,7 +80,7 @@ class PlaywrightUser(User):
                 response_time=(time.time() - scenario_start_time) * 1000,
                 response_length=0,
                 context={},
-                exception=e,
+                exception=CatchResponseError(message),
             )
 
     @locust.task
