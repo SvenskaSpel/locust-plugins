@@ -13,7 +13,8 @@ from locust import task, run_single_user
 from locust.contrib.fasthttp import ResponseContextManager
 from locust.user.wait_time import constant
 from locust_plugins.users import RestUser
-import sys
+
+# import sys
 
 
 class MyUser(RestUser):
