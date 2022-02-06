@@ -12,26 +12,10 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}/examples",
-            "justMyCode": false
-        },
-        {
-            "name": "single locust",
-            "type": "python",
-            "request": "launch",
-            "gevent": true,
-            "program": "${workspaceFolder}/examples/rps.py",
-            "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}/examples",
-            "justMyCode": false
-        },
-        {
-            "name": "single webdriver locust",
-            "type": "python",
-            "request": "launch",
-            "gevent": true,
-            "program": "${workspaceFolder}/examples/webdriver.py",
-            "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}/examples"
+            "justMyCode": false,
+            "env": {
+                "LOCUST_PLAYWRIGHT": "1"
+            }
         }
     ]
 }
