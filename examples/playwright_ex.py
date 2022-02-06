@@ -35,11 +35,5 @@ class Advanced(PlaywrightUser):
         await context.close()
 
 
-@events.quitting.add_listener
-def on_locust_quit(environment, **_kwargs):
-    # Playwright outputs control codes that alter the terminal, so we need to reset it
-    os.system("reset")
-
-
 if __name__ == "__main__":
     run_single_user(Advanced)
