@@ -1,29 +1,77 @@
-from playwright.sync_api import sync_playwright, BrowserContext, Page
-from locust import User
-
-playwright = sync_playwright().start()
-browser = playwright.chromium.launch(headless=False)
-
-
-class PlaywrightClient:
-    def __init__(self, user: User):
-        self.user = user
-        self.context = browser.new_context()
+import asyncio
+from playwright.async_api import async_playwright
+from locust import User, task
+import gevent
+import sys
+import ast
+import types
+import time
 
 
 class PlaywrightUser(User):
     abstract = True
     headless = False  # overwrite this as needed
+    script = None
+    loop = asyncio.new_event_loop()
+    loop_run_forever_greenlet = None
 
     def __init__(self, parent):
         super().__init__(parent)
-        self.context: BrowserContext = None
-        self.page: Page = None
 
+        if self.script:
+            with open(self.script, encoding="UTF-8") as f:
+                p = ast.parse(f.read())
+
+            for node in p.body[:]:
+                if isinstance(node, ast.Expr) and node.value.func.attr == "run":
+                    p.body.remove(node)  # remove "asyncio.run(main())"
+                elif isinstance(node, ast.AsyncFunctionDef) and node.name == "run":
+                    # node.body.pop()  # remove "browser = await playwright.chromium.launch(headless=False)"
+                    if self.headless:
+                        node.body[0].value.value.keywords[0].value.value = True  # overwrite headless parameter
+
+            module = types.ModuleType("mod")
+            code = compile(p, self.script, "exec")
+            sys.modules["mod"] = module
+            exec(code, module.__dict__)  # pylint: disable=exec-used
+
+            import mod  # type: ignore # pylint: disable-all
+
+            PlaywrightUser.pwrun = mod.run  # cant name it "run", because that collides with User.run
+
+    # these things should be moved to test_start/stop
     def on_start(self):
-        self.context = browser.new_context()
-        self.page = self.context.new_page()
+        if not PlaywrightUser.loop_run_forever_greenlet:
+            PlaywrightUser.loop_run_forever_greenlet = True  # just in case another on_start is called semi-concurrently
+            PlaywrightUser.loop_run_forever_greenlet = gevent.spawn(PlaywrightUser.loop.run_forever)
 
     def on_stop(self):
-        self.page.close()
-        self.context.close()
+        if PlaywrightUser.loop_run_forever_greenlet:
+            PlaywrightUser.loop_run_forever_greenlet = None
+            PlaywrightUser.loop.stop()
+
+    async def f(self):
+        scenario_start_time = time.time()
+        try:
+            playwright = await async_playwright().start()
+            await self.__class__.pwrun(playwright)
+            self.environment.events.request.fire(
+                request_type="flow",
+                name="triss",
+                start_time=scenario_start_time,
+                response_time=(time.time() - scenario_start_time) * 1000,
+                response_length=0,
+                context={},
+                exception=None,
+            )
+        except Exception as e:
+            print(e)
+            self.environment.events.request.fire(
+                request_type="flow",
+                name="triss",
+                start_time=scenario_start_time,
+                response_time=(time.time() - scenario_start_time) * 1000,
+                response_length=0,
+                context={},
+                exception=e,
+            )
