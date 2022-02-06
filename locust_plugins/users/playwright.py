@@ -111,4 +111,5 @@ def on_stop(**_kwargs):
 @events.quitting.add_listener
 def on_locust_quit(environment, **_kwargs):
     # Playwright outputs control codes that alter the terminal, so we need to reset it
-    os.system("reset")
+    # suppress any error output in case it is not a real terminal
+    os.system("reset 2>/dev/null")
