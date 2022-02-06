@@ -10,14 +10,6 @@ class DemoUser(PlaywrightUser):
     script = "playwright-recording.py"
 
 
-@events.init.add_listener
-def on_locust_init(environment, **_kwargs):
-    # log test run and individual requests to Timescale for visualization in Grafana
-    # listeners.Timescale(testplan="demo", env=environment)
-    # interrupt the running task if a request fails
-    listeners.RescheduleTaskOnFail(environment)
-
-
 @events.quitting.add_listener
 def on_locust_quit(environment, **_kwargs):
     # Playwright outputs control codes that alter the terminal, so we need to reset it

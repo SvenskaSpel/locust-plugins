@@ -1,19 +1,20 @@
 import asyncio
 from playwright.async_api import async_playwright
-from locust import User, task
+from locust import User, task, events
 import gevent
 import sys
 import ast
 import types
 import time
+import os
+
+loop: asyncio.AbstractEventLoop = None
 
 
 class PlaywrightUser(User):
     abstract = True
     headless = None
     script = None
-    loop = asyncio.new_event_loop()
-    loop_run_forever_greenlet = None
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -42,25 +43,14 @@ class PlaywrightUser(User):
 
             PlaywrightUser.pwrun = mod.run  # cant name it "run", because that collides with User.run
 
-    # these things should be moved to test_start/stop
-    def on_start(self):
-        if not PlaywrightUser.loop_run_forever_greenlet:
-            PlaywrightUser.loop_run_forever_greenlet = True  # just in case another on_start is called semi-concurrently
-            PlaywrightUser.loop_run_forever_greenlet = gevent.spawn(PlaywrightUser.loop.run_forever)
-
-    def on_stop(self):
-        if PlaywrightUser.loop_run_forever_greenlet:
-            PlaywrightUser.loop_run_forever_greenlet = None
-            PlaywrightUser.loop.stop()
-
     async def f(self):
         scenario_start_time = time.time()
         try:
             playwright = await async_playwright().start()
             await self.__class__.pwrun(playwright)
             self.environment.events.request.fire(
-                request_type="flow",
-                name="triss",
+                request_type="playwright",
+                name=self.script,
                 start_time=scenario_start_time,
                 response_time=(time.time() - scenario_start_time) * 1000,
                 response_length=0,
@@ -70,8 +60,8 @@ class PlaywrightUser(User):
         except Exception as e:
             print(e)
             self.environment.events.request.fire(
-                request_type="flow",
-                name="triss",
+                request_type="playwright",
+                name=self.script,
                 start_time=scenario_start_time,
                 response_time=(time.time() - scenario_start_time) * 1000,
                 response_length=0,
@@ -81,8 +71,27 @@ class PlaywrightUser(User):
 
     @task
     def t(self):
-        future = asyncio.run_coroutine_threadsafe(self.f(), PlaywrightUser.loop)
+        future = asyncio.run_coroutine_threadsafe(self.f(), loop)
         while not future.done():
             gevent.sleep(1)
         if e := future.exception():
             raise e
+
+
+@events.test_start.add_listener
+def on_start(**_kwargs):
+    global loop
+    loop = asyncio.new_event_loop()
+    gevent.spawn(loop.run_forever)
+
+
+@events.test_stop.add_listener
+def on_stop(**_kwargs):
+    loop.stop()
+    time.sleep(5)
+
+
+@events.quitting.add_listener
+def on_locust_quit(environment, **_kwargs):
+    # Playwright outputs control codes that alter the terminal, so we need to reset it
+    os.system("reset")
