@@ -11,10 +11,15 @@ class ScriptedBased(PlaywrightUser):
 
 
 class Advanced(PlaywrightUser):
+    browser = None
     # PlaywrightUser doesnt currently support multiple tasks, they all just run t
     async def task(self, playwright: Playwright):
-        browser = await playwright.chromium.launch(headless=False, handle_sigint=False)
-        context = await browser.new_context()
+        if not self.browser:
+            self.browser = await playwright.chromium.launch(
+                headless=(__name__ != "__main__"),
+                handle_sigint=False,
+            )
+        context = await self.browser.new_context()
         page = await context.new_page()
         start_time = time.time()
         start_perf_counter = time.perf_counter()
@@ -29,7 +34,6 @@ class Advanced(PlaywrightUser):
             exception=None,
         )
         await context.close()
-        await browser.close()
 
 
 @events.quitting.add_listener
@@ -39,4 +43,4 @@ def on_locust_quit(environment, **_kwargs):
 
 
 if __name__ == "__main__":
-    run_single_user(ScriptedBased)
+    run_single_user(Advanced)
