@@ -1,8 +1,9 @@
-from locust_plugins.users.playwright import PlaywrightUser
-from locust import events, run_single_user
-import os
-from playwright.async_api import Playwright
 import time
+import os
+
+from locust import events, run_single_user
+from locust_plugins.users.playwright import PlaywrightUser
+from playwright.async_api import Playwright
 
 
 class ScriptedBased(PlaywrightUser):
@@ -12,7 +13,8 @@ class ScriptedBased(PlaywrightUser):
 
 class Advanced(PlaywrightUser):
     browser = None
-    # PlaywrightUser doesnt currently support multiple tasks, they all just run t
+    # PlaywrightUser doesnt currently support multiple tasks, they all just run this method
+    # do not use the @task on another method, it will not work!
     async def task(self, playwright: Playwright):
         if not self.browser:
             self.browser = await playwright.chromium.launch(
@@ -25,8 +27,8 @@ class Advanced(PlaywrightUser):
         start_perf_counter = time.perf_counter()
         await page.goto("https://www.google.com/")
         self.environment.events.request.fire(
-            request_type="request",
-            name="google_loaded",
+            request_type="GOTO",
+            name="google",
             start_time=start_time,
             response_time=(time.perf_counter() - start_perf_counter) * 1000,
             response_length=0,
