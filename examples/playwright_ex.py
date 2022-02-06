@@ -1,3 +1,6 @@
+# Demonstrates the two ways to run Playwright
+# Dont forget to first install the browsers by running: playwright install
+
 import time
 from locust import run_single_user
 from locust_plugins.users.playwright import PlaywrightUser
