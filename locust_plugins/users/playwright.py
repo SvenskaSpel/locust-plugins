@@ -10,7 +10,7 @@ import time
 
 class PlaywrightUser(User):
     abstract = True
-    headless = False  # overwrite this as needed
+    headless = None
     script = None
     loop = asyncio.new_event_loop()
     loop_run_forever_greenlet = None
@@ -26,8 +26,11 @@ class PlaywrightUser(User):
                 if isinstance(node, ast.Expr) and node.value.func.attr == "run":
                     p.body.remove(node)  # remove "asyncio.run(main())"
                 elif isinstance(node, ast.AsyncFunctionDef) and node.name == "run":
+                    # future optimization: reuse browser instances
                     # node.body.pop()  # remove "browser = await playwright.chromium.launch(headless=False)"
-                    if self.headless:
+
+                    # default is for full Locust runs to be headless, but for debug runs to show the browser
+                    if self.headless or self.headless is None and self.environment.runner is not None:
                         node.body[0].value.value.keywords[0].value.value = True  # overwrite headless parameter
 
             module = types.ModuleType("mod")
@@ -75,3 +78,11 @@ class PlaywrightUser(User):
                 context={},
                 exception=e,
             )
+
+    @task
+    def t(self):
+        future = asyncio.run_coroutine_threadsafe(self.f(), PlaywrightUser.loop)
+        while not future.done():
+            gevent.sleep(1)
+        if e := future.exception():
+            raise e

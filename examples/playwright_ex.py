@@ -8,15 +8,6 @@ import os
 
 class DemoUser(PlaywrightUser):
     script = "playwright-recording.py"
-    headless = __name__ != "__main__"
-
-    @task
-    def t(self):
-        future = asyncio.run_coroutine_threadsafe(self.f(), PlaywrightUser.loop)
-        while not future.done():
-            gevent.sleep(1)
-        if e := future.exception():
-            raise e
 
 
 @events.init.add_listener
