@@ -1,7 +1,5 @@
 import time
-import os
-
-from locust import events, run_single_user
+from locust import run_single_user
 from locust_plugins.users.playwright import PlaywrightUser
 from playwright.async_api import Playwright
 
