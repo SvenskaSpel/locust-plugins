@@ -1,12 +1,14 @@
 import asyncio
 from playwright.async_api import async_playwright
-from locust import User, task, events
+from locust import User, events
+import locust
 import gevent
 import sys
 import ast
 import types
 import time
 import os
+import contextvars
 
 loop: asyncio.AbstractEventLoop = None
 
@@ -15,6 +17,7 @@ class PlaywrightUser(User):
     abstract = True
     headless = None
     script = None
+    user_contextvar = contextvars.ContextVar("user")
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -43,14 +46,20 @@ class PlaywrightUser(User):
 
             PlaywrightUser.pwrun = mod.run  # cant name it "run", because that collides with User.run
 
+    async def task(self, playwright):
+        raise Exception("override this or specify a script!")
+
     async def f(self):
-        scenario_start_time = time.time()
         try:
             playwright = await async_playwright().start()
-            await self.__class__.pwrun(playwright)
+            scenario_start_time = time.time()
+            if self.script:
+                await self.__class__.pwrun(playwright)
+            else:
+                await self.task(playwright)
             self.environment.events.request.fire(
                 request_type="playwright",
-                name=self.script,
+                name=self.__class__.__name__,
                 start_time=scenario_start_time,
                 response_time=(time.time() - scenario_start_time) * 1000,
                 response_length=0,
@@ -61,7 +70,7 @@ class PlaywrightUser(User):
             print(e)
             self.environment.events.request.fire(
                 request_type="playwright",
-                name=self.script,
+                name=self.__class__.__name__,
                 start_time=scenario_start_time,
                 response_time=(time.time() - scenario_start_time) * 1000,
                 response_length=0,
@@ -69,8 +78,8 @@ class PlaywrightUser(User):
                 exception=e,
             )
 
-    @task
-    def t(self):
+    @locust.task
+    def run_f(self):
         future = asyncio.run_coroutine_threadsafe(self.f(), loop)
         while not future.done():
             gevent.sleep(1)
