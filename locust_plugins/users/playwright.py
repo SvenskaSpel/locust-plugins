@@ -87,7 +87,8 @@ class PlaywrightUser(User):
         future = asyncio.run_coroutine_threadsafe(self.f(), loop)
         while not future.done():
             gevent.sleep(1)
-        if e := future.exception():
+        e = future.exception()
+        if e:
             raise e
 
 
