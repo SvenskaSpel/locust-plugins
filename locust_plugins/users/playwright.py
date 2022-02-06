@@ -1,5 +1,10 @@
+try:
+    from playwright.async_api import async_playwright
+except NotImplementedError as e:
+    raise Exception(
+        "Could not import playwright, probably because gevent monkey patching was done before trio init. Set env var LOCUST_PLAYWRIGHT=1"
+    ) from e
 import asyncio
-from playwright.async_api import async_playwright
 from locust import User, events
 import locust
 import gevent
@@ -31,11 +36,10 @@ class PlaywrightUser(User):
                     p.body.remove(node)  # remove "asyncio.run(main())"
                 elif isinstance(node, ast.AsyncFunctionDef) and node.name == "run":
                     # future optimization: reuse browser instances
-                    # node.body.pop()  # remove "browser = await playwright.chromium.launch(headless=False)"
-
+                    launch_line = node.body[0]  # browser = await playwright.chromium.launch(headless=False)
                     # default is for full Locust runs to be headless, but for debug runs to show the browser
                     if self.headless or self.headless is None and self.environment.runner is not None:
-                        node.body[0].value.value.keywords[0].value.value = True  # overwrite headless parameter
+                        launch_line.value.value.keywords[0].value.value = True  # overwrite headless parameter
 
             module = types.ModuleType("mod")
             code = compile(p, self.script, "exec")
@@ -46,7 +50,7 @@ class PlaywrightUser(User):
 
             PlaywrightUser.pwrun = mod.run  # cant name it "run", because that collides with User.run
 
-    async def task(self, playwright):
+    async def task(self, playwright):  # pylint: disable-all
         raise Exception("override this or specify a script!")
 
     async def f(self):
@@ -58,7 +62,7 @@ class PlaywrightUser(User):
             else:
                 await self.task(playwright)
             self.environment.events.request.fire(
-                request_type="playwright",
+                request_type="TASK",
                 name=self.__class__.__name__,
                 start_time=scenario_start_time,
                 response_time=(time.time() - scenario_start_time) * 1000,
@@ -69,7 +73,7 @@ class PlaywrightUser(User):
         except Exception as e:
             print(e)
             self.environment.events.request.fire(
-                request_type="playwright",
+                request_type="TASK",
                 name=self.__class__.__name__,
                 start_time=scenario_start_time,
                 response_time=(time.time() - scenario_start_time) * 1000,
@@ -91,7 +95,10 @@ class PlaywrightUser(User):
 def on_start(**_kwargs):
     global loop
     loop = asyncio.new_event_loop()
-    gevent.spawn(loop.run_forever)
+    try:
+        gevent.spawn(loop.run_forever)
+    except Exception as e:
+        print(f"run_forever threw an exception :( {e}")
 
 
 @events.test_stop.add_listener

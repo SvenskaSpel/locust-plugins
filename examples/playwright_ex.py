@@ -17,10 +17,7 @@ class Advanced(PlaywrightUser):
     # do not use the @task on another method, it will not work!
     async def task(self, playwright: Playwright):
         if not self.browser:
-            self.browser = await playwright.chromium.launch(
-                headless=(__name__ != "__main__"),
-                handle_sigint=False,
-            )
+            self.browser = await playwright.chromium.launch(headless=(__name__ != "__main__"))
         context = await self.browser.new_context()
         page = await context.new_page()
         start_time = time.time()
