@@ -23,16 +23,21 @@ import playwright as pw
 loop: asyncio.AbstractEventLoop = None
 
 
-def time_task(func):
+def pwtask(func):
     async def wrapFunc(user):
+        if user.script:
+            name = user.script
+        else:
+            name = user.__class__.__name__ + "." + func.__name__
         try:
-            test_start_time = time.time()
+            task_start_time = time.time()
+            start_perf_counter = time.perf_counter()
             await func(user)
             user.environment.events.request.fire(
                 request_type="TASK",
-                name=user.__class__.__name__,
-                start_time=test_start_time,
-                response_time=(time.time() - test_start_time) * 1000,
+                name=name,
+                start_time=task_start_time,
+                response_time=(time.perf_counter() - start_perf_counter) * 1000,
                 response_length=0,
                 context={},
                 exception=None,
@@ -41,14 +46,15 @@ def time_task(func):
             message = re.sub("=======*", "", e.message).replace("\n", "").replace(" logs ", " ")
             user.environment.events.request.fire(
                 request_type="TASK",
-                name=user.__class__.__name__,
-                start_time=test_start_time,
-                response_time=(time.time() - test_start_time) * 1000,
+                name=name,
+                start_time=task_start_time,
+                response_time=(time.perf_counter() - start_perf_counter) * 1000,
                 response_length=0,
                 context={},
                 exception=CatchResponseError(message),
             )
 
+    wrapFunc.locust_task_weight = 1
     return wrapFunc
 
 
@@ -91,6 +97,7 @@ class PlaywrightUser(User):
     headless = None
     browser = None
     playwright = None
+    script = None
 
 
 class PlaywrightScriptUser(PlaywrightUser):
@@ -121,8 +128,7 @@ class PlaywrightScriptUser(PlaywrightUser):
 
         PlaywrightUser.pwrun = mod.run  # cant name it "run", because that collides with User.run
 
-    @task
-    @time_task
+    @pwtask
     async def scriptrun(self):  # pylint: disable-all
         await PlaywrightUser.pwrun(self.playwright)
 

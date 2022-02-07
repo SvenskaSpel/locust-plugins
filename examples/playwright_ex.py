@@ -2,8 +2,8 @@
 # Dont forget to first install the browsers by running: playwright install
 
 import time
-from locust import run_single_user, task
-from locust_plugins.users.playwright import PlaywrightUser, PlaywrightScriptUser, time_task
+from locust import run_single_user
+from locust_plugins.users.playwright import PlaywrightUser, PlaywrightScriptUser, pwtask
 
 
 class ScriptedBased(PlaywrightScriptUser):
@@ -12,9 +12,8 @@ class ScriptedBased(PlaywrightScriptUser):
 
 
 class Advanced(PlaywrightUser):
-    @task
-    @time_task
-    async def t(self):
+    @pwtask
+    async def google(self):
         context = await self.browser.new_context()
         page = await context.new_page()
         start_time = time.time()
