@@ -5,19 +5,15 @@ except NotImplementedError as e:
         "Could not import playwright, probably because gevent monkey patching was done before trio init. Set env var LOCUST_PLAYWRIGHT=1"
     ) from e
 import asyncio
-from locust import TaskSet, User, events, task
-from locust.user.task import DefaultTaskSet
-import locust
+from locust import User, events, task
 import gevent
 import sys
 import ast
 import types
 import time
 import os
-import contextvars
 import re
 from locust.exception import CatchResponseError
-from inspect import iscoroutinefunction
 import playwright as pw
 
 loop: asyncio.AbstractEventLoop = None
@@ -28,8 +24,8 @@ def sync(async_func):
     Make a synchronous function from an async
     """
 
-    def wrapFunc(self):
-        future = asyncio.run_coroutine_threadsafe(async_func, loop)
+    def wrapFunc(self: User):
+        future = asyncio.run_coroutine_threadsafe(async_func(self), loop)
         while not future.done():
             gevent.sleep(0.1)
         e = future.exception()
@@ -46,16 +42,17 @@ def pw(func):
     3. Fires a request event after finishing.
     """
 
+    @sync
     async def pwwrapFunc(user: PlaywrightUser):
         if user.playwright is None:
             user.playwright = await async_playwright().start()
-            if task.__name__ != "scriptrun":
-                user.browser = await user.playwright.chromium.launch(
-                    headless=user.headless or user.headless is None and user.environment.runner is not None
-                )
         if isinstance(user, PlaywrightScriptUser):
             name = user.script
         else:
+            if user.browser is None:
+                user.browser = await user.playwright.chromium.launch(
+                    headless=user.headless or user.headless is None and user.environment.runner is not None
+                )
             name = user.__class__.__name__ + "." + func.__name__
         try:
             task_start_time = time.time()
@@ -82,7 +79,7 @@ def pw(func):
                 exception=CatchResponseError(message),
             )
 
-    return sync(pwwrapFunc)
+    return pwwrapFunc
 
 
 async def set_playwright(self: User, launch_browser: bool):
