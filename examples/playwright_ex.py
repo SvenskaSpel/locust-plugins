@@ -2,23 +2,19 @@
 # Dont forget to first install the browsers by running: playwright install
 
 import time
-from locust import run_single_user
-from locust_plugins.users.playwright import PlaywrightUser
-from playwright.async_api import Playwright
+from locust import run_single_user, task
+from locust_plugins.users.playwright import PlaywrightUser, PlaywrightScriptUser, time_task
 
 
-class ScriptedBased(PlaywrightUser):
+class ScriptedBased(PlaywrightScriptUser):
     # run a script that you recorded in playwright, exported as Python Async
     script = "playwright-recording.py"
 
 
 class Advanced(PlaywrightUser):
-    browser = None
-    # PlaywrightUser doesnt currently support multiple tasks, they all just run this method
-    # do not use the @task on another method, it will not work!
-    async def task(self, playwright: Playwright):
-        if not self.browser:
-            self.browser = await playwright.chromium.launch(headless=(__name__ != "__main__"))
+    @task
+    @time_task
+    async def t(self):
         context = await self.browser.new_context()
         page = await context.new_page()
         start_time = time.time()
