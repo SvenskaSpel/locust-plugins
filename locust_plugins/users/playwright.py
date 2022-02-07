@@ -23,9 +23,37 @@ import playwright as pw
 loop: asyncio.AbstractEventLoop = None
 
 
-def pwtask(func):
-    async def wrapFunc(user):
-        if user.script:
+def sync(async_func):
+    """
+    Make a synchronous function from an async
+    """
+
+    def wrapFunc(self):
+        future = asyncio.run_coroutine_threadsafe(async_func, loop)
+        while not future.done():
+            gevent.sleep(0.1)
+        e = future.exception()
+        if e:
+            raise e
+
+    return wrapFunc
+
+
+def pw(func):
+    """
+    1. Converts the decorated function from async to regular using sync()
+    2. Sets up user.playwright and optionally user.browser
+    3. Fires a request event after finishing.
+    """
+
+    async def pwwrapFunc(user: PlaywrightUser):
+        if user.playwright is None:
+            user.playwright = await async_playwright().start()
+            if task.__name__ != "scriptrun":
+                user.browser = await user.playwright.chromium.launch(
+                    headless=user.headless or user.headless is None and user.environment.runner is not None
+                )
+        if isinstance(user, PlaywrightScriptUser):
             name = user.script
         else:
             name = user.__class__.__name__ + "." + func.__name__
@@ -54,17 +82,7 @@ def pwtask(func):
                 exception=CatchResponseError(message),
             )
 
-    wrapFunc.locust_task_weight = 1
-    return wrapFunc
-
-
-def run_coro(coro, sleep=1):
-    future = asyncio.run_coroutine_threadsafe(coro, loop)
-    while not future.done():
-        gevent.sleep(sleep)
-    e = future.exception()
-    if e:
-        raise e
+    return sync(pwwrapFunc)
 
 
 async def set_playwright(self: User, launch_browser: bool):
@@ -75,33 +93,16 @@ async def set_playwright(self: User, launch_browser: bool):
         )
 
 
-def execute_task(self, task):
-    user = self.user
-    if hasattr(task, "tasks") and issubclass(task, TaskSet):
-        # task is  (nested) TaskSet class
-        task(user).run()
-    else:  # task is a function
-        if iscoroutinefunction(task):
-            if user.playwright is None:
-                run_coro(set_playwright(user, task.__name__ != "scriptrun"))
-            run_coro(task(user))
-        else:
-            task(user)
-
-
-DefaultTaskSet.execute_task = execute_task
-
-
 class PlaywrightUser(User):
     abstract = True
     headless = None
     browser = None
     playwright = None
-    script = None
 
 
 class PlaywrightScriptUser(PlaywrightUser):
     abstract = True
+    script = None
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -128,7 +129,8 @@ class PlaywrightScriptUser(PlaywrightUser):
 
         PlaywrightUser.pwrun = mod.run  # cant name it "run", because that collides with User.run
 
-    @pwtask
+    @task
+    @pw
     async def scriptrun(self):  # pylint: disable-all
         await PlaywrightUser.pwrun(self.playwright)
 
