@@ -1,5 +1,5 @@
 try:
-    from playwright.async_api import async_playwright
+    from playwright.async_api import async_playwright, Playwright, Browser, Page, BrowserContext
 except NotImplementedError as e:
     raise Exception(
         "Could not import playwright, probably because gevent monkey patching was done before trio init. Set env var LOCUST_PLAYWRIGHT=1"
@@ -51,8 +51,12 @@ def pw(func):
         else:
             if user.browser is None:
                 user.browser = await user.playwright.chromium.launch(
-                    headless=user.headless or user.headless is None and user.environment.runner is not None
+                    headless=user.headless or user.headless is None and user.environment.runner is not None,
+                    # channel="chrome",
+                    ignore_default_args=["--disable-dev-shm-usage"],
                 )
+            user.context = await user.browser.new_context()
+            user.page = await user.context.new_page()
             name = user.__class__.__name__ + "." + func.__name__
         try:
             task_start_time = time.time()
@@ -68,7 +72,13 @@ def pw(func):
                 exception=None,
             )
         except Exception as e:
-            message = re.sub("=======*", "", e.message).replace("\n", "").replace(" logs ", " ")
+            try:
+                error = CatchResponseError(re.sub("=======*", "", e.message).replace("\n", "").replace(" logs ", " "))
+            except:
+                error = e  # never mind
+            if not user.error_screenshot_made:
+                user.error_screenshot_made = True  # dont spam screenshots...
+                await user.page.screenshot(path="screenshot_" + time.strftime("%H%M%S") + ".png")
             user.environment.events.request.fire(
                 request_type="TASK",
                 name=name,
@@ -76,25 +86,24 @@ def pw(func):
                 response_time=(time.perf_counter() - start_perf_counter) * 1000,
                 response_length=0,
                 context={},
-                exception=CatchResponseError(message),
+                exception=error,
             )
+        finally:
+            if not isinstance(user, PlaywrightScriptUser):
+                await user.page.close()
+                await user.context.close()
 
     return pwwrapFunc
-
-
-async def set_playwright(self: User, launch_browser: bool):
-    self.playwright = await async_playwright().start()
-    if launch_browser:
-        self.browser = await self.playwright.chromium.launch(
-            headless=self.headless or self.headless is None and self.environment.runner is not None
-        )
 
 
 class PlaywrightUser(User):
     abstract = True
     headless = None
-    browser = None
-    playwright = None
+    playwright: Playwright = None
+    browser: Browser = None
+    context: BrowserContext = None
+    page: Page = None
+    error_screenshot_made = False
 
 
 class PlaywrightScriptUser(PlaywrightUser):
