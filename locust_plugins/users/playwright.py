@@ -4,6 +4,8 @@ except NotImplementedError as e:
     raise Exception(
         "Could not import playwright, probably because gevent monkey patching was done before trio init. Set env var LOCUST_PLAYWRIGHT=1"
     ) from e
+from contextlib import asynccontextmanager
+import os
 import asyncio
 from locust import User, events, task
 import gevent
@@ -15,6 +17,7 @@ import os
 import re
 from locust.exception import CatchResponseError
 import playwright as pw
+import re
 
 loop: asyncio.AbstractEventLoop = None
 
@@ -35,6 +38,40 @@ def sync(async_func):
     return wrapFunc
 
 
+@asynccontextmanager
+async def event(user: "PlaywrightUser", name="unnamed", request_type="event"):
+    task_start_time = time.time()
+    start_perf_counter = time.perf_counter()
+    try:
+        yield
+        user.environment.events.request.fire(
+            request_type=request_type,
+            name=name,
+            start_time=task_start_time,
+            response_time=(time.perf_counter() - start_perf_counter) * 1000,
+            response_length=0,
+            context={**user.context()},
+            exception=None,
+        )
+    except Exception as e:
+        try:
+            error = CatchResponseError(re.sub("=======*", "", e.message).replace("\n", "").replace(" logs ", " "))
+        except:
+            error = e  # never mind
+        if not user.error_screenshot_made:
+            user.error_screenshot_made = True  # dont spam screenshots...
+            await user.page.screenshot(path="screenshot_" + time.strftime("%H%M%S") + ".png")
+        user.environment.events.request.fire(
+            request_type="TASK",
+            name=name,
+            start_time=task_start_time,
+            response_time=(time.perf_counter() - start_perf_counter) * 1000,
+            response_length=0,
+            context={**user.context()},
+            exception=error,
+        )
+
+
 def pw(func):
     """
     1. Converts the decorated function from async to regular using sync()
@@ -53,10 +90,20 @@ def pw(func):
                 user.browser = await user.playwright.chromium.launch(
                     headless=user.headless or user.headless is None and user.environment.runner is not None,
                     # channel="chrome",
-                    ignore_default_args=["--disable-dev-shm-usage"],
+                    args=[
+                        "--disable-gpu",
+                        # "--no-sandbox",
+                        # "--disable-setuid-sandbox",
+                        # "--disable-accelerated-2d-canvas",
+                        # "--no-first-run",
+                        # "--no-zygote",
+                        # "--single-process",
+                    ],
+                    ignore_default_args=["--disable-dev-shm-usage"],  # we have plenty of space on /dev/shm
                 )
-            user.context = await user.browser.new_context()
-            user.page = await user.context.new_page()
+            # I wish we could call this just "context" but it would collide with User.context():
+            user.browser_context = await user.browser.new_context()
+            user.page = await user.browser_context.new_page()
             name = user.__class__.__name__ + "." + func.__name__
         try:
             task_start_time = time.time()
@@ -68,7 +115,7 @@ def pw(func):
                 start_time=task_start_time,
                 response_time=(time.perf_counter() - start_perf_counter) * 1000,
                 response_length=0,
-                context={},
+                context={**user.context()},
                 exception=None,
             )
         except Exception as e:
@@ -85,13 +132,13 @@ def pw(func):
                 start_time=task_start_time,
                 response_time=(time.perf_counter() - start_perf_counter) * 1000,
                 response_length=0,
-                context={},
+                context={**user.context()},
                 exception=error,
             )
         finally:
             if not isinstance(user, PlaywrightScriptUser):
                 await user.page.close()
-                await user.context.close()
+                await user.browser_context.close()
 
     return pwwrapFunc
 
@@ -101,7 +148,7 @@ class PlaywrightUser(User):
     headless = None
     playwright: Playwright = None
     browser: Browser = None
-    context: BrowserContext = None
+    browser_context: BrowserContext = None
     page: Page = None
     error_screenshot_made = False
 

@@ -3,7 +3,7 @@
 
 import time
 from locust import run_single_user, task
-from locust_plugins.users.playwright import PlaywrightUser, PlaywrightScriptUser, pw
+from locust_plugins.users.playwright import PlaywrightUser, PlaywrightScriptUser, pw, event
 
 
 class ScriptedBased(PlaywrightScriptUser):
@@ -15,21 +15,12 @@ class Advanced(PlaywrightUser):
     @task
     @pw
     async def google(self):
-        context = await self.browser.new_context()
-        page = await context.new_page()
-        start_time = time.time()
-        start_perf_counter = time.perf_counter()
-        await page.goto("https://www.google.com/")
-        self.environment.events.request.fire(
-            request_type="GOTO",
-            name="google",
-            start_time=start_time,
-            response_time=(time.perf_counter() - start_perf_counter) * 1000,
-            response_length=0,
-            context={},
-            exception=None,
-        )
-        await context.close()
+        async with event(self, "Load up google"):  # log this as an event
+            await self.page.goto("https://www.google.com/")  # load a page
+
+        async with event(self, "Approve terms and conditions"):
+            async with self.page.expect_navigation(wait_until="domcontentloaded"):
+                await self.page.click('button:has-text("Jag godkänner")')  # Click "I approve" in swedish...
 
 
 if __name__ == "__main__":
