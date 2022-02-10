@@ -36,7 +36,12 @@ This is useful to know if your requests are being sent unevenly (like in this ex
 
 # Setup
 
-In order to log Locust's requests and run data into Timescale you add `--timescale` to the command line. But first you need to set up Timescale & Grafana:
+In order to log Locust's requests and run data into Timescale you simply:
+
+* `import locust_plugins` in your locustfile (or any of locust_plugins underlying modules)
+* add `--timescale` to the command line. 
+
+But if you dont already have a Timescale database lying around (most people dont), you need to set it up first.
 
 ## docker-compose-based Timescale + Grafana
 
