@@ -36,16 +36,15 @@ This is useful to know if your requests are being sent unevenly (like in this ex
 
 # Setup
 
-In order to log Locust's requests and run data into Timescale you simply:
+In order to log Locust's requests and run data into a database you just:
 
+* Set up Timescale and Grafana (documented below)
 * `import locust_plugins` in your locustfile (or any of locust_plugins underlying modules)
-* add `--timescale` to the command line. 
-
-But if you dont already have a Timescale database lying around (most people dont), you need to set it up first.
+* Add `--timescale` to the command line (or set the `LOCUST_TIMESCALE` env var to `1`, or add it to your (.conf)[https://docs.locust.io/en/stable/configuration.html#configuration-file] files)
 
 ## docker-compose-based Timescale + Grafana
 
-Assuming you have docker installed you can just run `locust-compose up`. It will give you a Timescale & Grafana container. 
+Assuming you already have docker set up, all you need to do is run `locust-compose up`. That will give you a Timescale container (for receiving and storing data) and a Grafana container (for showing nice graphs based on said data). 
 
 ```
 ~ locust-compose up
@@ -80,9 +79,9 @@ KeyboardInterrupt
 
 If you hadn't already guessed it from the output, `locust-compose` is just a thin wrapper around `docker-compose`. When you are finished testing, just press CTRL-C or run `locust-compose down`
 
-Both timescale data and any grafana dashboard edits are persisted as docker volumes even if you shut it down. To remove the data volumes run `locust-compose down -v`.
+Both timescale data and any grafana dashboard edits are persisted as docker volumes even if you shut it down. If you do want to remove the data volumes, run `locust-compose down -v`.
 
-For security reasons, the ports for logging to Timescale and accessing Grafana only accessible on localhost. If you want them to be reachable from the outside (e.g. to run a distributed test with workers running on a different machine), copy the docker-compose.yml file and change it as needed.
+For security reasons, the ports for logging to Timescale and accessing Grafana only accessible on localhost. If you want them to be reachable from the outside (e.g. to run a distributed test with workers running on a different machine), download (docker-compose.yml)[https://github.com/SvenskaSpel/locust-plugins/blob/master/locust_plugins/timescale/docker-compose.yml] file, edit it as needed.
 
 ## Manual setup
 
