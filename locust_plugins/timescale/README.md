@@ -40,7 +40,7 @@ In order to log Locust's requests and run data into a database you just:
 
 * Set up Timescale and Grafana (documented below)
 * `import locust_plugins` in your locustfile (or any of locust_plugins underlying modules)
-* Add `--timescale` to the command line (or set the `LOCUST_TIMESCALE` env var to `1`, or add it to your (.conf)[https://docs.locust.io/en/stable/configuration.html#configuration-file] files)
+* Add `--timescale` to the command line (or set the `LOCUST_TIMESCALE` env var to `1`, or add it to your [.conf](https://docs.locust.io/en/stable/configuration.html#configuration-file) files)
 
 ## docker-compose-based Timescale + Grafana
 
@@ -81,7 +81,7 @@ If you hadn't already guessed it from the output, `locust-compose` is just a thi
 
 Both timescale data and any grafana dashboard edits are persisted as docker volumes even if you shut it down. If you do want to remove the data volumes, run `locust-compose down -v`.
 
-For security reasons, the ports for logging to Timescale and accessing Grafana only accessible on localhost. If you want them to be reachable from the outside (e.g. to run a distributed test with workers running on a different machine), download (docker-compose.yml)[https://github.com/SvenskaSpel/locust-plugins/blob/master/locust_plugins/timescale/docker-compose.yml] file, edit it as needed.
+For security reasons, the ports for logging to Timescale and accessing Grafana only accessible on localhost. If you want them to be reachable from the outside (e.g. to run a distributed test with workers running on a different machine), download [docker-compose.yml](https://github.com/SvenskaSpel/locust-plugins/blob/master/locust_plugins/timescale/docker-compose.yml) file, edit it as needed.
 
 ## Manual setup
 
