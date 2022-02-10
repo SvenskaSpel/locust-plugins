@@ -1,7 +1,11 @@
-# Demonstrates the two ways to run Playwright
-# Dont forget to first install the browsers by running: playwright install
+# Demonstrates the two ways to run Playwright (prerecorded script or "manual")
 
-import time
+# Notes:
+# Dont forget to first install the browsers by running: playwright install
+# Browsers are heavy. Dont expect to be able to do as much load as usual with Locust. Optimize your tests by blocking requests for unnecessary resources.
+# Dont run too many users per worker instance (or you'll get the dreaded "CPU usage over 90%" warning). Instead, scale using more Locust workers. This is made easy by using locust-swarm.
+# It is easy to accidentally make Playwright tests stall for a long time, for example if your page does finish loading completely (triggering the "load" event). Experiment with alternative wait strategies (e.g. wait_until="domcontentloaded" or self.page.wait_for_selector(...))
+
 from locust import run_single_user, task
 from locust_plugins.users.playwright import PlaywrightUser, PlaywrightScriptUser, pw, event
 
@@ -11,7 +15,7 @@ class ScriptedBased(PlaywrightScriptUser):
     script = "playwright-recording.py"
 
 
-class Advanced(PlaywrightUser):
+class Manual(PlaywrightUser):
     @task
     @pw
     async def google(self):
@@ -24,4 +28,4 @@ class Advanced(PlaywrightUser):
 
 
 if __name__ == "__main__":
-    run_single_user(Advanced)
+    run_single_user(Manual)
