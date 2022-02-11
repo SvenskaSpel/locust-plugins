@@ -24,8 +24,9 @@ Having this separate from "Locust core" allows the plugins to evolve faster (at 
 
 ## Users
 - New protocols ([source](locust_plugins/users/))
+    - Playwright ([example](examples/playwright_ex.py))
     - WebSockets/SocketIO ([example](examples/socketio_ex.py))
-    - Selenium/Webdriver ([example](examples/webdriver_ex.py))
+    - Selenium/Webdriver ([example](examples/webdriver_ex.py)) 
     - HTTP users that load html page resources ([example](examples/embedded_resource_manager_ex.py))
     - Kafka ([example](examples/kafka_ex.py))
     - RestUser ([example](examples/rest_ex.py))
