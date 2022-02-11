@@ -10,16 +10,12 @@ async def run(playwright: Playwright) -> None:
     # Open new page
     page = await context.new_page()
 
-    # Go to https://www.google.com/?gws_rd=ssl
-    await page.goto("https://www.google.com/?gws_rd=ssl")
+    # Go to https://example.com/
+    await page.goto("https://example.com/")
 
-    # Click button:has-text("Jag godkänner")
-    # async with page.expect_navigation(url="https://www.google.com/?gws_rd=ssl"):
-    async with page.expect_navigation():
-        await page.click('button:has-text("Jag godkänner")')
-
-    # Click :nth-match(:text("Sök på Google"), 2)
-    await page.click(':nth-match(:text("Sök på Google"), 2)')
+    # Click text=More information...
+    await page.click("text=More information...")
+    # assert page.url == "https://www.iana.org/domains/reserved"
 
     # ---------------------
     await context.close()
