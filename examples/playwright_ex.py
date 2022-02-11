@@ -10,7 +10,7 @@ from locust import run_single_user, task
 from locust_plugins.users.playwright import PlaywrightUser, PlaywrightScriptUser, pw, event
 
 
-class ScriptedBased(PlaywrightScriptUser):
+class ScriptBased(PlaywrightScriptUser):
     # run a script that you recorded in playwright, exported as Python Async
     script = "playwright-recording.py"
 
