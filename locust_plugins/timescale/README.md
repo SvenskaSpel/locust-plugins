@@ -36,8 +36,6 @@ This is useful to know if your requests are being sent unevenly (like in this ex
 
 # Setup
 
-In order to log Locust's requests and run data into a database you just:
-
 * Set up Timescale and Grafana (documented below)
 * `import locust_plugins` in your locustfile (or any of locust_plugins underlying modules)
 * Add `--timescale` to the command line (or set the `LOCUST_TIMESCALE` env var to `1`, or add it to your [.conf](https://docs.locust.io/en/stable/configuration.html#configuration-file) files)
