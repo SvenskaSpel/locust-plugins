@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 from locust.exception import (
     RescheduleTask,
     StopUser,
@@ -23,6 +24,7 @@ from dateutil import parser
 import subprocess
 import locust.env
 from typing import Callable, List
+from gevent.lock import Semaphore
 
 # pylint: disable=trailing-whitespace # pylint is confused by multiline strings used for SQL
 
@@ -41,6 +43,7 @@ class Timescale:  # pylint: disable=R0902
     See timescale_listener_ex.py for documentation
     """
 
+    dblock = Semaphore()
     first_instance = True
 
     def __init__(
@@ -74,15 +77,25 @@ class Timescale:  # pylint: disable=R0902
         events.spawning_complete.add_listener(self.spawning_complete)
         atexit.register(self.log_stop_test_run)
 
+    @contextmanager
+    def dbcursor(self):
+        with self.dblock:
+            try:
+                yield self.dbconn.cursor()
+            except psycopg2.Error:
+                try:
+                    # try to recreate connection
+                    self.dbconn = self._dbconn()
+                except:
+                    pass
+                raise
+
     def on_start(self, environment: locust.env.Environment):
         try:
-            self._conn = self._dbconn()
+            self.dbconn = self._dbconn()
         except psycopg2.OperationalError as e:
             logging.error(e)
             os._exit(1)
-        self._user_conn = self._dbconn()
-        self._testrun_conn = self._dbconn()
-        self._events_conn = self._dbconn()
         try:
             self._gitrepo = subprocess.check_output(
                 "git remote show origin -n 2>/dev/null | grep h.URL | sed 's/.*://;s/.git$//' || true",
@@ -134,7 +147,7 @@ class Timescale:  # pylint: disable=R0902
             if self.env.runner is None:
                 return  # there is no runner, so nothing to log...
             try:
-                with self._user_conn.cursor() as cur:
+                with self.dbcursor() as cur:
                     cur.execute(
                         """INSERT INTO user_count(time, run_id, testplan, user_count) VALUES (%s, %s, %s, %s)""",
                         (datetime.now(timezone.utc), self._run_id, self._testplan, self.env.runner.user_count),
@@ -163,15 +176,17 @@ class Timescale:  # pylint: disable=R0902
 
     def write_samples_to_db(self, samples):
         try:
-            with self._conn.cursor() as cur:
+            with self.dbcursor() as cur:
                 psycopg2.extras.execute_values(
                     cur,
                     """INSERT INTO request(time,run_id,greenlet_id,loadgen,name,request_type,response_time,success,testplan,response_length,exception,pid,url,context) VALUES %s""",
                     samples,
                     template="(%(time)s, %(run_id)s, %(greenlet_id)s, %(loadgen)s, %(name)s, %(request_type)s, %(response_time)s, %(success)s, %(testplan)s, %(response_length)s, %(exception)s, %(pid)s, %(url)s, %(context)s)",
                 )
+
         except psycopg2.Error as error:
             logging.error("Failed to write samples to Postgresql timescale database: " + repr(error))
+            os._exit(1)
 
     def quitting(self, **_kwargs):
         self._finished = True
@@ -235,7 +250,7 @@ class Timescale:  # pylint: disable=R0902
         self._samples.append(sample)
 
     def log_start_testrun(self):
-        with self._testrun_conn.cursor() as cur:
+        with self.dbcursor() as cur:
             cur.execute(
                 "INSERT INTO testrun (id, testplan, num_clients, rps, description, env, username, gitrepo, changeset_guid) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)",
                 (
@@ -259,10 +274,11 @@ class Timescale:  # pylint: disable=R0902
         if not is_worker():  # only log for master/standalone
             end_time = datetime.now(timezone.utc)
             try:
-                self._events_conn.cursor().execute(
-                    "INSERT INTO events (time, text) VALUES (%s, %s)",
-                    (end_time, f"{self._testplan} rampup complete, {user_count} users spawned"),
-                )
+                with self.dbcursor() as cur:
+                    cur.execute(
+                        "INSERT INTO events (time, text) VALUES (%s, %s)",
+                        (end_time, f"{self._testplan} rampup complete, {user_count} users spawned"),
+                    )
             except psycopg2.Error as error:
                 logging.error(
                     "Failed to insert rampup complete event time to Postgresql timescale database: " + repr(error)
@@ -275,7 +291,7 @@ class Timescale:  # pylint: disable=R0902
             return  # run never started, so no need to log the end
         end_time = datetime.now(timezone.utc)
         try:
-            with self._testrun_conn.cursor() as cur:
+            with self.dbcursor() as cur:
                 cur.execute("UPDATE testrun SET end_time = %s where id = %s", (end_time, self._run_id))
                 cur.execute("INSERT INTO events (time, text) VALUES (%s, %s)", (end_time, self._testplan + " finished"))
                 # The AND time > run_id clause in the following statements are there to help Timescale performance
