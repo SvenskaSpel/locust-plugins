@@ -256,7 +256,7 @@ class PlaywrightUser(User):
     browser_context: BrowserContext = None
     page: Page = None
     error_screenshot_made = False
-    multiplier = 10  # how many concurrent browser sessions to run for every Locust User
+    multiplier = 1  # how many concurrent Playwright sessions/browsers to run for each Locust User instance. Setting this to ~10 is an efficient way to reduce overhead.
 
     def __init__(self, parent):
         super().__init__(parent)

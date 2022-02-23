@@ -19,6 +19,7 @@ class ScriptBased(PlaywrightScriptUser):
 
 class Manual(PlaywrightUser):
     host = "https://www.google.com"
+    multiplier = 10  # run ten concurrent playwright sessions/browsers for each Locust user. This helps improve load generation efficiency.
 
     @task
     @pw
