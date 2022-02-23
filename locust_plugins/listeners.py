@@ -287,8 +287,6 @@ class Timescale:  # pylint: disable=R0902
     def log_stop_test_run(self):
         if is_worker():
             return  # only run on master or standalone
-        if not getattr(self, "_testrun_conn", False):
-            return  # run never started, so no need to log the end
         end_time = datetime.now(timezone.utc)
         try:
             with self.dbcursor() as cur:
