@@ -1,4 +1,4 @@
-__version__ = "2.5.3"
+__version__ = "2.5.4"
 from .wait_time import constant_ips, constant_total_ips
 from .debug import run_single_user
 from .listeners import Timescale
