@@ -173,13 +173,14 @@ class Timescale:  # pylint: disable=R0902
         except psycopg2.Error as error:
             logging.error("Failed to write samples to Postgresql timescale database: " + repr(error))
 
-    def quitting(self, **_kwargs):
+    def quitting(self, **kwargs):
+        code = kwargs.pop("code", -1)
         self._finished = True
         atexit._clear()  # make sure we dont capture additional ctrl-c:s # pylint: disable=protected-access
         self._background.join(timeout=10)
         if getattr(self, "_user_count_logger", False):
             self._user_count_logger.kill()
-        self.log_stop_test_run()
+        self.log_stop_test_run(code)
 
     def on_request(
         self,
@@ -268,7 +269,7 @@ class Timescale:  # pylint: disable=R0902
                     "Failed to insert rampup complete event time to Postgresql timescale database: " + repr(error)
                 )
 
-    def log_stop_test_run(self):
+    def log_stop_test_run(self, exit_code="unknown"):
         if is_worker():
             return  # only run on master or standalone
         if not getattr(self, "_testrun_conn", False):
@@ -277,7 +278,10 @@ class Timescale:  # pylint: disable=R0902
         try:
             with self._testrun_conn.cursor() as cur:
                 cur.execute("UPDATE testrun SET end_time = %s where id = %s", (end_time, self._run_id))
-                cur.execute("INSERT INTO events (time, text) VALUES (%s, %s)", (end_time, self._testplan + " finished"))
+                cur.execute(
+                    "INSERT INTO events (time, text) VALUES (%s, %s)",
+                    (end_time, self._testplan + f" finished with exit code: {exit_code}"),
+                )
                 # The AND time > run_id clause in the following statements are there to help Timescale performance
                 # We dont use start_time / end_time to calculate RPS, instead we use the time between the actual first and last request
                 # (as this is a more accurate measurement of the actual test)
