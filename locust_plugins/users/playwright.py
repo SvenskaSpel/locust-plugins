@@ -33,59 +33,6 @@ loop: asyncio.AbstractEventLoop = None
 # yappi.start(builtins=True)
 
 
-async def pwprep(user: User):
-    if user.playwright is None:
-        user.playwright = await async_playwright().start()
-    if user.browser is None:
-        user.browser = await user.playwright.chromium.launch(
-            headless=user.headless or user.headless is None and user.environment.runner is not None,
-            args=[
-                "--disable-gpu",
-                "--disable-setuid-sandbox",
-                "--disable-accelerated-2d-canvas",
-                "--no-zygote",
-                # "--frame-throttle-fps=10",
-                # didnt seem to help much:
-                # "--single-process",
-                #
-                "--enable-profiling",
-                "--profiling-at-start=renderer",
-                "--no-sandbox",
-                "--profiling-flush",
-                # maybe even made it worse?
-                # "--disable-gpu-vsync",
-                # "--disable-site-isolation-trials",
-                # "--disable-features=IsolateOrigins",
-                #
-                # maybe a little better?
-                "--disable-blink-features=AutomationControlled",
-                "--disable-blink-features",
-                "--disable-translate",
-                "--safebrowsing-disable-auto-update",
-                "--disable-sync",
-                "--hide-scrollbars",
-                "--disable-notifications",
-                "--disable-logging",
-                "--disable-permissions-api",
-                "--ignore-certificate-errors",
-                # made no difference
-                "--proxy-server='direct://'",
-                "--proxy-bypass-list=*",
-                # seems to help a little?
-                "--blink-settings=imagesEnabled=false",
-                # "--profile-directory=tmp/chromium-profile-dir-"
-                # + "".join(random.choices("abcdef" + string.digits, k=8)),
-                "--host-resolver-rules=MAP www.googletagmanager.com 127.0.0.1, MAP www.google-analytics.com 127.0.0.1, MAP *.facebook.* 127.0.0.1, MAP assets.adobedtm.com 127.0.0.1, MAP s2.adform.net 127.0.0.1",
-                "--no-first-run",
-                #
-                "--disable-audio-output",
-                "--disable-canvas-aa",
-            ],
-            # we have plenty of space on /dev/shm, and this was causing issues for us, so skip that:
-            ignore_default_args=["--disable-dev-shm-usage"],
-        )
-
-
 def sync(async_func):
     """
     Make a synchronous function from an async
@@ -260,7 +207,7 @@ class PlaywrightUser(User):
 
     def __init__(self, parent):
         super().__init__(parent)
-        future = asyncio.run_coroutine_threadsafe(pwprep(self), loop)
+        future = asyncio.run_coroutine_threadsafe(self._pwprep(), loop)
         while not future.done():
             gevent.sleep(0.1)
         e = future.exception()
@@ -268,6 +215,58 @@ class PlaywrightUser(User):
             raise e
         if self.environment.runner is None:  # debug session
             self.multiplier = 1
+
+    async def _pwprep(self):
+        if self.playwright is None:
+            self.playwright = await async_playwright().start()
+        if self.browser is None:
+            self.browser = await self.playwright.chromium.launch(
+                headless=self.headless or self.headless is None and self.environment.runner is not None,
+                args=[
+                    "--disable-gpu",
+                    "--disable-setuid-sandbox",
+                    "--disable-accelerated-2d-canvas",
+                    "--no-zygote",
+                    # "--frame-throttle-fps=10",
+                    # didnt seem to help much:
+                    # "--single-process",
+                    #
+                    "--enable-profiling",
+                    "--profiling-at-start=renderer",
+                    "--no-sandbox",
+                    "--profiling-flush",
+                    # maybe even made it worse?
+                    # "--disable-gpu-vsync",
+                    # "--disable-site-isolation-trials",
+                    # "--disable-features=IsolateOrigins",
+                    #
+                    # maybe a little better?
+                    "--disable-blink-features=AutomationControlled",
+                    "--disable-blink-features",
+                    "--disable-translate",
+                    "--safebrowsing-disable-auto-update",
+                    "--disable-sync",
+                    "--hide-scrollbars",
+                    "--disable-notifications",
+                    "--disable-logging",
+                    "--disable-permissions-api",
+                    "--ignore-certificate-errors",
+                    # made no difference
+                    "--proxy-server='direct://'",
+                    "--proxy-bypass-list=*",
+                    # seems to help a little?
+                    "--blink-settings=imagesEnabled=false",
+                    # "--profile-directory=tmp/chromium-profile-dir-"
+                    # + "".join(random.choices("abcdef" + string.digits, k=8)),
+                    "--host-resolver-rules=MAP www.googletagmanager.com 127.0.0.1, MAP www.google-analytics.com 127.0.0.1, MAP *.facebook.* 127.0.0.1, MAP assets.adobedtm.com 127.0.0.1, MAP s2.adform.net 127.0.0.1",
+                    "--no-first-run",
+                    #
+                    "--disable-audio-output",
+                    "--disable-canvas-aa",
+                ],
+                # we have plenty of space on /dev/shm, and this was causing issues for us, so skip that:
+                ignore_default_args=["--disable-dev-shm-usage"],
+            )
 
 
 class PlaywrightScriptUser(PlaywrightUser):
