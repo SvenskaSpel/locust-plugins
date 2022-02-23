@@ -290,11 +290,12 @@ class PlaywrightScriptUser(PlaywrightUser):
         p = ast.parse(code)
 
         def assert_source(stmt: ast.stmt, expected_line: str):
-            actual_line = ast.get_source_segment(code, stmt)
-            if actual_line != expected_line:
-                logging.warning(
-                    f"Source code removed from Playwright recording was unexpected. Got '{actual_line}', expected '{expected_line}'"
-                )
+            if sys.version_info >= (3, 8):  # get_source_segment was added in 3.8
+                actual_line = ast.get_source_segment(code, stmt)
+                if actual_line != expected_line:
+                    logging.warning(
+                        f"Source code removed from Playwright recording was unexpected. Got '{actual_line}', expected '{expected_line}'"
+                    )
 
         for node in p.body[:]:
             if isinstance(node, ast.Expr) and node.value.func.attr == "run":
