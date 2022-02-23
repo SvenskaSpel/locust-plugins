@@ -4,7 +4,8 @@ except NotImplementedError as e:
     raise Exception(
         "Could not import playwright, probably because gevent monkey patching was done before trio init. Set env var LOCUST_PLAYWRIGHT=1"
     ) from e
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, contextmanager
+import logging
 import os
 import asyncio
 from locust import User, events, task
@@ -18,6 +19,10 @@ import os
 import re
 from locust.exception import CatchResponseError
 import playwright as pw
+from locust import runners
+import copy
+
+runners.HEARTBEAT_LIVENESS = 10
 
 loop: asyncio.AbstractEventLoop = None
 
@@ -28,18 +33,83 @@ loop: asyncio.AbstractEventLoop = None
 # yappi.start(builtins=True)
 
 
+async def pwprep(user: User):
+    if user.playwright is None:
+        user.playwright = await async_playwright().start()
+    if user.browser is None:
+        user.browser = await user.playwright.chromium.launch(
+            headless=user.headless or user.headless is None and user.environment.runner is not None,
+            args=[
+                "--disable-gpu",
+                "--disable-setuid-sandbox",
+                "--disable-accelerated-2d-canvas",
+                "--no-zygote",
+                # "--frame-throttle-fps=10",
+                # didnt seem to help much:
+                # "--single-process",
+                #
+                "--enable-profiling",
+                "--profiling-at-start=renderer",
+                "--no-sandbox",
+                "--profiling-flush",
+                # maybe even made it worse?
+                # "--disable-gpu-vsync",
+                # "--disable-site-isolation-trials",
+                # "--disable-features=IsolateOrigins",
+                #
+                # maybe a little better?
+                "--disable-blink-features=AutomationControlled",
+                "--disable-blink-features",
+                "--disable-translate",
+                "--safebrowsing-disable-auto-update",
+                "--disable-sync",
+                "--hide-scrollbars",
+                "--disable-notifications",
+                "--disable-logging",
+                "--disable-permissions-api",
+                "--ignore-certificate-errors",
+                # made no difference
+                "--proxy-server='direct://'",
+                "--proxy-bypass-list=*",
+                # seems to help a little?
+                "--blink-settings=imagesEnabled=false",
+                # "--profile-directory=tmp/chromium-profile-dir-"
+                # + "".join(random.choices("abcdef" + string.digits, k=8)),
+                "--host-resolver-rules=MAP www.googletagmanager.com 127.0.0.1, MAP www.google-analytics.com 127.0.0.1, MAP *.facebook.* 127.0.0.1, MAP assets.adobedtm.com 127.0.0.1, MAP s2.adform.net 127.0.0.1",
+                "--no-first-run",
+                #
+                "--disable-audio-output",
+                "--disable-canvas-aa",
+            ],
+            # we have plenty of space on /dev/shm, and this was causing issues for us, so skip that:
+            ignore_default_args=["--disable-dev-shm-usage"],
+        )
+
+
 def sync(async_func):
     """
     Make a synchronous function from an async
     """
 
     def wrapFunc(self: User):
-        future = asyncio.run_coroutine_threadsafe(async_func(self), loop)
-        while not future.done():
-            gevent.sleep(0.1)
-        e = future.exception()
-        if e:
-            raise e
+        futures = []
+
+        for i in range(self.multiplier):
+            futures.append(asyncio.run_coroutine_threadsafe(async_func(copy.copy(self)), loop))
+            gevent.sleep(2)
+
+        while True:
+            for f in futures:
+                if not f.done():
+                    gevent.sleep(0.1)
+                    break
+            else:
+                break
+
+        for f in futures:
+            e = f.exception()
+            if e:
+                raise e
 
     return wrapFunc
 
@@ -101,77 +171,37 @@ async def event(
     await asyncio.sleep(0.1)
 
 
+def on_console(msg):
+    if (
+        msg.type == "error"
+        and msg.text.find("net::ERR_FAILED") == -1
+        and msg.text.find("Refused to load the image") == -1
+    ):
+        print("err " + msg.text + ":" + msg.location["url"])
+
+
 def pw(func):
     """
-    1. Converts the decorated function from async to regular using sync()
-    2. Sets up user.playwright and optionally user.browser
-    3. Fires a request event after finishing.
+    1. Converts the decorated method from async to regular using sync()
+    2. Sets up a new BrowserContext if there isnt one already
+    3. Creates a new Page
+    4. (runs the decorated method)
+    5. Fires a request event after finishing.
     """
 
     @sync
     async def pwwrapFunc(user: PlaywrightUser):
-        if user.playwright is None:
-            user.playwright = await async_playwright().start()
+        if user.browser_context:
+            raise "This should always be called on a copy of the User (and that should never have a BrowserContext)"
+        # I wish we could call this just "context" but it would collide with User.context():
+        user.browser_context = await user.browser.new_context(ignore_https_errors=True, base_url=user.host)
+        # await user.browser_context.add_init_script("() => delete window.navigator.serviceWorker")
+        user.page = await user.browser_context.new_page()
+        user.page.set_default_timeout(60_000)
+
         if isinstance(user, PlaywrightScriptUser):
             name = user.script
         else:
-            if user.browser is None:
-                user.browser = await user.playwright.chromium.launch(
-                    headless=user.headless or user.headless is None and user.environment.runner is not None,
-                    args=[
-                        "--disable-gpu",
-                        "--disable-setuid-sandbox",
-                        "--disable-accelerated-2d-canvas",
-                        "--no-zygote",
-                        # "--frame-throttle-fps=10",
-                        # didnt seem to help much:
-                        "--single-process",
-                        #
-                        "--enable-profiling",
-                        "--profiling-at-start=renderer",
-                        "--no-sandbox",
-                        "--profiling-flush",
-                        # maybe even made it worse?
-                        # "--disable-gpu-vsync",
-                        # "--disable-site-isolation-trials",
-                        # "--disable-features=IsolateOrigins",
-                        #
-                        # maybe a little better?
-                        "--disable-blink-features=AutomationControlled",
-                        "--disable-blink-features",
-                        "--disable-translate",
-                        "--safebrowsing-disable-auto-update",
-                        "--disable-sync",
-                        "--hide-scrollbars",
-                        "--disable-notifications",
-                        "--disable-logging",
-                        "--disable-permissions-api",
-                        "--ignore-certificate-errors",
-                        # made no difference
-                        "--proxy-server='direct://'",
-                        "--proxy-bypass-list=*",
-                        # seems to help a little?
-                        "--blink-settings=imagesEnabled=false",
-                        # "--profile-directory=tmp/chromium-profile-dir-"
-                        # + "".join(random.choices("abcdef" + string.digits, k=8)),
-                        "--host-resolver-rules=MAP www.googletagmanager.com 127.0.0.1, MAP www.google-analytics.com 127.0.0.1, MAP *.facebook.* 127.0.0.1, MAP assets.adobedtm.com 127.0.0.1, MAP s2.adform.net 127.0.0.1",
-                        "--no-first-run",
-                        #
-                        "--disable-audio-output",
-                        "--disable-canvas-aa",
-                    ],
-                    # we have plenty of space on /dev/shm, and this was causing issues for us, so skip that:
-                    ignore_default_args=["--disable-dev-shm-usage"],
-                )
-                # I wish we could call this just "context" but it would collide with User.context():
-                user.browser_context = await user.browser.new_context(ignore_https_errors=True, base_url=user.host)
-                # await user.browser_context.add_init_script("() => delete window.navigator.serviceWorker")
-                user.page = await user.browser_context.new_page()
-                user.page.set_default_timeout(60_000)
-            else:
-                # cheap way to pretend we're a new user (instead of creating a whole new BrowserContext and Page
-                await user.browser_context.clear_cookies()
-
             name = user.__class__.__name__ + "." + func.__name__
         try:
             task_start_time = time.time()
@@ -211,10 +241,9 @@ def pw(func):
                 url=user.page.url if user.page else None,
             )
         finally:
-            if not isinstance(user, PlaywrightScriptUser):
-                await user.page.wait_for_timeout(1000)  # give outstanding interactions some time
-                # await user.page.close()
-                # await user.browser_context.close()
+            await user.page.wait_for_timeout(1000)  # give outstanding interactions some time
+            await user.page.close()
+            await user.browser_context.close()
 
     return pwwrapFunc
 
@@ -227,9 +256,29 @@ class PlaywrightUser(User):
     browser_context: BrowserContext = None
     page: Page = None
     error_screenshot_made = False
+    multiplier = 10  # how many concurrent browser sessions to run for every Locust User
+
+    def __init__(self, parent):
+        super().__init__(parent)
+        future = asyncio.run_coroutine_threadsafe(pwprep(self), loop)
+        while not future.done():
+            gevent.sleep(0.1)
+        e = future.exception()
+        if e:
+            raise e
+        if self.environment.runner is None:  # debug session
+            self.multiplier = 1
 
 
 class PlaywrightScriptUser(PlaywrightUser):
+    """
+    This user allows Locust to run the output from Playwright's codegen without modification
+    Here's how to make one:
+    playwright codegen --target python-async -o my_recording.py https://mywebsite.com
+    It does some black magic (parsing the recording into an AST and removing some statements)
+    so it may not work if you have made manual changes to the recording.
+    """
+
     abstract = True
     script = None
 
@@ -237,20 +286,32 @@ class PlaywrightScriptUser(PlaywrightUser):
         super().__init__(parent)
 
         with open(self.script, encoding="UTF-8") as f:
-            p = ast.parse(f.read())
+            code = f.read()
+        p = ast.parse(code)
+
+        def assert_source(stmt: ast.stmt, expected_line: str):
+            actual_line = ast.get_source_segment(code, stmt)
+            if actual_line != expected_line:
+                logging.warning(
+                    f"Source code removed from Playwright recording was unexpected. Got '{actual_line}', expected '{expected_line}'"
+                )
 
         for node in p.body[:]:
             if isinstance(node, ast.Expr) and node.value.func.attr == "run":
-                p.body.remove(node)  # remove "asyncio.run(main())"
+                assert_source(node, "asyncio.run(main())")
+                p.body.remove(node)
             elif isinstance(node, ast.AsyncFunctionDef) and node.name == "run":
                 # future optimization: reuse browser instances
-                # page_arg = ast.arg(arg="page")
-                # node.args.args.append(page_arg)
-                # ast.fix_missing_locations(node)
-                launch_line = node.body[0]  # browser = await playwright.chromium.launch(headless=False)
-                # default is for full Locust runs to be headless, but for debug runs to show the browser
-                if self.headless or self.headless is None and self.environment.runner is not None:
-                    launch_line.value.value.keywords[0].value.value = True  # overwrite headless parameter
+                page_arg = ast.arg(arg="page")
+                node.args.args.append(page_arg)
+                # remove setup from recording, asserting so that the lines removed were the expected ones
+                assert_source(node.body.pop(0), "browser = await playwright.chromium.launch(headless=False)")
+                assert_source(node.body.pop(0), "context = await browser.new_context()")
+                assert_source(node.body.pop(0), "page = await context.new_page()")
+                # remove teardown
+                assert_source(node.body.pop(), "await browser.close()")
+                assert_source(node.body.pop(), "await context.close()")
+                ast.fix_missing_locations(node)
 
         module = types.ModuleType("mod")
         code = compile(p, self.script, "exec")
@@ -264,7 +325,7 @@ class PlaywrightScriptUser(PlaywrightUser):
     @task
     @pw
     async def scriptrun(self, page):  # pylint: disable-all
-        await self.pwrun(self.playwright)
+        await self.pwrun(self.playwright, page)
 
 
 @events.test_start.add_listener
