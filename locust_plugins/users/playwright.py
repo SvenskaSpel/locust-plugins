@@ -17,10 +17,11 @@ import types
 import time
 import os
 import re
-from locust.exception import CatchResponseError
+from locust.exception import CatchResponseError, RescheduleTask
 import playwright as pw
 from locust import runners
 import copy
+from tenacity import Retrying, RetryError, stop_after_attempt
 
 runners.HEARTBEAT_LIVENESS = 10
 
@@ -41,8 +42,8 @@ def sync(async_func):
     def wrapFunc(self: User):
         futures = []
 
-        for i in range(self.multiplier):
-            futures.append(asyncio.run_coroutine_threadsafe(async_func(copy.copy(self)), loop))
+        for sub_user in self.sub_users:
+            futures.append(asyncio.run_coroutine_threadsafe(async_func(sub_user), loop))
             gevent.sleep(2)
 
         while True:
@@ -50,15 +51,31 @@ def sync(async_func):
                 if not f.done():
                     gevent.sleep(0.1)
                     break
+                else:
+                    e = f.exception()
+                    if e:
+                        raise e
             else:
                 break
 
-        for f in futures:
-            e = f.exception()
-            if e:
-                raise e
-
     return wrapFunc
+
+
+from tenacity import retry, stop_after_delay, wait_fixed, retry_if_exception_type
+from functools import partial
+
+# Custom error type for this example
+class CommunicationError(Exception):
+    pass
+
+
+# Define shorthand decorator for the used settings.
+retry_on_communication_error = partial(
+    retry,
+    stop=stop_after_delay(10),  # max. 10 seconds wait.
+    wait=wait_fixed(0.4),  # wait 400ms
+    retry=retry_if_exception_type(CommunicationError),
+)()
 
 
 @asynccontextmanager
@@ -68,7 +85,6 @@ async def event(
     request_type="event",
     max_attempts=0,
     # internals
-    attempt=0,
     start_time=None,
     start_perf_counter=None,
 ):
@@ -77,7 +93,10 @@ async def event(
     if start_perf_counter is None:
         start_perf_counter = time.perf_counter()
     try:
-        yield
+        for attempt in Retrying(stop=stop_after_attempt(max_attempts), reraise=True):
+            with attempt:
+                yield
+
         user.environment.events.request.fire(
             request_type=request_type,
             name=name,
@@ -138,13 +157,12 @@ def pw(func):
 
     @sync
     async def pwwrapFunc(user: PlaywrightUser):
-        if user.browser_context:
-            raise "This should always be called on a copy of the User (and that should never have a BrowserContext)"
-        # I wish we could call this just "context" but it would collide with User.context():
-        user.browser_context = await user.browser.new_context(ignore_https_errors=True, base_url=user.host)
+        if not user.browser_context:
+            # I wish we could call this just "context" but it would collide with User.context():
+            user.browser_context = await user.browser.new_context(ignore_https_errors=True, base_url=user.host)
         # await user.browser_context.add_init_script("() => delete window.navigator.serviceWorker")
         user.page = await user.browser_context.new_page()
-        user.page.set_default_timeout(60_000)
+        user.page.set_default_timeout(60000)
 
         if isinstance(user, PlaywrightScriptUser):
             name = user.script
@@ -164,6 +182,8 @@ def pw(func):
                 exception=None,
                 # url=user.page.url,
             )
+        except RescheduleTask:
+            pass  # no need to log anything, because an individual request has already failed
         except Exception as e:
             try:
                 error = CatchResponseError(
@@ -204,6 +224,7 @@ class PlaywrightUser(User):
     page: Page = None
     error_screenshot_made = False
     multiplier = 1  # how many concurrent Playwright sessions/browsers to run for each Locust User instance. Setting this to ~10 is an efficient way to reduce overhead.
+    sub_users = []
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -215,6 +236,7 @@ class PlaywrightUser(User):
             raise e
         if self.environment.runner is None:  # debug session
             self.multiplier = 1
+        self.sub_users = [copy.copy(self) for _ in range(self.multiplier)]
 
     async def _pwprep(self):
         if self.playwright is None:
