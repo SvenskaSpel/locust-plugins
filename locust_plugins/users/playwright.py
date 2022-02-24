@@ -21,7 +21,6 @@ from locust.exception import CatchResponseError, RescheduleTask
 import playwright as pw
 from locust import runners
 import copy
-from tenacity import Retrying, RetryError, stop_after_attempt
 
 runners.HEARTBEAT_LIVENESS = 10
 
@@ -61,42 +60,16 @@ def sync(async_func):
     return wrapFunc
 
 
-from tenacity import retry, stop_after_delay, wait_fixed, retry_if_exception_type
-from functools import partial
-
-# Custom error type for this example
-class CommunicationError(Exception):
-    pass
-
-
-# Define shorthand decorator for the used settings.
-retry_on_communication_error = partial(
-    retry,
-    stop=stop_after_delay(10),  # max. 10 seconds wait.
-    wait=wait_fixed(0.4),  # wait 400ms
-    retry=retry_if_exception_type(CommunicationError),
-)()
-
-
 @asynccontextmanager
 async def event(
     user: "PlaywrightUser",
     name="unnamed",
     request_type="event",
-    max_attempts=0,
-    # internals
-    start_time=None,
-    start_perf_counter=None,
 ):
-    if start_time is None:
-        start_time = time.time()
-    if start_perf_counter is None:
-        start_perf_counter = time.perf_counter()
+    start_time = time.time()
+    start_perf_counter = time.perf_counter()
     try:
-        for attempt in Retrying(stop=stop_after_attempt(max_attempts), reraise=True):
-            with attempt:
-                yield
-
+        yield
         user.environment.events.request.fire(
             request_type=request_type,
             name=name,
@@ -108,12 +81,6 @@ async def event(
             exception=None,
         )
     except Exception as e:
-        # if isinstance(e, AssertionError):
-        #     if max_attempts > attempt:
-        #         with user.event(
-        #             name, max_attempts, attempt + 1, start_time=start_time, start_perf_counter=start_perf_counter
-        #         ):
-        #             yield
         try:
             error = CatchResponseError(re.sub("=======*", "", e.message).replace("\n", "").replace(" logs ", " "))
         except:
@@ -157,9 +124,7 @@ def pw(func):
 
     @sync
     async def pwwrapFunc(user: PlaywrightUser):
-        if not user.browser_context:
-            # I wish we could call this just "context" but it would collide with User.context():
-            user.browser_context = await user.browser.new_context(ignore_https_errors=True, base_url=user.host)
+        user.browser_context = await user.browser.new_context(ignore_https_errors=True, base_url=user.host)
         # await user.browser_context.add_init_script("() => delete window.navigator.serviceWorker")
         user.page = await user.browser_context.new_page()
         user.page.set_default_timeout(60000)
