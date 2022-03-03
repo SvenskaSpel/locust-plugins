@@ -77,6 +77,8 @@ class MqttUser(User):
     ws_path = "/mqtt"
     tls_context = None
     client_id = None
+    username = None
+    password = None
 
     def __init__(self, environment: Environment):
         super().__init__(environment)
@@ -91,6 +93,12 @@ class MqttUser(User):
 
         if self.transport == "websockets" and self.ws_path:
             self.client.ws_set_options(path=self.ws_path)
+
+        if self.username and self.password:
+            self.client.username_pw_set(
+                username=self.username,
+                password=self.password,
+            )
 
         self.client.connect_async(
             host=self.host,
