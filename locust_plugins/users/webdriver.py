@@ -47,7 +47,7 @@ class WebdriverClient(webdriver.Remote):
         # workaround for the first page being way to slow to load
         # ~2 minutes for my case (caused by some useless element being slow?)
         options.page_load_strategy = "eager"
-        super().__init__(options=options)
+        super().__init__(command_executor=self.user.command_executor, options=options)
         self.start_time = None
         time.sleep(1)
         self.command_executor._commands["SEND_COMMAND"] = ("POST", "/session/$sessionId/chromium/send_command")
@@ -245,6 +245,7 @@ class WebdriverUser(User):
     abstract = True
     _first_instance = True
     headless = False  # overwrite this as needed
+    command_executor = "http://127.0.0.1:4444"
 
     def __init__(self, parent):
         super().__init__(parent)
