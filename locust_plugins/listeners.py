@@ -474,13 +474,3 @@ def is_worker():
 
 def is_master():
     return "--master" in sys.argv
-
-
-class TimescaleListener:
-    def __init__(self, *args, **kwargs):
-        raise Exception("All listeners have had their -Listener suffix removed, please update your code.")
-
-
-class RescheduleTaskOnFailListener:
-    def __init__(self, *args, **kwargs):
-        raise Exception("All listeners have had their -Listener suffix removed, please update your code.")
