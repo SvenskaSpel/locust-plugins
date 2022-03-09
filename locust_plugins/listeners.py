@@ -129,8 +129,10 @@ class Timescale:  # pylint: disable=R0902
     def _dbconn(self) -> psycopg2.extensions.connection:
         try:
             conn = psycopg2.connect(
-                host=os.environ.get("PGHOST", "localhost"),
-                password=self.env.parsed_options.pgpassword,  # type: ignore[union-attr]
+                host=self.env.parsed_options.pghost,
+                password=self.env.parsed_options.pgpassword,
+                database=self.env.parsed_options.pgdatabase,
+                port=self.env.parsed_options.pgport,
                 keepalives_idle=120,
                 keepalives_interval=20,
                 keepalives_count=6,

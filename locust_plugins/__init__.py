@@ -66,6 +66,13 @@ def add_checks_arguments(parser: configargparse.ArgumentParser):
         default="",
     )
     locust_dashboards.add_argument(
+        "--pgport",
+        type=str,
+        help="",
+        env_var="PGPORT",
+        default="",
+    )
+    locust_dashboards.add_argument(
         "--pgpassword",
         type=str,
         help="",
@@ -77,6 +84,13 @@ def add_checks_arguments(parser: configargparse.ArgumentParser):
         type=str,
         help="",
         env_var="PGUSER",
+        default="",
+    )
+    locust_dashboards.add_argument(
+        "--pgdatabase",
+        type=str,
+        help="",
+        env_var="PGDATABASE",
         default="",
     )
     run_info = parser.add_argument_group(
