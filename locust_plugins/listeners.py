@@ -130,6 +130,7 @@ class Timescale:  # pylint: disable=R0902
         try:
             conn = psycopg2.connect(
                 host=self.env.parsed_options.pghost,
+                user=self.env.parsed_options.pguser,
                 password=self.env.parsed_options.pgpassword,
                 database=self.env.parsed_options.pgdatabase,
                 port=self.env.parsed_options.pgport,
