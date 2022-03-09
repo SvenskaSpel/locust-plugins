@@ -63,7 +63,7 @@ def add_checks_arguments(parser: configargparse.ArgumentParser):
         type=str,
         help="",
         env_var="PGHOST",
-        default="",
+        default="localhost",
     )
     locust_dashboards.add_argument(
         "--pgport",
