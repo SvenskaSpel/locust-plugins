@@ -59,7 +59,7 @@ class Timescale:  # pylint: disable=R0902
         Timescale.first_instance = False
         if testplan:
             self._testplan = testplan  # legacy
-        elif env.parsed_options.override_plan_name:
+        elif env.parsed_options.override_plan_name:  # type: ignore[union-attr]
             self._testplan = env.parsed_options.override_plan_name
         else:
             self._testplan = env.parsed_options.locustfile
@@ -130,13 +130,14 @@ class Timescale:  # pylint: disable=R0902
         try:
             conn = psycopg2.connect(
                 host=os.environ.get("PGHOST", "localhost"),
+                password=self.env.parsed_options.pgpassword,  # type: ignore[union-attr]
                 keepalives_idle=120,
                 keepalives_interval=20,
                 keepalives_count=6,
             )
         except Exception:
             logging.error(
-                "Could not connect to postgres. Use standard postgres env vars to specify where to report locust samples (https://www.postgresql.org/docs/11/libpq-envars.html)"
+                "Could not connect to postgres. Use standard postgres env vars or --pg* command line options to specify where to report locust samples (https://www.postgresql.org/docs/11/libpq-envars.html)"
             )
             raise
         conn.autocommit = True
@@ -287,6 +288,8 @@ class Timescale:  # pylint: disable=R0902
     def log_stop_test_run(self):
         if is_worker():
             return  # only run on master or standalone
+        if not self.dbconn:
+            return  # test_start never ran, so there's not much for us to do
         end_time = datetime.now(timezone.utc)
         try:
             with self.dbcursor() as cur:
@@ -392,7 +395,7 @@ class RescheduleTaskOnFail:
 
     def request(self, exception, **_kwargs):
         if exception:
-            raise RescheduleTask()
+            raise RescheduleTask(exception)
 
 
 class InterruptTaskOnFail:
