@@ -1,4 +1,3 @@
-__version__ = "2.5.4"
 from .wait_time import constant_ips, constant_total_ips
 from .debug import run_single_user
 from .listeners import Timescale
@@ -64,6 +63,13 @@ def add_checks_arguments(parser: configargparse.ArgumentParser):
         type=str,
         help="",
         env_var="PGHOST",
+        default="localhost",
+    )
+    locust_dashboards.add_argument(
+        "--pgport",
+        type=str,
+        help="",
+        env_var="PGPORT",
         default="",
     )
     locust_dashboards.add_argument(
@@ -78,6 +84,13 @@ def add_checks_arguments(parser: configargparse.ArgumentParser):
         type=str,
         help="",
         env_var="PGUSER",
+        default="",
+    )
+    locust_dashboards.add_argument(
+        "--pgdatabase",
+        type=str,
+        help="",
+        env_var="PGDATABASE",
         default="",
     )
     run_info = parser.add_argument_group(

@@ -11,3 +11,4 @@ src
 .tox
 env
 .python-version
+_version.py
