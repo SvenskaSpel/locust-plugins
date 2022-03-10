@@ -175,7 +175,9 @@ CREATE TABLE public.testrun (
     resp_time_avg numeric,
     changeset_guid character varying(36),
     fail_ratio double precision,
-    requests integer
+    requests integer,
+    command text,
+    exit_code integer
 );
 
 

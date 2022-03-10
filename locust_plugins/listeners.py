@@ -251,9 +251,11 @@ class Timescale:  # pylint: disable=R0902
         self._samples.append(sample)
 
     def log_start_testrun(self):
+        cmd = sys.argv
+        del cmd[0]
         with self.dbcursor() as cur:
             cur.execute(
-                "INSERT INTO testrun (id, testplan, num_clients, rps, description, env, username, gitrepo, changeset_guid) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+                "INSERT INTO testrun (id, testplan, num_clients, rps, description, env, username, gitrepo, changeset_guid, settings) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
                 (
                     self._run_id,
                     self._testplan,
@@ -264,6 +266,7 @@ class Timescale:  # pylint: disable=R0902
                     self._username,
                     self._gitrepo,
                     self.env.parsed_options.test_version,
+                    " ".join(cmd),
                 ),
             )
             cur.execute(
@@ -291,7 +294,10 @@ class Timescale:  # pylint: disable=R0902
         end_time = datetime.now(timezone.utc)
         try:
             with self.dbcursor() as cur:
-                cur.execute("UPDATE testrun SET end_time = %s where id = %s", (end_time, self._run_id))
+                cur.execute(
+                    "UPDATE testrun SET end_time = %s, exit_code = %s where id = %s",
+                    (end_time, exit_code, self._run_id),
+                )
                 cur.execute(
                     "INSERT INTO events (time, text) VALUES (%s, %s)",
                     (end_time, self._testplan + f" finished with exit code: {exit_code}"),
