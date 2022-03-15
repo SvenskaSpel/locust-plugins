@@ -2,7 +2,7 @@ version: "3"
 
 services:
   postgres:
-    image: cyberw/locust-timescale:latest
+    image: cyberw/locust-timescale:2
     networks:
       - timenet
     expose:
@@ -44,7 +44,7 @@ services:
     depends_on:
       grafana:
         condition: service_healthy
-    image: cyberw/locust-timescale:latest
+    image: cyberw/locust-timescale:2
     networks:
       - timenet
     command:
