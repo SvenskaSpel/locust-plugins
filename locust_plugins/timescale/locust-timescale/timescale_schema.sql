@@ -176,7 +176,7 @@ CREATE TABLE public.testrun (
     changeset_guid character varying(36),
     fail_ratio double precision,
     requests integer,
-    command text,
+    arguments text,
     exit_code integer
 );
 
