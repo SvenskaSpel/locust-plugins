@@ -192,7 +192,7 @@ class Timescale:  # pylint: disable=R0902
             logging.error("Failed to write samples to Postgresql timescale database: " + repr(error))
             os._exit(1)
 
-    def on_quit(self, exit_code, **kwargs):
+    def on_quit(self, exit_code, **_kwargs):
         self._finished = True
         atexit._clear()  # make sure we dont capture additional ctrl-c:s # pylint: disable=protected-access
         self._background.join(timeout=10)
