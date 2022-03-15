@@ -73,7 +73,7 @@ class Timescale:  # pylint: disable=R0902
         events = self.env.events
         events.test_start.add_listener(self.on_start)
         events.request.add_listener(self.on_request)
-        events.quitting.add_listener(self.quitting)
+        events.quit.add_listener(self.on_quit)
         events.spawning_complete.add_listener(self.spawning_complete)
         atexit.register(self.log_stop_test_run)
 
@@ -192,14 +192,13 @@ class Timescale:  # pylint: disable=R0902
             logging.error("Failed to write samples to Postgresql timescale database: " + repr(error))
             os._exit(1)
 
-    def quitting(self, **kwargs):
-        code = kwargs.pop("code", -1)
+    def on_quit(self, exit_code, **kwargs):
         self._finished = True
         atexit._clear()  # make sure we dont capture additional ctrl-c:s # pylint: disable=protected-access
         self._background.join(timeout=10)
         if getattr(self, "_user_count_logger", False):
             self._user_count_logger.kill()
-        self.log_stop_test_run(code)
+        self.log_stop_test_run(exit_code)
 
     def on_request(
         self,
@@ -292,7 +291,7 @@ class Timescale:  # pylint: disable=R0902
                     "Failed to insert rampup complete event time to Postgresql timescale database: " + repr(error)
                 )
 
-    def log_stop_test_run(self, exit_code="unknown"):
+    def log_stop_test_run(self, exit_code=None):
         if is_worker():
             return  # only run on master or standalone
         if not self.dbconn:
