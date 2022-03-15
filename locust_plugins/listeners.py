@@ -258,7 +258,7 @@ class Timescale:  # pylint: disable=R0902
         del cmd[0]
         with self.dbcursor() as cur:
             cur.execute(
-                "INSERT INTO testrun (id, testplan, num_clients, rps, description, env, username, gitrepo, changeset_guid, settings) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+                "INSERT INTO testrun (id, testplan, num_clients, rps, description, env, username, gitrepo, changeset_guid, arguments) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
                 (
                     self._run_id,
                     self._testplan,
