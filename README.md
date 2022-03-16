@@ -16,7 +16,7 @@ Having this separate from "Locust core" allows the plugins to evolve faster (at 
 
 ## Listeners 
 - Listen to events and log things
-    - Timescale: Log and graph results using TimescaleDB and Grafana ([readme](locust_plugins/dashboards/), [source](locust_plugins/listeners.py))
+    - Timescale: Log and graph results using TimescaleDB and Grafana dashboards ([readme](locust_plugins/dashboards/), [source](locust_plugins/listeners.py))
     - Print: Prints prints every request to standard out with response time etc ([source](locust_plugins/listeners.py))
     - Jmeter: Writes a jmeter-like output file ([example](examples/jmeter_listener_example.py), [source](locust_plugins/jmeter_listener.py))
     - ApplicationInsights: Writes the test logs to Azure Application Insights ([example](examples/appinsights_listener_ex.py), [source](locust_plugins/appinsights_listener.py))
