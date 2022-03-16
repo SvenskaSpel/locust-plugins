@@ -79,11 +79,11 @@ If you hadn't already guessed it from the output, `locust-compose` is just a thi
 
 Both timescale data and any grafana dashboard edits are persisted as docker volumes even if you shut it down. If you do want to remove the data volumes, run `locust-compose down -v`.
 
-For security reasons, the ports for logging to Timescale and accessing Grafana only accessible on localhost. If you want them to be reachable from the outside (e.g. to run a distributed test with workers running on a different machine), download [docker-compose.yml](https://github.com/SvenskaSpel/locust-plugins/blob/master/locust_plugins/dashboards/docker-compose.yml) file, edit it as needed.
+For security reasons, the ports for logging to Timescale and accessing Grafana only accessible on localhost. If you want them to be reachable from the outside (e.g. to run a distributed test with workers running on a different machine), download [docker-compose.yml](https://github.com/SvenskaSpel/locust-plugins/blob/master/locust_plugins/dashboards/docker-compose.yml) and edit the `port` directives.
 
 ## Manual setup
 
-1. Set up a Postgres instance, install Timescale (or use the ready-made one from Docker Hub: cyberw/locust-timescale:latest)
+1. Set up a Postgres instance, install Timescale (or use the ready-made one from Docker Hub: `cyberw/locust-timescale:<version number>`)
 2. Set/export Postgres environment variables to point to your instance (PGHOST, PGPORT, PGUSER, PGPASSWORD)
 3. If you didnt use the pre-built docker image, set up the tables by running something like `psql < timescale_schema.sql` (https://github.com/SvenskaSpel/locust-plugins/blob/master/locust_plugins/dashboards/locust-timescale/timescale_schema.sql)
 4. Set up Grafana. Edit the variables in [grafana_setup.sh](locust-timescale/grafana_setup.sh) and run it to set up a datasource pointing to your Timescale and import the Locust dashboards from grafana.com (or you can do it manually from [here](https://grafana.com/grafana/dashboards/10878)).
