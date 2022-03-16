@@ -30,12 +30,6 @@ services:
       - 127.0.0.1:3000:3000
     networks:
       - timenet
-    # define a health check so that setup doesnt start too soon
-    healthcheck:
-      test: [ "CMD", "nc", "-z", "-v", "localhost", "3000" ]
-      interval: 1s
-      timeout: 3s
-      retries: 60
     volumes:
       - grafana_data:/var/lib/grafana
 
