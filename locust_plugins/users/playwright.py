@@ -269,8 +269,6 @@ class PlaywrightScriptUser(PlaywrightUser):
     script = None
 
     def __init__(self, parent):
-        super().__init__(parent)
-
         with open(self.script, encoding="UTF-8") as f:
             code = f.read()
         p = ast.parse(code)
@@ -308,6 +306,9 @@ class PlaywrightScriptUser(PlaywrightUser):
         import mod  # type: ignore # pylint: disable-all
 
         self.pwrun = mod.run  # cant name it "run", because that collides with User.run
+
+        # multiplier in the base constructor copies the instance into sub-users so we need to do this AFTER setting self.pwrun
+        super().__init__(parent)
 
     @task
     @pw
