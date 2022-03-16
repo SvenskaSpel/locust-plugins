@@ -14,4 +14,4 @@ locust -f locustfile_that_imports_locust_plugins.py -u 5 -t 60 --headless -i 10
 # Note that in a distributed run the parameter needs to be set on the workers, it is (currently) not distributed from master to worker.
 
 locust -f locustfile_that_imports_locust_plugins.py --headless --timescale
-# Log results to a Timescale database, see https://github.com/SvenskaSpel/locust-plugins/blob/master/locust_plugins/timescale/
+# Log results to a Timescale database, see https://github.com/SvenskaSpel/locust-plugins/blob/master/locust_plugins/dashboards/
