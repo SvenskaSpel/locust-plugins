@@ -12,3 +12,4 @@ src
 env
 .python-version
 _version.py
+examples/screenshot_*

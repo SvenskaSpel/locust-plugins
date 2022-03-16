@@ -18,7 +18,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
   grafana:
-    image: grafana/grafana:latest
+    image: cyberw/locust-grafana:1
     environment:
       # these settings are not particularly safe, dont go exposing Grafana externally without changing this.
       - GF_AUTH_DISABLE_LOGIN_FORM=true
@@ -38,27 +38,6 @@ services:
       retries: 60
     volumes:
       - grafana_data:/var/lib/grafana
-
-  setup_grafana:
-    # sets up Grafana datasource and imports the latest dashboards from grafana.com
-    depends_on:
-      grafana:
-        condition: service_healthy
-    image: cyberw/locust-timescale:2
-    networks:
-      - timenet
-    command:
-      [
-        "bash",
-        "-c",
-        "sleep 2 && /commands/grafana_setup.sh && echo
-          '--------------------------------------------------------------------\
-          ------------------------------------------' && echo 'You can now
-          connect to Grafana, the main dashboard is at
-          http://localhost:3000/d/qjIIww4Zz?from=now-15m&to=now' && echo
-          '--------------------------------------------------------------------\
-          ------------------------------------------ '"
-      ]
 
 networks:
   timenet: null
