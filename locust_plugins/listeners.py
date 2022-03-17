@@ -140,7 +140,7 @@ class Timescale:  # pylint: disable=R0902
             )
         except Exception:
             logging.error(
-                "Could not connect to postgres. Use standard postgres env vars or --pg* command line options to specify where to report locust samples (https://www.postgresql.org/docs/11/libpq-envars.html)"
+                "Could not connect to postgres. Use standard postgres env vars or --pg* command line options to specify where to report locust samples (https://www.postgresql.org/docs/13/libpq-envars.html)"
             )
             raise
         conn.autocommit = True
