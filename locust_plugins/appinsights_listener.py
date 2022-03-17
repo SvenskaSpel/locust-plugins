@@ -25,17 +25,13 @@ class ApplicationInsights:
             custom_dimensions = self._create_custom_dimensions_dict(
                 request_type, "Failure", response_time, response_length, name, exception
             )
-            message_to_log = "Failure: {} {} Response time: {} Number of Threads: {} Exception: {}.".format(
-                str(request_type), str(name), str(response_time), custom_dimensions["thread_count"], str(exception)
-            )
+            message_to_log = f"Failure: {request_type} {name} Response time: {response_time} Number of Threads: {custom_dimensions['thread_count']} Exception: {exception}."
             self.logger.error(message_to_log, extra={"custom_dimensions": custom_dimensions})
         else:
             custom_dimensions = self._create_custom_dimensions_dict(
                 request_type, "Success", response_time, response_length, name
             )
-            message_to_log = "Success: {} {} Response time: {} Number of Threads: {}.".format(
-                str(request_type), str(name), str(response_time), custom_dimensions["thread_count"]
-            )
+            message_to_log = f"Success: {request_type} {name} Response time: {response_time} Number of Threads: {custom_dimensions['thread_count']}."
             self.logger.info(message_to_log, extra={"custom_dimensions": custom_dimensions})
 
     def _create_custom_dimensions_dict(self, method, result, response_time, response_length, endpoint, exception=None):
