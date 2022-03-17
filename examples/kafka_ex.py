@@ -19,7 +19,7 @@ class MyUser(KafkaUser):
 # And it is probably out of date. Probably best to ignore this.
 #
 # @events.init.add_listener
-# def on_locust_init(environment, **_kwargs):
+# def on_locust_init(environment, **kwargs):
 #     consumer = KafkaConsumer(MyUser.bootstrap_servers)
 #     tp = TopicPartition("my_topic", 0)
 #     consumer.assign([tp])

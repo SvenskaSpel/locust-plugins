@@ -20,7 +20,7 @@ class ApplicationInsights:
 
         env.events.request.add_listener(self.request)
 
-    def request(self, request_type, name, response_time, response_length, exception, **_kwargs):
+    def request(self, request_type, name, response_time, response_length, exception, **kwargs):
         if exception:
             custom_dimensions = self._create_custom_dimensions_dict(
                 request_type, "Failure", response_time, response_length, name, exception

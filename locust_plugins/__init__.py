@@ -164,7 +164,7 @@ _timescale_added = False
 
 
 @events.init.add_listener
-def on_locust_init(environment, **_kwargs):
+def on_locust_init(environment, **kwargs):
     if environment.parsed_options.timescale:
         global _timescale_added
         if not _timescale_added:
@@ -173,7 +173,7 @@ def on_locust_init(environment, **_kwargs):
 
 
 @events.test_start.add_listener
-def set_up_iteration_limit(environment: Environment, **_kwargs):
+def set_up_iteration_limit(environment: Environment, **kwargs):
     options = environment.parsed_options
     locust.stats.CONSOLE_STATS_INTERVAL_SEC = environment.parsed_options.console_stats_interval
     if options.iterations:

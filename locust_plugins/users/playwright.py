@@ -317,7 +317,7 @@ class PlaywrightScriptUser(PlaywrightUser):
 
 
 @events.test_start.add_listener
-def on_start(environment, **_kwargs):
+def on_start(environment, **kwargs):
     global loop
     loop = asyncio.new_event_loop()
     try:
@@ -327,7 +327,7 @@ def on_start(environment, **_kwargs):
 
 
 @events.test_stop.add_listener
-def on_stop(environment, **_kwargs):
+def on_stop(environment, **kwargs):
     loop.stop()
     # yappi.stop()
     # yappi.get_func_stats().print_all()
@@ -335,7 +335,7 @@ def on_stop(environment, **_kwargs):
 
 
 @events.quitting.add_listener
-def on_locust_quit(environment, **_kwargs):
+def on_locust_quit(environment, **kwargs):
     # Playwright outputs control codes that alter the terminal, so we need to reset it
     # suppress any error output in case it is not a real terminal
     os.system("reset 2>/dev/null")

@@ -192,7 +192,7 @@ class Timescale:  # pylint: disable=R0902
             logging.error("Failed to write samples to Postgresql timescale database: " + repr(error))
             os._exit(1)
 
-    def on_quit(self, exit_code, **_kwargs):
+    def on_quit(self, exit_code, **kwargs):
         self._finished = True
         atexit._clear()  # make sure we dont capture additional ctrl-c:s # pylint: disable=protected-access
         self._background.join(timeout=10)
@@ -210,7 +210,7 @@ class Timescale:  # pylint: disable=R0902
         context,
         start_time=None,
         url=None,
-        **_kwargs,
+        **kwargs,
     ):
         success = 0 if exception else 1
         if start_time:
@@ -358,7 +358,7 @@ class Print:
         )
 
     def on_request(
-        self, request_type, name, response_time, response_length, exception, context: dict, start_time=None, **_kwargs
+        self, request_type, name, response_time, response_length, exception, context: dict, start_time=None, **kwargs
     ):
         if exception:
             if isinstance(exception, CatchResponseError):
@@ -405,7 +405,7 @@ class RescheduleTaskOnFail:
         # causing other listeners to be skipped
         env.events.request.add_listener(self.request)
 
-    def request(self, exception, **_kwargs):
+    def request(self, exception, **kwargs):
         if exception:
             raise RescheduleTask(exception)
 
@@ -416,7 +416,7 @@ class InterruptTaskOnFail:
         # causing other listeners to be skipped
         env.events.request.add_listener(self.request)
 
-    def request(self, exception, **_kwargs):
+    def request(self, exception, **kwargs):
         if exception:
             raise InterruptTaskSet()
 
@@ -427,7 +427,7 @@ class StopUserOnFail:
         # causing other listeners to be skipped
         env.events.request.add_listener(self.request)
 
-    def request(self, exception, **_kwargs):
+    def request(self, exception, **kwargs):
         if exception:
             raise StopUser()
 
@@ -438,7 +438,7 @@ class ExitOnFail:
         # causing other listeners to be skipped
         env.events.request.add_listener(self.request)
 
-    def request(self, exception, **_kwargs):
+    def request(self, exception, **kwargs):
         if exception:
             gevent.sleep(0.2)  # wait for other listeners output to flush / write to db
             os._exit(1)
@@ -452,7 +452,7 @@ class QuitOnFail:
         self.env = env
         env.events.request.add_listener(self.request)
 
-    def request(self, exception, name, **_kwargs):
+    def request(self, exception, name, **kwargs):
         if exception and (name == self.name or not self.name):
             gevent.sleep(0.2)  # wait for other listeners output to flush / write to db
             self.env.runner.quit()

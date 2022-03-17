@@ -117,7 +117,7 @@ class MyUser(WebdriverUser):
 
 
 @events.init.add_listener
-def on_locust_init(environment, **_kwargs):
+def on_locust_init(environment, **kwargs):
     RescheduleTaskOnFail(environment)
 
 

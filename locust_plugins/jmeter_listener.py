@@ -113,7 +113,7 @@ class JmeterListener:
         self.results_file.flush()
         self.csv_results = []
 
-    def _write_final_log(self, **_kwargs):
+    def _write_final_log(self, **kwargs):
         self.results_file.write(self.row_delimiter.join(self.csv_results) + self.row_delimiter)
         self.results_file.close()
 
@@ -158,11 +158,11 @@ class JmeterListener:
             "false" if exception else "true", request_type, name, response_time, response_length, str(exception), **kw
         )
 
-    def _report_to_master(self, data, **_kwargs):
+    def _report_to_master(self, data, **kwargs):
         data["csv_results"] = self.csv_results
         self.csv_results = []
 
-    def _worker_report(self, data, **_kwargs):
+    def _worker_report(self, data, **kwargs):
         self.csv_results += data["csv_results"]
         if len(self.csv_results) >= self.flush_size:
             self._flush_to_log()

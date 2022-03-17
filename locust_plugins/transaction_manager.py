@@ -115,7 +115,7 @@ class TransactionManager:
         cls.transactions = []
 
     @classmethod
-    def _write_final_log(cls, **_kwargs):
+    def _write_final_log(cls, **kwargs):
         if not isinstance(cls.env.runner, WorkerRunner):
             if cls.log_transactions_in_file and not cls.results_file.closed:
                 cls.results_file_writer.writerows(cls.transactions)
@@ -141,7 +141,7 @@ class TransactionManager:
             cls.transactions_summary_filename = f"transactions_summary_{timestamp}.csv"
 
     @classmethod
-    def on_locust_init(cls, environment, runner, **_kwargs):
+    def on_locust_init(cls, environment, runner, **kwargs):
         cls.env = environment
         cls.runner = runner
         cls._init_filenames()
@@ -228,14 +228,14 @@ class TransactionManager:
         return summary
 
     @classmethod
-    def _report_to_master(cls, data, **_kwargs):
+    def _report_to_master(cls, data, **kwargs):
         data["transactions"] = cls.transactions
         cls.transactions = []
         data["completed_transactions"] = cls.completed_transactions
         cls.completed_transactions = {}
 
     @classmethod
-    def _worker_report(cls, data, **_kwargs):
+    def _worker_report(cls, data, **kwargs):
         if "transactions" in data:
             transactions = data["transactions"]
             cls.transactions += transactions

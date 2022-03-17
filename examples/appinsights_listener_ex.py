@@ -12,5 +12,5 @@ class MyHttpUser(HttpUser):
 
 
 @events.init.add_listener
-def on_locust_init(environment, **_kwargs):
+def on_locust_init(environment, **kwargs):
     ApplicationInsights(env=environment, instrumentation_key="<YOUR-APP-INSIGHTS-INSTRUMENTATION-KEY>")
