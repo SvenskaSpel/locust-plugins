@@ -8,7 +8,7 @@ docstring-min-length=100
 # allow single letter variable names
 variable-rgx=[a-z0-9_]{1,30}$
 attr-rgx=[a-z0-9_]{1,30}$
-ignored-argument-names=_.*|^ignored_|^unused_|kwargs
+ignored-argument-names=_.*|^ignored_|^unused_|kwargs|resp
 
 [MESSAGES CONTROL]
 disable=logging-not-lazy,logging-fstring-interpolation,missing-docstring,wrong-import-position,wrong-import-order,too-few-public-methods,invalid-name,protected-access,logging-format-interpolation,dangerous-default-value,global-statement,bad-continuation,too-many-locals,too-many-arguments,too-many-instance-attributes,no-self-use,blacklisted-name,no-value-for-parameter,attribute-defined-outside-init,broad-except,bare-except,consider-using-with,too-many-branches,unspecified-encoding

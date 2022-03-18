@@ -71,7 +71,7 @@ class MyUser(RestUser):
             1 / 0  # pylint: disable=pointless-statement
 
         # response isnt even json, but RestUser will already have been marked it as a failure, so we dont have to do it again
-        with self.rest("GET", "/") as _resp:
+        with self.rest("GET", "/") as resp:
             pass
 
         with self.rest("GET", "/") as resp:
@@ -83,11 +83,11 @@ class MyUser(RestUser):
             assert not resp.js or resp.js["foo"] == 2
 
         # 404
-        with self.rest("GET", "http://example.com/") as _resp:
+        with self.rest("GET", "http://example.com/") as resp:
             pass
 
         # connection closed
-        with self.rest("POST", "http://example.com:42/", json={"foo": 1}) as _resp:
+        with self.rest("POST", "http://example.com:42/", json={"foo": 1}) as resp:
             pass
 
 
@@ -110,7 +110,7 @@ class MyOtherRestUser(RestUserThatLooksAtErrors):
 
     @task
     def t(self):
-        with self.rest("GET", "/") as _resp:
+        with self.rest("GET", "/") as resp:
             pass
 
 
