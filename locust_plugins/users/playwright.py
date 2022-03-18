@@ -180,13 +180,69 @@ def pw(func):
     return pwwrapFunc
 
 
+import typing
+from typing import Literal
+from playwright.async_api import Position
+
+
+async def click_retry(
+    self: "PageWithRetry",
+    # I had to copy all the arguments instead of using *args/**kwargs to get type hints
+    selector: str,
+    *,
+    modifiers: typing.Optional[typing.List[Literal["Alt", "Control", "Meta", "Shift"]]] = None,
+    position: Position = None,  # type: ignore
+    delay: float = None,
+    button: Literal["left", "middle", "right"] = None,
+    click_count: int = None,
+    timeout: float = None,
+    force: bool = None,
+    no_wait_after: bool = None,
+    trial: bool = None,
+    strict: bool = None,
+    retries: int = 2,
+    **kwargs,  # just in case playwright adds some parameter in the future
+):
+    for attempt in range(retries + 1):
+        try:
+            await self.click(
+                selector=selector,
+                modifiers=modifiers,
+                position=position,
+                delay=delay,
+                button=button,
+                click_count=click_count,
+                timeout=timeout,
+                force=force,
+                no_wait_after=no_wait_after,
+                trial=trial,
+                strict=strict,
+                **kwargs,
+            )
+        except Exception as e:
+            logging.debug(f"couldnt click, got {e}")
+            if attempt == retries - 1:
+                raise
+            gevent.sleep(0)
+        else:
+            break  # success!
+
+
+Page.click_retry = click_retry
+
+
+class PageWithRetry(Page):  # just to make autocomplete/type hinting work
+    click_retry = click_retry
+
+
 class PlaywrightUser(User):
     abstract = True
     headless = None
     playwright: Playwright = None
     browser: Browser = None
+    browser_type = "chromium"  # "chromium", "chrome" or "firefox"
     browser_context: BrowserContext = None
-    page: Page = None
+    page: PageWithRetry = None
     error_screenshot_made = False
     multiplier = 1  # how many concurrent Playwright sessions/browsers to run for each Locust User instance. Setting this to ~10 is an efficient way to reduce overhead.
     sub_users = []

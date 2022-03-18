@@ -9,7 +9,7 @@
 
 
 from locust import run_single_user, task
-from locust_plugins.users.playwright import PlaywrightUser, PlaywrightScriptUser, pw, event
+from locust_plugins.users.playwright import PageWithRetry, PlaywrightUser, PlaywrightScriptUser, pw, event
 
 
 class ScriptBased(PlaywrightScriptUser):
@@ -23,7 +23,7 @@ class Manual(PlaywrightUser):
 
     @task
     @pw
-    async def google(self, page):
+    async def google(self, page: PageWithRetry):
         try:
             async with event(self, "Load up google"):  # log this as an event
                 await page.goto("/")  # load a page
@@ -31,6 +31,8 @@ class Manual(PlaywrightUser):
             async with event(self, "Approve terms and conditions"):
                 async with page.expect_navigation(wait_until="domcontentloaded"):
                     await page.click('button:has-text("Jag godkänner")')  # Click "I approve" in swedish...
+                    # sometimes even Playwright has issues with stability (especially under high load)
+                    await page.click_retry('[aria-label="Sök"]', retries=1)
         except:
             pass
 
