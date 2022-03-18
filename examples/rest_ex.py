@@ -110,7 +110,7 @@ class MyOtherRestUser(RestUserThatLooksAtErrors):
 
     @task
     def t(self):
-        with self.rest("GET", "/") as resp:
+        with self.rest("GET", "/") as _resp:
             pass
 
 
