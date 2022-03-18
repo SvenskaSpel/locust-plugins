@@ -181,7 +181,7 @@ def pw(func):
 
 
 import typing
-from typing import Literal
+from typing_extensions import Literal
 from playwright.async_api import Position
 
 

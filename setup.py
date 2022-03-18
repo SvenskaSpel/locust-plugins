@@ -44,6 +44,7 @@ setup(
         "opencensus-ext-azure",
         "paho-mqtt>=1.5.0",
         "python-autoviv",
+        "typing-extensions",
     ],
     scripts=["bin/locust-compose"],
     use_scm_version={
