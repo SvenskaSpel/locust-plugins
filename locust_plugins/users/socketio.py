@@ -18,7 +18,7 @@ class SocketIOUser(User):
 
     abstract = True
 
-    def connect(self, host: str, header: list):
+    def connect(self, host: str, header=[]):
         self.ws = websocket.create_connection(host, header=header)
         gevent.spawn(self.receive_loop)
 
