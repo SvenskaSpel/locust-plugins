@@ -4,7 +4,7 @@ It extends FastHttpUser by adding the `rest`-method, a wrapper around self.clien
 * automatically passes catch_response=True
 * automatically sets content-type and accept headers to application/json (unless you have provided your own headers)
 * automatically checks that the response is valid json, parses it into a RestResponse and saves it in a field called `js` in the response object.
-    (RestResponse support safe navication so if your json was {"foo": 42}, resp.js["bar"]["baz"] returns None instead of throwing an exception)
+    (RestResponse support safe navigation so if your json was {"foo": 42}, resp.js["bar"]["baz"] returns None instead of throwing an exception)
 * catches any exceptions thrown in your with-block and fails the sample (this probably should have been the default behaviour in Locust)
 """
 
