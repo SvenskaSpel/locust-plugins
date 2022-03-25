@@ -17,13 +17,12 @@ class SocketIOUser(User):
     """
 
     abstract = True
+    message_regex = re.compile(r"(\d*)(.*)")
+    description_regex = re.compile(r"<([0-9]+)>$")
 
     def connect(self, host: str, header=[]):
         self.ws = websocket.create_connection(host, header=header)
         gevent.spawn(self.receive_loop)
-
-    message_regex = re.compile(r"(\d*)(.*)")
-    description_regex = re.compile(r"<([0-9]+)>$")
 
     def on_message(self, message):  # override this method in your subclass for custom handling
         m = self.message_regex.match(message)
