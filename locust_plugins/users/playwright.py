@@ -35,7 +35,7 @@ loop: asyncio.AbstractEventLoop = None
 
 def sync(async_func):
     """
-    Make a synchronous function from an async
+    Make a synchronous function from an async. When called, it will be executed once for every sub-user (as specified in multiplier)
     """
 
     def wrapFunc(self: User):
@@ -82,7 +82,7 @@ async def event(
         )
     except Exception as e:
         try:
-            error = CatchResponseError(re.sub("=======*", "", e.message).replace("\n", "").replace(" logs ", " "))
+            error = CatchResponseError(re.sub("=======*", "", e.message).replace("\n", "").replace(" logs ", " ")[:500])
         except:
             error = e  # never mind
         if not user.error_screenshot_made:
@@ -117,9 +117,7 @@ def pw(func):
     """
     1. Converts the decorated method from async to regular using sync()
     2. Sets up a new BrowserContext if there isnt one already
-    3. Creates a new Page
-    4. (runs the decorated method)
-    5. Fires a request event after finishing.
+    3. Runs the decorated method (for all sub-users)
     """
 
     @sync
@@ -263,53 +261,56 @@ class PlaywrightUser(User):
         if self.playwright is None:
             self.playwright = await async_playwright().start()
         if self.browser is None:
-            self.browser = await self.playwright.chromium.launch(
-                headless=self.headless or self.headless is None and self.environment.runner is not None,
-                args=[
-                    "--disable-gpu",
-                    "--disable-setuid-sandbox",
-                    "--disable-accelerated-2d-canvas",
-                    "--no-zygote",
-                    # "--frame-throttle-fps=10",
-                    # didnt seem to help much:
-                    # "--single-process",
-                    #
-                    "--enable-profiling",
-                    "--profiling-at-start=renderer",
-                    "--no-sandbox",
-                    "--profiling-flush",
-                    # maybe even made it worse?
-                    # "--disable-gpu-vsync",
-                    # "--disable-site-isolation-trials",
-                    # "--disable-features=IsolateOrigins",
-                    #
-                    # maybe a little better?
-                    "--disable-blink-features=AutomationControlled",
-                    "--disable-blink-features",
-                    "--disable-translate",
-                    "--safebrowsing-disable-auto-update",
-                    "--disable-sync",
-                    "--hide-scrollbars",
-                    "--disable-notifications",
-                    "--disable-logging",
-                    "--disable-permissions-api",
-                    "--ignore-certificate-errors",
-                    # made no difference
-                    "--proxy-server='direct://'",
-                    "--proxy-bypass-list=*",
-                    # seems to help a little?
-                    "--blink-settings=imagesEnabled=false",
-                    # "--profile-directory=tmp/chromium-profile-dir-"
-                    # + "".join(random.choices("abcdef" + string.digits, k=8)),
-                    "--host-resolver-rules=MAP www.googletagmanager.com 127.0.0.1, MAP www.google-analytics.com 127.0.0.1, MAP *.facebook.* 127.0.0.1, MAP assets.adobedtm.com 127.0.0.1, MAP s2.adform.net 127.0.0.1",
-                    "--no-first-run",
-                    #
-                    "--disable-audio-output",
-                    "--disable-canvas-aa",
-                ],
-                # we have plenty of space on /dev/shm, and this was causing issues for us, so skip that:
-                ignore_default_args=["--disable-dev-shm-usage"],
-            )
+            if self.browser_type == "firefox":
+                self.browser = await self.playwright.firefox.launch(
+                    headless=self.headless or self.headless is None and self.environment.runner is not None,
+                )
+            elif self.browser_type in ["chromium", "chrome"]:
+                self.browser = await self.playwright.chromium.launch(
+                    headless=self.headless or self.headless is None and self.environment.runner is not None,
+                    channel=self.browser_type,
+                    args=[
+                        "--disable-gpu",
+                        "--disable-setuid-sandbox",
+                        "--disable-accelerated-2d-canvas",
+                        "--no-zygote",
+                        "--frame-throttle-fps=10",
+                        # didnt seem to help much:
+                        # "--single-process",
+                        #
+                        # "--enable-profiling",
+                        # "--profiling-at-start=renderer",
+                        "--no-sandbox",
+                        # "--profiling-flush",
+                        # maybe even made it worse?
+                        # "--disable-gpu-vsync",
+                        # "--disable-site-isolation-trials",
+                        # "--disable-features=IsolateOrigins",
+                        #
+                        # maybe a little better?
+                        "--disable-blink-features=AutomationControlled",
+                        "--disable-blink-features",
+                        "--disable-translate",
+                        "--safebrowsing-disable-auto-update",
+                        "--disable-sync",
+                        "--hide-scrollbars",
+                        "--disable-notifications",
+                        "--disable-logging",
+                        "--disable-permissions-api",
+                        "--ignore-certificate-errors",
+                        # made no difference
+                        "--proxy-server='direct://'",
+                        "--proxy-bypass-list=*",
+                        # seems to help a little?
+                        "--blink-settings=imagesEnabled=false",
+                        "--host-resolver-rules=MAP www.googletagmanager.com 127.0.0.1, MAP www.google-analytics.com 127.0.0.1, MAP *.facebook.* 127.0.0.1, MAP assets.adobedtm.com 127.0.0.1, MAP s2.adform.net 127.0.0.1",
+                        "--no-first-run",
+                        "--disable-audio-output",
+                        "--disable-canvas-aa",
+                    ],
+                )
+            else:
+                raise Exception(f"Unknown browser type specified: {self.browser_type}")
 
 
 class PlaywrightScriptUser(PlaywrightUser):
