@@ -6,6 +6,9 @@ import time
 from contextlib import contextmanager
 import os
 from abc import ABC, abstractmethod
+from gevent.lock import Semaphore
+
+dblock = Semaphore()
 
 
 class NoUserException(Exception):
@@ -15,9 +18,10 @@ class NoUserException(Exception):
 class User(dict):
     def __init__(self, coll: pymongo.collection.Collection, query: dict):
         self.coll = coll
-        data = self.coll.find_one_and_update(
-            query, {"$set": {"last_login": datetime.utcnow(), "logged_in": True}}, sort=[("last_login", 1)]
-        )
+        with dblock:
+            data = self.coll.find_one_and_update(
+                query, {"$set": {"last_login": datetime.utcnow(), "logged_in": True}}, sort=[("last_login", 1)]
+            )
         if not data:
             raise NoUserException(f"Didnt get any user from db ({self.coll}) using query {query}")
         super().__init__(data)
