@@ -18,7 +18,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
   grafana:
-    image: cyberw/locust-grafana:1
+    image: cyberw/locust-grafana:2
     environment:
       # these settings are not particularly safe, dont go exposing Grafana externally without changing this.
       - GF_AUTH_DISABLE_LOGIN_FORM=true
