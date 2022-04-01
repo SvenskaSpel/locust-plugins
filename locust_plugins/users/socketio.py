@@ -112,20 +112,17 @@ class SocketIOUser(User):
     
     def send_binary(self, body, name=None, context={}):
         if not name:
-            if body == "2":
-                name = "2 heartbeat"
-            else:
-                # hoping this is a subscribe type message, try to detect name
-                m = re.search(r'(\d*)\["([a-z]*)"', body)
-                assert m is not None
-                code = m.group(1)
-                action = m.group(2)
-                url_part = re.search(r'"url": *"([^"]*)"', body)
-                assert url_part is not None
-                url = re.sub(r"/[0-9_]*/", "/:id/", url_part.group(1))
-                name = f"{code} {action} url: {url}"
-
-        self.environment.events.request.fire(
+            name = "Sent Binary Message: "+ str(body)
+        if not body:
+            self.environment.events.request_failure.fire(
+            request_type="WSS",
+            name=name,
+            response_time=None,
+            response_length=0,
+            exception=Exception("None is sent when sending out Binary Message."),
+        )
+        else:
+           self.environment.events.request.fire(
             request_type="WSS",
             name=name,
             response_time=None,
@@ -134,7 +131,7 @@ class SocketIOUser(User):
             context={**self.context(), **context},
         )
         logging.debug(f"WSS: {body}")
-        self.ws.send_binary(body)
+        self.ws.send(body，ABNF.OPCODE_BINARY)
 
     def sleep_with_heartbeat(self, seconds):
         while seconds >= 0:
