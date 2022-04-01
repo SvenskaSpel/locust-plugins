@@ -5,6 +5,7 @@ import time
 import gevent
 import websocket
 from locust import User
+from websocket._abnf import *
 
 
 class SocketIOUser(User):
@@ -108,6 +109,32 @@ class SocketIOUser(User):
         )
         logging.debug(f"WSS: {body}")
         self.ws.send(body)
+    
+    def send_binary(self, body, name=None, context={}):
+        if not name:
+            if body == "2":
+                name = "2 heartbeat"
+            else:
+                # hoping this is a subscribe type message, try to detect name
+                m = re.search(r'(\d*)\["([a-z]*)"', body)
+                assert m is not None
+                code = m.group(1)
+                action = m.group(2)
+                url_part = re.search(r'"url": *"([^"]*)"', body)
+                assert url_part is not None
+                url = re.sub(r"/[0-9_]*/", "/:id/", url_part.group(1))
+                name = f"{code} {action} url: {url}"
+
+        self.environment.events.request.fire(
+            request_type="WSS",
+            name=name,
+            response_time=None,
+            response_length=len(body),
+            exception=None,
+            context={**self.context(), **context},
+        )
+        logging.debug(f"WSS: {body}")
+        self.ws.send_binary(body)
 
     def sleep_with_heartbeat(self, seconds):
         while seconds >= 0:
