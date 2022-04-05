@@ -95,7 +95,7 @@ class Timescale:  # pylint: disable=R0902
             self.dbconn = self._dbconn()
         except psycopg2.OperationalError as e:
             logging.error(e)
-            os._exit(1)
+            sys.exit(1)
         try:
             self._gitrepo = subprocess.check_output(
                 "git remote show origin -n 2>/dev/null | grep h.URL | sed 's/.*://;s/.git$//' || true",
@@ -190,7 +190,7 @@ class Timescale:  # pylint: disable=R0902
 
         except psycopg2.Error as error:
             logging.error("Failed to write samples to Postgresql timescale database: " + repr(error))
-            os._exit(1)
+            sys.exit(1)
 
     def on_quit(self, exit_code, **kwargs):
         self._finished = True
@@ -441,7 +441,7 @@ class ExitOnFail:
     def request(self, exception, **kwargs):
         if exception:
             gevent.sleep(0.2)  # wait for other listeners output to flush / write to db
-            os._exit(1)
+            sys.exit(1)
 
 
 class QuitOnFail:
