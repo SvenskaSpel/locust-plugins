@@ -73,6 +73,7 @@ class Timescale:  # pylint: disable=R0902
         events = self.env.events
         events.test_start.add_listener(self.on_start)
         events.request.add_listener(self.on_request)
+        events.cpu_warning.add_listener(self.on_cpu_warning)
         events.quit.add_listener(self.on_quit)
         events.spawning_complete.add_listener(self.spawning_complete)
         atexit.register(self.log_stop_test_run)
@@ -89,6 +90,13 @@ class Timescale:  # pylint: disable=R0902
                 except:
                     pass
                 raise
+
+    def on_cpu_warning(self, environment: locust.env.Environment, cpu_usage):
+        with self.dbcursor() as cur:
+            cur.execute(
+                "INSERT INTO events (time, text) VALUES (%s, %s)",
+                (datetime.now(timezone.utc).isoformat(), f"{self._testplan} High CPU usage ({cpu_usage}%)"),
+            )
 
     def on_start(self, environment: locust.env.Environment):
         try:
