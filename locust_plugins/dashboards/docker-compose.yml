@@ -2,7 +2,7 @@ version: "3"
 
 services:
   postgres:
-    image: cyberw/locust-timescale:2
+    image: cyberw/locust-timescale:3
     networks:
       - timenet
     expose:
