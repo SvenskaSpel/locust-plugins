@@ -302,7 +302,7 @@ class PlaywrightUser(User):
                         "--proxy-server='direct://'",
                         "--proxy-bypass-list=*",
                         # seems to help a little?
-                        "--blink-settings=imagesEnabled=false",
+                        # "--blink-settings=imagesEnabled=false",
                         "--host-resolver-rules=MAP www.googletagmanager.com 127.0.0.1, MAP www.google-analytics.com 127.0.0.1, MAP *.facebook.* 127.0.0.1, MAP assets.adobedtm.com 127.0.0.1, MAP s2.adform.net 127.0.0.1",
                         "--no-first-run",
                         "--disable-audio-output",
