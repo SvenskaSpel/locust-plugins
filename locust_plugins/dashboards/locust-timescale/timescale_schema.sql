@@ -170,7 +170,7 @@ CREATE TABLE public.testrun (
     end_time timestamp with time zone,
     env character varying(10) NOT NULL,
     username character varying(64),
-    gitrepo character varying(40),
+    gitrepo character varying(120),
     rps_avg numeric,
     resp_time_avg numeric,
     changeset_guid character varying(36),
