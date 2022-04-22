@@ -82,6 +82,8 @@ class Timescale:  # pylint: disable=R0902
     def dbcursor(self):
         with self.dblock:
             try:
+                if self.dbconn.closed:
+                    self.dbconn = self._dbconn()
                 yield self.dbconn.cursor()
             except psycopg2.Error:
                 try:
