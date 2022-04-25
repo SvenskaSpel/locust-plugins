@@ -30,6 +30,10 @@ class User(dict):
         super().__setitem__(key, value)
         self.coll.find_one_and_update({"_id": self["_id"]}, {"$set": {key: value}})
 
+    def __delitem__(self, key):
+        super().__delitem__(key)
+        self.coll.find_one_and_update({"_id": self["_id"]}, {"$unset": {key: 1}})
+
 
 class Reader(ABC):
     @abstractmethod
