@@ -93,12 +93,14 @@ class Timescale:  # pylint: disable=R0902
                     pass
                 raise
 
-    def on_cpu_warning(self, environment: locust.env.Environment, cpu_usage):
+    def on_cpu_warning(self, environment: locust.env.Environment, cpu_usage, message=None, timestamp=None, **kwargs):
+        # passing a custom message & timestamp to the event is a haxx to allow using this event for reporting generic events
+        if not timestamp:
+            timestamp = datetime.now(timezone.utc).isoformat()
+        if not message:
+            message = f"{self._testplan} High CPU usage ({cpu_usage}%)"
         with self.dbcursor() as cur:
-            cur.execute(
-                "INSERT INTO events (time, text) VALUES (%s, %s)",
-                (datetime.now(timezone.utc).isoformat(), f"{self._testplan} High CPU usage ({cpu_usage}%)"),
-            )
+            cur.execute("INSERT INTO events (time, text) VALUES (%s, %s)", (timestamp, message))
 
     def on_start(self, environment: locust.env.Environment):
         try:
