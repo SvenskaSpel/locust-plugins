@@ -10,13 +10,13 @@ https://docs.aws.amazon.com/AmazonECS/latest/developerguide/load-balancer-types.
 """
 
 from contextlib import contextmanager
-from typing import Generator
+from typing import List, Optional, Generator
 from locust import FastHttpUser, HttpUser, events
 from locust.clients import HttpSession
 from locust.contrib.fasthttp import FastHttpSession
 from itertools import cycle
 from argparse import ArgumentParser
-from typing import Optional, List
+
 
 
 @events.init_command_line_parser.add_listener
@@ -111,22 +111,21 @@ class FastHttpPool:
 
         request_name = name if name else self.request_name
 
-        return next(self.pool).patch(path, data=data, name=request_name **kwargs)
+        return next(self.pool).patch(path, data=data, name=request_name ** kwargs)
 
     def post(self, path, data=None, name=None, **kwargs):
         """Sends a POST request"""
 
         request_name = name if name else self.request_name
 
-        return next(self.pool).post(path, data=data, name=request_name **kwargs)
+        return next(self.pool).post(path, data=data, name=request_name ** kwargs)
 
     def put(self, path, data=None, name=None, **kwargs):
         """Sends a PUT request"""
 
         request_name = name if name else self.request_name
 
-        return next(self.pool).put(path, data=data, name=request_name **kwargs)
-
+        return next(self.pool).put(path, data=data, name=request_name ** kwargs)
 
 
 class RequestPool:
@@ -221,12 +220,12 @@ class RequestPool:
 
 class ForceNewFastHTTPObj:
     def __init__(self, *, user: FastHttpUser):
-        """ A class that deals with Load balancer stickyness in a more agressive way.
-            For a every request a new session will be created and destroyed.
-            May negatively impact local performance
+        """A class that deals with Load balancer stickyness in a more agressive way.
+        For a every request a new session will be created and destroyed.
+        May negatively impact local performance
 
-            Args:
-            user (HttpUser): Instance of a HttpUser, pass in self in most circumstances
+        Args:
+        user (HttpUser): Instance of a HttpUser, pass in self in most circumstances
         """
 
         self.request_name = None
@@ -278,14 +277,14 @@ class ForceNewFastHTTPObj:
 
         request_name = name if name else self.request_name
 
-        return FastHttpSession(**self.session_info).options(path=path, name=request_name **kwargs)
+        return FastHttpSession(**self.session_info).options(path=path, name=request_name ** kwargs)
 
     def patch(self, path, data=None, name=None, **kwargs):
         """Sends a PATCH request"""
 
         request_name = name if name else self.request_name
 
-        return FastHttpSession(**self.session_info).patch(path=path, data=data, name=request_name **kwargs)
+        return FastHttpSession(**self.session_info).patch(path=path, data=data, name=request_name ** kwargs)
 
     def post(self, path, data=None, name=None, **kwargs):
         """Sends a POST request"""
@@ -304,20 +303,16 @@ class ForceNewFastHTTPObj:
 
 class ForceNewRequestObj:
     def __init__(self, *, user: HttpUser):
-        """ A class that deals with Load balancer stickyness in a more agressive way.
-            For a every request a new session will be created and destroyed.
-            May negatively impact local performance
+        """A class that deals with Load balancer stickyness in a more agressive way.
+        For a every request a new session will be created and destroyed.
+        May negatively impact local performance
 
-            Args:
-            user (HttpUser): Instance of a HttpUser, pass in self in most circumstances
+        Args:
+        user (HttpUser): Instance of a HttpUser, pass in self in most circumstances
         """
 
         self.request_name = None
-        self.session_info = {
-            "base_url": user.host,
-            "request_event": user.environment.events.request,
-            "user": user
-        }
+        self.session_info = {"base_url": user.host, "request_event": user.environment.events.request, "user": user}
 
     @contextmanager
     def rename_request(self, name: str) -> Generator[None, None, None]:
@@ -355,14 +350,14 @@ class ForceNewRequestObj:
 
         request_name = name if name else self.request_name
 
-        return HttpSession(**self.session_info).options(url=url, name=request_name **kwargs)
+        return HttpSession(**self.session_info).options(url=url, name=request_name ** kwargs)
 
     def patch(self, url, data=None, name=None, **kwargs):
         """Sends a PATCH request"""
 
         request_name = name if name else self.request_name
 
-        return HttpSession(**self.session_info).patch(url=url, data=data, name=request_name **kwargs)
+        return HttpSession(**self.session_info).patch(url=url, data=data, name=request_name ** kwargs)
 
     def post(self, url, data=None, name=None, **kwargs):
         """Sends a POST request"""
