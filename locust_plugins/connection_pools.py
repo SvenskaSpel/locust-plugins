@@ -9,6 +9,8 @@ Follow up information on AWS:
 https://docs.aws.amazon.com/AmazonECS/latest/developerguide/load-balancer-types.html
 """
 
+from contextlib import contextmanager
+from typing import Generator
 from locust import FastHttpUser, HttpUser, events
 from locust.clients import HttpSession
 from locust.contrib.fasthttp import FastHttpSession
@@ -46,6 +48,7 @@ class FastHttpPool:
             self.size = user.environment.parsed_options.pool_size  # type: ignore
 
         self._pool: List[FastHttpSession] = []
+        self.request_name = None
 
         for _ in range(self.size):
             self._pool.append(
@@ -64,33 +67,65 @@ class FastHttpPool:
 
         self.pool = cycle(self._pool)
 
-    def delete(self, path, **kwargs):
+    @contextmanager
+    def rename_request(self, name: str) -> Generator[None, None, None]:
+        """Group requests using the "with" keyword"""
+
+        self.request_name = name
+        try:
+            yield
+        finally:
+            self.request_name = None
+
+    def delete(self, path, name=None, **kwargs):
         """sends a DELETE request"""
-        return next(self.pool).delete(path, **kwargs)
 
-    def get(self, path, **kwargs):
+        # account for the situation that name can be passed in as a keyword arg
+        request_name = name if name else self.request_name
+
+        return next(self.pool).delete(path, name=request_name, **kwargs)
+
+    def get(self, path, name=None, **kwargs):
         """Sends a GET request"""
-        return next(self.pool).get(path, **kwargs)
 
-    def head(self, path, **kwargs):
+        request_name = name if name else self.request_name
+
+        return next(self.pool).get(path, name=request_name, **kwargs)
+
+    def head(self, path, name=None, **kwargs):
         """Sends a HEAD request"""
-        return next(self.pool).head(path, **kwargs)
 
-    def options(self, path, **kwargs):
+        request_name = name if name else self.request_name
+
+        return next(self.pool).head(path, name=request_name, **kwargs)
+
+    def options(self, path, name=None, **kwargs):
         """Sends a OPTIONS request"""
-        return next(self.pool).options(path, **kwargs)
 
-    def patch(self, path, data=None, **kwargs):
+        request_name = name if name else self.request_name
+
+        return next(self.pool).options(path, name=request_name, **kwargs)
+
+    def patch(self, path, data=None, name=None, **kwargs):
         """Sends a PATCH request"""
-        return next(self.pool).patch(path, data=data, **kwargs)
 
-    def post(self, path, data=None, **kwargs):
+        request_name = name if name else self.request_name
+
+        return next(self.pool).patch(path, data=data, name=request_name **kwargs)
+
+    def post(self, path, data=None, name=None, **kwargs):
         """Sends a POST request"""
-        return next(self.pool).post(path, data=data, **kwargs)
 
-    def put(self, path, data=None, **kwargs):
+        request_name = name if name else self.request_name
+
+        return next(self.pool).post(path, data=data, name=request_name **kwargs)
+
+    def put(self, path, data=None, name=None, **kwargs):
         """Sends a PUT request"""
-        return next(self.pool).put(path, data=data, **kwargs)
+
+        request_name = name if name else self.request_name
+
+        return next(self.pool).put(path, data=data, name=request_name **kwargs)
 
 
 class RequestPool:
