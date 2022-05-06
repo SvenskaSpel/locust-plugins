@@ -18,7 +18,6 @@ from itertools import cycle
 from argparse import ArgumentParser
 
 
-
 @events.init_command_line_parser.add_listener
 def _(parser: ArgumentParser):
 
