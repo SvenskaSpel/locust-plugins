@@ -110,21 +110,21 @@ class FastHttpPool:
 
         request_name = name if name else self.request_name
 
-        return next(self.pool).patch(path, data=data, name=request_name ** kwargs)
+        return next(self.pool).patch(path, data=data, name=request_name, **kwargs)
 
     def post(self, path, data=None, name=None, **kwargs):
         """Sends a POST request"""
 
         request_name = name if name else self.request_name
 
-        return next(self.pool).post(path, data=data, name=request_name ** kwargs)
+        return next(self.pool).post(path, data=data, name=request_name, **kwargs)
 
     def put(self, path, data=None, name=None, **kwargs):
         """Sends a PUT request"""
 
         request_name = name if name else self.request_name
 
-        return next(self.pool).put(path, data=data, name=request_name ** kwargs)
+        return next(self.pool).put(path, data=data, name=request_name, **kwargs)
 
 
 class RequestPool:
@@ -276,14 +276,14 @@ class ForceNewFastHTTPObj:
 
         request_name = name if name else self.request_name
 
-        return FastHttpSession(**self.session_info).options(path=path, name=request_name ** kwargs)
+        return FastHttpSession(**self.session_info).options(path=path, name=request_name, **kwargs)
 
     def patch(self, path, data=None, name=None, **kwargs):
         """Sends a PATCH request"""
 
         request_name = name if name else self.request_name
 
-        return FastHttpSession(**self.session_info).patch(path=path, data=data, name=request_name ** kwargs)
+        return FastHttpSession(**self.session_info).patch(path=path, data=data, name=request_name, **kwargs)
 
     def post(self, path, data=None, name=None, **kwargs):
         """Sends a POST request"""
@@ -349,14 +349,14 @@ class ForceNewRequestObj:
 
         request_name = name if name else self.request_name
 
-        return HttpSession(**self.session_info).options(url=url, name=request_name ** kwargs)
+        return HttpSession(**self.session_info).options(url=url, name=request_name, **kwargs)
 
     def patch(self, url, data=None, name=None, **kwargs):
         """Sends a PATCH request"""
 
         request_name = name if name else self.request_name
 
-        return HttpSession(**self.session_info).patch(url=url, data=data, name=request_name ** kwargs)
+        return HttpSession(**self.session_info).patch(url=url, data=data, name=request_name, **kwargs)
 
     def post(self, url, data=None, name=None, **kwargs):
         """Sends a POST request"""
