@@ -128,6 +128,7 @@ class FastHttpPool:
         return next(self.pool).put(path, data=data, name=request_name **kwargs)
 
 
+
 class RequestPool:
     def __init__(self, *, user: HttpUser, size: Optional[int] = None):
 
@@ -146,6 +147,7 @@ class RequestPool:
             self.size = user.environment.parsed_options.pool_size  # type: ignore
 
         self._pool: List[HttpSession] = []
+        self.request_name = None
 
         for _ in range(self.size):
             self._pool.append(
@@ -156,30 +158,62 @@ class RequestPool:
 
         self.pool = cycle(self._pool)
 
-    def delete(self, url, **kwargs):
+    @contextmanager
+    def rename_request(self, name: str) -> Generator[None, None, None]:
+        """Group requests using the "with" keyword"""
+
+        self.request_name = name
+        try:
+            yield
+        finally:
+            self.request_name = None
+
+    def delete(self, url, name=None, **kwargs):
         """sends a DELETE request"""
-        return next(self.pool).delete(url=url, **kwargs)
 
-    def get(self, url, **kwargs):
+        # account for the situation that name can be passed in as a keyword arg
+        request_name = name if name else self.request_name
+
+        return next(self.pool).delete(url=url, name=request_name, **kwargs)
+
+    def get(self, url, name=None, **kwargs):
         """Sends a GET request"""
-        return next(self.pool).get(url=url, **kwargs)
 
-    def head(self, url, **kwargs):
+        request_name = name if name else self.request_name
+
+        return next(self.pool).get(url=url, name=request_name, **kwargs)
+
+    def head(self, url, name=None, **kwargs):
         """Sends a HEAD request"""
-        return next(self.pool).head(url=url, **kwargs)
 
-    def options(self, url, **kwargs):
+        request_name = name if name else self.request_name
+
+        return next(self.pool).head(url=url, name=request_name, **kwargs)
+
+    def options(self, url, name=None, **kwargs):
         """Sends a OPTIONS request"""
-        return next(self.pool).options(url=url, **kwargs)
 
-    def patch(self, url, data=None, **kwargs):
+        request_name = name if name else self.request_name
+
+        return next(self.pool).options(url=url, name=request_name, **kwargs)
+
+    def patch(self, url, data=None, name=None, **kwargs):
         """Sends a PATCH request"""
-        return next(self.pool).patch(url=url, data=data, **kwargs)
 
-    def post(self, url, data=None, **kwargs):
+        request_name = name if name else self.request_name
+
+        return next(self.pool).patch(url=url, data=data, name=request_name, **kwargs)
+
+    def post(self, url, data=None, name=None, **kwargs):
         """Sends a POST request"""
-        return next(self.pool).post(url=url, data=data, **kwargs)
 
-    def put(self, url, data=None, **kwargs):
+        request_name = name if name else self.request_name
+
+        return next(self.pool).post(url=url, data=data, name=request_name, **kwargs)
+
+    def put(self, url, data=None, name=None, **kwargs):
         """Sends a PUT request"""
-        return next(self.pool).put(url=url, data=data, **kwargs)
+
+        request_name = name if name else self.request_name
+
+        return next(self.pool).put(url=url, data=data, name=request_name, **kwargs)
