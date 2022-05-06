@@ -53,7 +53,7 @@ class FastHttpPool:
         for _ in range(self.size):
             self._pool.append(
                 FastHttpSession(
-                    user.environment,  # type: ignore
+                    environment=user.environment,
                     base_url=user.host,
                     network_timeout=user.network_timeout,
                     connection_timeout=user.connection_timeout,
@@ -217,3 +217,163 @@ class RequestPool:
         request_name = name if name else self.request_name
 
         return next(self.pool).put(url=url, data=data, name=request_name, **kwargs)
+
+
+class ForceNewFastHTTPObj:
+    def __init__(self, *, user: FastHttpUser):
+        """ A class that deals with Load balancer stickyness in a more agressive way.
+            For a every request a new session will be created and destroyed.
+            May negatively impact local performance
+
+            Args:
+            user (HttpUser): Instance of a HttpUser, pass in self in most circumstances
+        """
+
+        self.request_name = None
+        self.session_info = {
+            "environment": user.environment,
+            "base_url": user.host,
+            "network_timeout": user.network_timeout,
+            "connection_timeout": user.connection_timeout,
+            "max_redirects": user.max_redirects,
+            "max_retries": user.max_retries,
+            "insecure": user.insecure,
+            "concurrency": user.concurrency,
+            "user": user,
+        }
+
+    @contextmanager
+    def rename_request(self, name: str) -> Generator[None, None, None]:
+        """Group requests using the "with" keyword"""
+
+        self.request_name = name
+        try:
+            yield
+        finally:
+            self.request_name = None
+
+    def delete(self, path, name=None, **kwargs):
+        """sends a DELETE request"""
+
+        request_name = name if name else self.request_name
+
+        return FastHttpSession(**self.session_info).delete(path=path, name=request_name, **kwargs)
+
+    def get(self, path, name=None, **kwargs):
+        """Sends a GET request"""
+
+        request_name = name if name else self.request_name
+
+        return FastHttpSession(**self.session_info).get(path=path, name=request_name, **kwargs)
+
+    def head(self, path, name=None, **kwargs):
+        """Sends a HEAD request"""
+
+        request_name = name if name else self.request_name
+
+        return FastHttpSession(**self.session_info).head(path=path, name=request_name, **kwargs)
+
+    def options(self, path, name=None, **kwargs):
+        """Sends a OPTIONS request"""
+
+        request_name = name if name else self.request_name
+
+        return FastHttpSession(**self.session_info).options(path=path, name=request_name **kwargs)
+
+    def patch(self, path, data=None, name=None, **kwargs):
+        """Sends a PATCH request"""
+
+        request_name = name if name else self.request_name
+
+        return FastHttpSession(**self.session_info).patch(path=path, data=data, name=request_name **kwargs)
+
+    def post(self, path, data=None, name=None, **kwargs):
+        """Sends a POST request"""
+
+        request_name = name if name else self.request_name
+
+        return FastHttpSession(**self.session_info).post(path=path, data=data, name=request_name, **kwargs)
+
+    def put(self, path, data=None, name=None, **kwargs):
+        """Sends a PUT request"""
+
+        request_name = name if name else self.request_name
+
+        return FastHttpSession(**self.session_info).put(path=path, data=data, name=request_name, **kwargs)
+
+
+class ForceNewRequestObj:
+    def __init__(self, *, user: HttpUser):
+        """ A class that deals with Load balancer stickyness in a more agressive way.
+            For a every request a new session will be created and destroyed.
+            May negatively impact local performance
+
+            Args:
+            user (HttpUser): Instance of a HttpUser, pass in self in most circumstances
+        """
+
+        self.request_name = None
+        self.session_info = {
+            "base_url": user.host,
+            "request_event": user.environment.events.request,
+            "user": user
+        }
+
+    @contextmanager
+    def rename_request(self, name: str) -> Generator[None, None, None]:
+        """Group requests using the "with" keyword"""
+
+        self.request_name = name
+        try:
+            yield
+        finally:
+            self.request_name = None
+
+    def delete(self, url, name=None, **kwargs):
+        """sends a DELETE request"""
+
+        request_name = name if name else self.request_name
+
+        return HttpSession(**self.session_info).delete(url=url, name=request_name, **kwargs)
+
+    def get(self, url, name=None, **kwargs):
+        """Sends a GET request"""
+
+        request_name = name if name else self.request_name
+
+        return HttpSession(**self.session_info).get(url=url, name=request_name, **kwargs)
+
+    def head(self, url, name=None, **kwargs):
+        """Sends a HEAD request"""
+
+        request_name = name if name else self.request_name
+
+        return HttpSession(**self.session_info).head(url=url, name=request_name, **kwargs)
+
+    def options(self, url, name=None, **kwargs):
+        """Sends a OPTIONS request"""
+
+        request_name = name if name else self.request_name
+
+        return HttpSession(**self.session_info).options(url=url, name=request_name **kwargs)
+
+    def patch(self, url, data=None, name=None, **kwargs):
+        """Sends a PATCH request"""
+
+        request_name = name if name else self.request_name
+
+        return HttpSession(**self.session_info).patch(url=url, data=data, name=request_name **kwargs)
+
+    def post(self, url, data=None, name=None, **kwargs):
+        """Sends a POST request"""
+
+        request_name = name if name else self.request_name
+
+        return HttpSession(**self.session_info).post(url=url, data=data, name=request_name, **kwargs)
+
+    def put(self, url, data=None, name=None, **kwargs):
+        """Sends a PUT request"""
+
+        request_name = name if name else self.request_name
+
+        return HttpSession(**self.session_info).put(url=url, data=data, name=request_name, **kwargs)
