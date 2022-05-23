@@ -5,7 +5,7 @@ import traceback
 import re
 from json.decoder import JSONDecodeError
 import autoviv
-from typing import Generator
+from typing import Generator, Optional
 
 
 class RestResponseContextManager(ResponseContextManager):
@@ -27,8 +27,10 @@ class RestUser(FastHttpUser):
     _callstack_regex = re.compile(r'  File "(\/.[^"]*)", line (\d*),(.*)')
 
     @contextmanager
-    def rest(self, method, url, **kwargs) -> Generator[RestResponseContextManager, None, None]:
-        headers = kwargs.pop("headers", {"Content-Type": "application/json", "Accept": "application/json"})
+    def rest(
+        self, method, url, headers: Optional[dict] = None, **kwargs
+    ) -> Generator[RestResponseContextManager, None, None]:
+        headers = {"Content-Type": "application/json", "Accept": "application/json"} if headers is None else headers
         with self.client.request(method, url, catch_response=True, headers=headers, **kwargs) as resp:
             resp: RestResponseContextManager
             resp.js = None
