@@ -91,6 +91,8 @@ class MyUser(RestUser):
             pass
 
 
+# An example of how you might write a common base class for an API that always requires
+# certain headers, or where you always want to check the response in a certain way
 class RestUserThatLooksAtErrors(RestUser):
     abstract = True
 
