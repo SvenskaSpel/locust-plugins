@@ -270,7 +270,7 @@ class Timescale:  # pylint: disable=R0902
         del cmd[0]
         with self.dbcursor() as cur:
             cur.execute(
-                "INSERT INTO testrun (id, testplan, num_clients, rps, description, env, username, gitrepo, changeset_guid, arguments) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+                "INSERT INTO testrun (id, testplan, num_clients, rps, description, env, profile_name, username, gitrepo, changeset_guid, arguments) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
                 (
                     self._run_id,
                     self._testplan,
@@ -278,6 +278,7 @@ class Timescale:  # pylint: disable=R0902
                     self.env.parsed_options.ips,  # this field is incorrectly called "rps" in db, it should be called something like "target_ips"
                     self.env.parsed_options.description,
                     self.env.parsed_options.test_env,
+                    self.env.parsed_options.profile,
                     self._username,
                     self._gitrepo,
                     self.env.parsed_options.test_version,
@@ -306,7 +307,7 @@ class Timescale:  # pylint: disable=R0902
     def log_stop_test_run(self, exit_code=None):
         if is_worker():
             return  # only run on master or standalone
-        if not self.dbconn:
+        if getattr(self, "dbconn", None) is None:
             return  # test_start never ran, so there's not much for us to do
         end_time = datetime.now(timezone.utc)
         try:
