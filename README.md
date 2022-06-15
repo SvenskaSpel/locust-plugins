@@ -24,7 +24,7 @@ Then just `import locust_plugins` in your locustfile and use whatever plugins yo
 
 # Configuration
 
-locust-plugins adds some new command line arguments. To list them, use Locust's regular --help argument:
+Most settings are configured from code, but some are exposed as command line arguments. You can list them by using Locust's regular --help argument:
 
 ```
 locust -f any-locustfile-that-imports-locust_plugins.py --help
@@ -71,6 +71,7 @@ locust -f any-locustfile-that-imports-locust_plugins.py --help
 - Additional locust command line options provided ([examples](examples/cmd_line_examples.sh), [source](locust_plugins/__init__.py))
     - Iteration limit (`-i`), stops Locust after a certain number of task iterations
     - Checks (`--check-rps`, `--check-fail-ratio`, `--check-avg-response-time`), gives an error return code if certain conditions are not met
+    - [Dashboards](locust_plugins/dashboards/) (`--timescale`, `--grafana-url`, `--pghost`, ...)
 
 # Further examples
 
