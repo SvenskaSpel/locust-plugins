@@ -20,6 +20,14 @@ Having this separate from "Locust core" allows the plugins to evolve faster (at 
 pip install locust-plugins
 ```
 
+# Configuration
+
+locust-plugins adds some new command line arguments. To list them, run:
+
+```
+locust -f any-locustfile-that-imports-locust_plugins.py --help
+```
+
 # Plugins
 
 ## Listeners 
@@ -66,16 +74,6 @@ pip install locust-plugins
 
 Have a look at the [example locustfiles](examples/) to learn how to use the plugins.
 
-
-# Configuration
-
-To see a list of all available parameters, run this:
-
-```
-locust -f any-locustfile-that-imports-locust_plugins.py --help
-```
-
-The ones added by locust-plugins are at the end of the help text.
 
 # locust-swarm
 
