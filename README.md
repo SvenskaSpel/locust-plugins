@@ -20,9 +20,11 @@ Having this separate from "Locust core" allows the plugins to evolve faster (at 
 pip install locust-plugins
 ```
 
+Then just `import locust_plugins` in your locustfile and use whatever parts you need.
+
 # Configuration
 
-locust-plugins adds some new command line arguments. To list them, run:
+locust-plugins adds some new command line arguments. To list them, use Locust's regular --help argument:
 
 ```
 locust -f any-locustfile-that-imports-locust_plugins.py --help
