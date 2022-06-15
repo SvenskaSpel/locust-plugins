@@ -20,7 +20,7 @@ Having this separate from "Locust core" allows the plugins to evolve faster (at 
 pip install locust-plugins
 ```
 
-Then just `import locust_plugins` in your locustfile and use whatever parts you need.
+Then just `import locust_plugins` in your locustfile and use whatever plugins you need (see below)
 
 # Configuration
 
