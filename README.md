@@ -14,6 +14,14 @@ So I decided to publish my own plugins and hope that others (maybe you?) will co
 
 Having this separate from "Locust core" allows the plugins to evolve faster (at the expense of being less mature), and avoids bloating Locust with functionality you might not be interested in.
 
+# Installation
+
+```
+pip install locust-plugins
+```
+
+# Plugins
+
 ## Listeners 
 - Listen to events and log things
     - Timescale: Log and graph results using TimescaleDB and Grafana dashboards ([readme](locust_plugins/dashboards/), [source](locust_plugins/listeners.py))
@@ -58,16 +66,6 @@ Having this separate from "Locust core" allows the plugins to evolve faster (at 
 
 Have a look at the [example locustfiles](examples/) to learn how to use the plugins.
 
-# locust-swarm
-
-These plugins work well together with [locust-swarm](https://github.com/SvenskaSpel/locust-swarm)
-
-
-# Installation
-
-```
-pip install locust-plugins
-```
 
 # Configuration
 
@@ -78,6 +76,10 @@ locust -f any-locustfile-that-imports-locust_plugins.py --help
 ```
 
 The ones added by locust-plugins are at the end of the help text.
+
+# locust-swarm
+
+These plugins work well together with [locust-swarm](https://github.com/SvenskaSpel/locust-swarm)
 
 # Contributions
 
