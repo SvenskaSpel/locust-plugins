@@ -71,7 +71,13 @@ pip install locust-plugins
 
 # Configuration
 
-For configuration help, run `locust -f locustfile-that-imports-locust_plugins.py --help`. Some environment variables need to be set (mainly for Postgres, if you want to run the Timescale listener), but you should get clear error messages if one is missing.
+To see a list of all available parameters, run this:
+
+```
+locust -f any-locustfile-that-imports-locust_plugins.py --help
+```
+
+The ones added by locust-plugins are at the end of the help text.
 
 # Contributions
 
