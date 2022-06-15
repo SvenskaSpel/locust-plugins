@@ -30,7 +30,9 @@ from gevent.lock import Semaphore
 
 
 def safe_serialize(obj):
-    default = lambda o: f"<<non-serializable: {type(o).__qualname__}>>"
+    def default(o):
+        return f"<<non-serializable: {type(o).__qualname__}>>"
+
     return json.dumps(obj, default=default)
 
 
