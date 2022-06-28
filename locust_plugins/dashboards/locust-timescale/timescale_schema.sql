@@ -63,7 +63,7 @@ CREATE TABLE public.request (
     response_length integer,
     response_time double precision,
     success smallint NOT NULL,
-    testplan character varying(30) NOT NULL,
+    testplan character varying(255) NOT NULL,
     pid integer,
     context jsonb,
     url character varying(255)
@@ -1664,7 +1664,7 @@ ALTER TABLE _timescaledb_internal._hyper_3_98_chunk OWNER TO postgres;
 --
 
 CREATE TABLE public.user_count (
-    testplan character varying(30) NOT NULL,
+    testplan character varying(255) NOT NULL,
     user_count integer NOT NULL,
     "time" timestamp with time zone NOT NULL,
     run_id timestamp with time zone
