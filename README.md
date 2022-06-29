@@ -30,6 +30,11 @@ Most settings are configured from code, but some are exposed as command line arg
 locust -f any-locustfile-that-imports-locust_plugins.py --help
 ```
 
+# Sample command line to push result to grafana dashboard
+```
+locust -f any-locustfile-that-imports-locust_plugins.py --config=locust.conf --timescale --grafana-url=http://<machineip>:3000/ --pghost=<machineip> --pgport=5432 --pgpassword=password --pguser=postgres
+```
+
 # Plugins
 
 ## Listeners 
