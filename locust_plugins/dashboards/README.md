@@ -87,6 +87,10 @@ For security reasons, the ports for logging to Timescale and accessing Grafana o
 2. Set/export Postgres environment variables to point to your instance (PGHOST, PGPORT, PGUSER, PGPASSWORD)
 3. If you didnt use the pre-built docker image, set up the tables by running something like `psql < timescale_schema.sql` (https://github.com/SvenskaSpel/locust-plugins/blob/master/locust_plugins/dashboards/locust-timescale/timescale_schema.sql)
 4. Set up Grafana. Edit the variables in [grafana_setup.sh](locust-grafana/grafana_setup.sh) and run it to set up a datasource pointing to your Timescale and import the Locust dashboards from grafana.com (or you can do it manually from [here](https://grafana.com/grafana/dashboards/10878)).
+5. Run your test file as below to push result to dashboard
+```
+locust -f any-locustfile-that-imports-locust_plugins.py --config=locust.conf --timescale --grafana-url=http://<machineip>:3000/ --pghost=<machineip> --pgport=5432 --pgpassword=password --pguser=postgres
+```
 
 # Limitations
 
