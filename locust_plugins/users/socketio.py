@@ -20,8 +20,8 @@ class SocketIOUser(User):
     message_regex = re.compile(r"(\d*)(.*)")
     description_regex = re.compile(r"<([0-9]+)>$")
 
-    def connect(self, host: str, header=[]):
-        self.ws = websocket.create_connection(host, header=header)
+    def connect(self, host: str, header=[], **kwargs):
+        self.ws = websocket.create_connection(host, header=header, **kwargs)
         gevent.spawn(self.receive_loop)
 
     def on_message(self, message):  # override this method in your subclass for custom handling
