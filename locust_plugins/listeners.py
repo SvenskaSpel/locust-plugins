@@ -104,22 +104,32 @@ class Timescale:  # pylint: disable=R0902
         with self.dbcursor() as cur:
             cur.execute("INSERT INTO events (time, text) VALUES (%s, %s)", (timestamp, message))
 
+    def set_gitrepo(self):
+        self._gitrepo = None
+        try:
+            path = os.getcwd()
+            while not self._gitrepo and len(path) > 4:
+                try:
+                    with open(path + "/.git/config", "r") as f:
+                        for l in f.readlines():
+                            l = l.strip()
+                            if l.startswith("url ="):
+                                self._gitrepo = l.split(":")[1][:-4]
+                                return
+                except FileNotFoundError:
+                    pass
+                path = os.path.abspath(os.path.dirname(path))
+        except:
+            pass  # probably on windows or something
+        logging.debug("couldnt figure out which git repo your locustfile is in")
+
     def on_start(self, environment: locust.env.Environment):
         try:
             self.dbconn = self._dbconn()
         except psycopg2.OperationalError as e:
             logging.error(e)
             sys.exit(1)
-        try:
-            self._gitrepo = subprocess.check_output(
-                "git remote show origin -n 2>/dev/null | grep h.URL | sed 's/.*://;s/.git$//' || true",
-                shell=True,
-                stderr=None,
-                universal_newlines=True,
-            )
-        except:
-            # happens on windows
-            self._gitrepo = None
+        self.set_gitrepo()
 
         if is_worker() or is_master():
             # swarm generates the run id for its master and workers
