@@ -21,7 +21,6 @@ from datetime import datetime, timezone, timedelta
 
 import greenlet
 from dateutil import parser
-import subprocess
 import locust.env
 from typing import Callable, List
 from gevent.lock import Semaphore
