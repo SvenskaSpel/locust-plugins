@@ -1,3 +1,4 @@
+from typing import Iterator
 from pymongo import MongoClient
 import pymongo.collection
 from datetime import datetime
@@ -38,7 +39,7 @@ class User(dict):
 class Reader(ABC):
     @abstractmethod
     @contextmanager
-    def user(self, query: dict = None):
+    def user(self, query: dict = None) -> Iterator[User]:
         pass
 
 
