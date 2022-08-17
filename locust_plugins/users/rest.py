@@ -1,5 +1,5 @@
 from contextlib import contextmanager
-from locust.contrib.fasthttp import FastHttpUser
+from locust import FastHttpUser, HttpUser
 from locust.clients import ResponseContextManager
 import traceback
 import re
