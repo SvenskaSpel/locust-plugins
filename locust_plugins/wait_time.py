@@ -8,7 +8,7 @@ from typing import Any
 _last_run = 0.0
 _warning_emitted = False
 _target_missed = False
-_ips_window = deque()  # an implicitly sorted list of when iterations where started
+_ips_window: deque = deque()  # an implicitly sorted list of when iterations where started
 IPS_WINDOW_SIZE = 20
 
 
