@@ -36,14 +36,14 @@ class User(dict):
         self.coll.find_one_and_update({"_id": self["_id"]}, {"$unset": {key: 1}})
 
 
-class Reader(ABC):
+class AbstractReader(ABC):
     @abstractmethod
     @contextmanager
     def user(self, query: dict = None) -> Iterator[User]:
         pass
 
 
-class MongoReader(Reader):
+class MongoReader(AbstractReader):
     def __init__(self, uri=None, database=None, collection=None, filters=[]):
         uri = uri or os.environ["LOCUST_MONGO"]
         database = database or os.environ["LOCUST_MONGO_DATABASE"]
