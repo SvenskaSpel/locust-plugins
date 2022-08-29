@@ -187,6 +187,7 @@ def set_up_iteration_limit(environment: Environment, **kwargs):
         runner: Runner = environment.runner
         runner.iterations_started = 0
         runner.iteration_target_reached = False
+        logging.debug(f"Iteration limit set to {options.iterations}")
 
         def iteration_limit_wrapper(method):
             @wraps(method)
