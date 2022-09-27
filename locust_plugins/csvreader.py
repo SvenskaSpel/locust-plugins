@@ -4,13 +4,13 @@ import csv
 class CSVReader:
     "Read test data from csv file using an iterator"
 
-    def __init__(self, file):
+    def __init__(self, file, delimiter=','):
         try:
             file = open(file)
         except TypeError:
             pass  # "file" was already a pre-opened file-like object
         self.file = file
-        self.reader = csv.reader(file)
+        self.reader = csv.reader(file, delimiter=delimiter)
 
     def __next__(self):
         try:
@@ -24,13 +24,13 @@ class CSVReader:
 class CSVDictReader:
     "Read test data from csv file using an iterator"
 
-    def __init__(self, file):
+    def __init__(self, file, delimiter=','):
         try:
             file = open(file)
         except TypeError:
             pass  # "file" was already a pre-opened file-like object
         self.file = file
-        self.reader = csv.DictReader(file)
+        self.reader = csv.DictReader(file, delimiter=delimiter)
 
     def __next__(self):
         try:
