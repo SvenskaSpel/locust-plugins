@@ -4,7 +4,7 @@ import csv
 class CSVReader:
     "Read test data from csv file using an iterator"
 
-    def __init__(self, file, delimiter=','):
+    def __init__(self, file, delimiter=","):
         try:
             file = open(file)
         except TypeError:
@@ -24,7 +24,7 @@ class CSVReader:
 class CSVDictReader:
     "Read test data from csv file using an iterator"
 
-    def __init__(self, file, delimiter=','):
+    def __init__(self, file, delimiter=","):
         try:
             file = open(file)
         except TypeError:

@@ -9,3 +9,5 @@ class MyUser(HttpUser):
     def index(self):
         customer = next(ssn_reader)
         self.client.get(f"/?ssn={customer['ssn']}&age={customer['age']}")
+
+    host = "http://example.com"
