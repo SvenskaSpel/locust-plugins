@@ -5,11 +5,13 @@ from locust.exception import (
     CatchResponseError,
     InterruptTaskSet,
 )  # need to do this first to make sure monkey patching is done
-import gevent
-import psycogreen.gevent
-import json
 from locust.runners import LocalRunner
 import locust.env
+import gevent
+from gevent.lock import Semaphore
+import psycogreen.gevent
+
+import json
 
 psycogreen.gevent.patch_psycopg()
 import psycopg2
@@ -23,7 +25,7 @@ from datetime import datetime, timezone, timedelta
 import greenlet
 from dateutil import parser
 from typing import Callable, List
-from gevent.lock import Semaphore
+
 
 # pylint: disable=trailing-whitespace # pylint is confused by multiline strings used for SQL
 
@@ -133,7 +135,7 @@ class Timescale:  # pylint: disable=R0902
             sys.exit(1)
         self.set_gitrepo()
 
-        if is_worker(self.env) or is_master(self.env) or type(environment.runner) == LocalRunner:
+        if is_worker(self.env) or is_master(self.env) or isinstance(environment.runner) == LocalRunner:
             # swarm generates the run id for its master and workers
             if getattr(environment.parsed_options, "run_id", False):
                 self._run_id = parser.parse(environment.parsed_options.run_id)
@@ -153,14 +155,12 @@ class Timescale:  # pylint: disable=R0902
             logging.info(
                 f"Follow test run here: {self.env.parsed_options.grafana_url}&var-testplan={self._testplan}&from={int(self._run_id.timestamp()*1000)}&to=now"
             )
-            if type(environment.runner) != LocalRunner:
-                for _, worker in enumerate(environment.runner.clients):
-                    msg = (
-                        self._run_id.replace(tzinfo=timezone.utc)
-                        .astimezone(tz=self._run_id.astimezone().tzinfo)
-                        .strftime("%Y-%m-%d, %H:%M:%S.%f")
-                    )
-                    environment.runner.send_message("get_run_id", msg, worker)
+            msg = (
+                self._run_id.replace(tzinfo=timezone.utc)
+                .astimezone(tz=self._run_id.astimezone().tzinfo)
+                .strftime("%Y-%m-%d, %H:%M:%S.%f")
+            )
+            environment.runner.send_message("get_run_id", msg)
             self.log_start_testrun()
             self._user_count_logger = gevent.spawn(self._log_user_count)
 
@@ -238,18 +238,7 @@ class Timescale:  # pylint: disable=R0902
             self._user_count_logger.kill()
         self.log_stop_test_run(exit_code)
 
-    def on_request(
-        self,
-        request_type,
-        name,
-        response_time,
-        response_length,
-        exception,
-        context,
-        start_time=None,
-        url=None,
-        **kwargs,
-    ):
+    def on_request(self, request_type, name, response_time, response_length, exception, context, start_time=None, url=None, **kwargs):
         success = 0 if exception else 1
         if start_time:
             time = datetime.fromtimestamp(start_time, tz=timezone.utc)
@@ -396,9 +385,7 @@ class Print:
             f"\n{self.include_time}type\t{'name'.ljust(50)}\tresp_ms\t{self.include_length}exception\t{self.include_context}"
         )
 
-    def on_request(
-        self, request_type, name, response_time, response_length, exception, context: dict, start_time=None, **kwargs
-    ):
+    def on_request(self, request_type, name, response_time, response_length, exception, context: dict, start_time=None, **kwargs):
         if exception:
             if isinstance(exception, CatchResponseError):
                 e = str(exception)
