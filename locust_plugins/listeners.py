@@ -8,6 +8,8 @@ from locust.exception import (
 import gevent
 import psycogreen.gevent
 import json
+from locust.runners import LocalRunner
+import locust.env
 
 psycogreen.gevent.patch_psycopg()
 import psycopg2
@@ -18,10 +20,8 @@ import os
 import socket
 import sys
 from datetime import datetime, timezone, timedelta
-
 import greenlet
 from dateutil import parser
-import locust.env
 from typing import Callable, List
 from gevent.lock import Semaphore
 
@@ -47,11 +47,7 @@ class Timescale:  # pylint: disable=R0902
     dblock = Semaphore()
     first_instance = True
 
-    def __init__(
-        self,
-        env: locust.env.Environment,
-        testplan: str = None,
-    ):
+    def __init__(self, env: locust.env.Environment, testplan: str = None):
         if not Timescale.first_instance:
             # we should refactor this into a module as it is much more pythonic
             raise Exception(
@@ -78,6 +74,13 @@ class Timescale:  # pylint: disable=R0902
         events.quit.add_listener(self.on_quit)
         events.spawning_complete.add_listener(self.spawning_complete)
         atexit.register(self.log_stop_test_run)
+
+        if is_worker(self.env):
+            self.env.runner.register_message("get_run_id", self.set_run_id)
+
+    def set_run_id(self, environment, msg, **kwargs):
+        logging.info(f'Received run id from master. Using this {datetime.strptime(msg.data, "%Y-%m-%d, %H:%M:%S.%f")}')
+        self._run_id = datetime.strptime(msg.data, "%Y-%m-%d, %H:%M:%S.%f").astimezone(tz=timezone.utc)
 
     @contextmanager
     def dbcursor(self):
@@ -130,22 +133,34 @@ class Timescale:  # pylint: disable=R0902
             sys.exit(1)
         self.set_gitrepo()
 
-        if is_worker() or is_master():
+        if is_worker(self.env) or is_master(self.env) or type(environment.runner) == LocalRunner:
             # swarm generates the run id for its master and workers
             if getattr(environment.parsed_options, "run_id", False):
                 self._run_id = parser.parse(environment.parsed_options.run_id)
+            elif hasattr(self, "_run_id"):
+                pass
             else:
                 logging.info(
                     "You are running distributed, but without swarm. run_id:s in Timescale will not match exactly between load gens"
                 )
                 self._run_id = datetime.now(timezone.utc)
+                logging.info(f"Run id is {self._run_id}")
         else:
             # non-swarm runs need to generate the run id here
             self._run_id = datetime.now(timezone.utc)
-        if not is_worker():
+            logging.info(f"Run id is {self._run_id}")
+        if not is_worker(self.env):
             logging.info(
                 f"Follow test run here: {self.env.parsed_options.grafana_url}&var-testplan={self._testplan}&from={int(self._run_id.timestamp()*1000)}&to=now"
             )
+            if type(environment.runner) != LocalRunner:
+                for i, worker in enumerate(environment.runner.clients):
+                    msg = (
+                        self._run_id.replace(tzinfo=timezone.utc)
+                        .astimezone(tz=self._run_id.astimezone().tzinfo)
+                        .strftime("%Y-%m-%d, %H:%M:%S.%f")
+                    )
+                    environment.runner.send_message("get_run_id", msg, worker)
             self.log_start_testrun()
             self._user_count_logger = gevent.spawn(self._log_user_count)
 
@@ -302,7 +317,7 @@ class Timescale:  # pylint: disable=R0902
             )
 
     def spawning_complete(self, user_count):
-        if not is_worker():  # only log for master/standalone
+        if not is_worker(self.env):  # only log for master/standalone
             end_time = datetime.now(timezone.utc)
             try:
                 with self.dbcursor() as cur:
@@ -316,7 +331,7 @@ class Timescale:  # pylint: disable=R0902
                 )
 
     def log_stop_test_run(self, exit_code=None):
-        if is_worker():
+        if is_worker(self.env):
             return  # only run on master or standalone
         if getattr(self, "dbconn", None) is None:
             return  # test_start never ran, so there's not much for us to do
@@ -504,9 +519,9 @@ class RunOnUserError:
             self.function(user_instance, exception, tb, **kwargs)
 
 
-def is_worker():
-    return "--worker" in sys.argv
+def is_worker(env: locust.env.Environment):
+    return "--worker" in sys.argv or env.parsed_options.worker
 
 
-def is_master():
-    return "--master" in sys.argv
+def is_master(env: locust.env.Environment):
+    return "--master" in sys.argv or env.parsed_options.master
