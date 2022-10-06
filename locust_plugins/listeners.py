@@ -154,7 +154,7 @@ class Timescale:  # pylint: disable=R0902
                 f"Follow test run here: {self.env.parsed_options.grafana_url}&var-testplan={self._testplan}&from={int(self._run_id.timestamp()*1000)}&to=now"
             )
             if type(environment.runner) != LocalRunner:
-                for i, worker in enumerate(environment.runner.clients):
+                for _, worker in enumerate(environment.runner.clients):
                     msg = (
                         self._run_id.replace(tzinfo=timezone.utc)
                         .astimezone(tz=self._run_id.astimezone().tzinfo)
@@ -520,8 +520,8 @@ class RunOnUserError:
 
 
 def is_worker(env: locust.env.Environment):
-    return "--worker" in sys.argv or env.parsed_options.worker
+    return env.parsed_options.worker
 
 
 def is_master(env: locust.env.Environment):
-    return "--master" in sys.argv or env.parsed_options.master
+    return env.parsed_options.master
