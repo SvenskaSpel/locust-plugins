@@ -238,7 +238,18 @@ class Timescale:  # pylint: disable=R0902
             self._user_count_logger.kill()
         self.log_stop_test_run(exit_code)
 
-    def on_request(self, request_type, name, response_time, response_length, exception, context, start_time=None, url=None, **kwargs):
+    def on_request(
+        self,
+        request_type,
+        name,
+        response_time,
+        response_length,
+        exception,
+        context,
+        start_time=None,
+        url=None,
+        **kwargs,
+    ): # pylint: disable=C0330
         success = 0 if exception else 1
         if start_time:
             time = datetime.fromtimestamp(start_time, tz=timezone.utc)
@@ -385,7 +396,9 @@ class Print:
             f"\n{self.include_time}type\t{'name'.ljust(50)}\tresp_ms\t{self.include_length}exception\t{self.include_context}"
         )
 
-    def on_request(self, request_type, name, response_time, response_length, exception, context: dict, start_time=None, **kwargs):
+    def on_request(
+        self, request_type, name, response_time, response_length, exception, context: dict, start_time=None, **kwargs
+    ):
         if exception:
             if isinstance(exception, CatchResponseError):
                 e = str(exception)
