@@ -77,7 +77,7 @@ class Timescale:  # pylint: disable=R0902
         events.spawning_complete.add_listener(self.spawning_complete)
         atexit.register(self.log_stop_test_run)
 
-        if is_worker(self.env):
+        if self.env.parsed_options.worker:
             self.env.runner.register_message("get_run_id", self.set_run_id)
 
     def set_run_id(self, environment, msg, **kwargs):
@@ -135,7 +135,7 @@ class Timescale:  # pylint: disable=R0902
             sys.exit(1)
         self.set_gitrepo()
 
-        if is_worker(self.env) or is_master(self.env) or isinstance(environment.runner) == LocalRunner:
+        if self.env.parsed_options.worker or self.env.parsed_options.master or isinstance(environment.runner) == LocalRunner:
             # swarm generates the run id for its master and workers
             if getattr(environment.parsed_options, "run_id", False):
                 self._run_id = parser.parse(environment.parsed_options.run_id)
@@ -151,7 +151,7 @@ class Timescale:  # pylint: disable=R0902
             # non-swarm runs need to generate the run id here
             self._run_id = datetime.now(timezone.utc)
             logging.info(f"Run id is {self._run_id}")
-        if not is_worker(self.env):
+        if not self.env.parsed_options.worker:
             logging.info(
                 f"Follow test run here: {self.env.parsed_options.grafana_url}&var-testplan={self._testplan}&from={int(self._run_id.timestamp()*1000)}&to=now"
             )
@@ -317,7 +317,7 @@ class Timescale:  # pylint: disable=R0902
             )
 
     def spawning_complete(self, user_count):
-        if not is_worker(self.env):  # only log for master/standalone
+        if not self.env.parsed_options.worker:  # only log for master/standalone
             end_time = datetime.now(timezone.utc)
             try:
                 with self.dbcursor() as cur:
@@ -331,7 +331,7 @@ class Timescale:  # pylint: disable=R0902
                 )
 
     def log_stop_test_run(self, exit_code=None):
-        if is_worker(self.env):
+        if self.env.parsed_options.worker:
             return  # only run on master or standalone
         if getattr(self, "dbconn", None) is None:
             return  # test_start never ran, so there's not much for us to do
@@ -517,11 +517,3 @@ class RunOnUserError:
     def user_error(self, user_instance, exception, tb, **kwargs):
         if exception:
             self.function(user_instance, exception, tb, **kwargs)
-
-
-def is_worker(env: locust.env.Environment):
-    return env.parsed_options.worker
-
-
-def is_master(env: locust.env.Environment):
-    return env.parsed_options.master
