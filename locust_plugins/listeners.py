@@ -135,7 +135,11 @@ class Timescale:  # pylint: disable=R0902
             sys.exit(1)
         self.set_gitrepo()
 
-        if self.env.parsed_options.worker or self.env.parsed_options.master or isinstance(environment.runner) == LocalRunner:
+        if (
+            self.env.parsed_options.worker
+            or self.env.parsed_options.master
+            or isinstance(environment.runner) == LocalRunner
+        ):
             # swarm generates the run id for its master and workers
             if getattr(environment.parsed_options, "run_id", False):
                 self._run_id = parser.parse(environment.parsed_options.run_id)
@@ -249,7 +253,7 @@ class Timescale:  # pylint: disable=R0902
         start_time=None,
         url=None,
         **kwargs,
-    ): # pylint: disable=C0330
+    ):
         success = 0 if exception else 1
         if start_time:
             time = datetime.fromtimestamp(start_time, tz=timezone.utc)
