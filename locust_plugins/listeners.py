@@ -138,7 +138,7 @@ class Timescale:  # pylint: disable=R0902
         if (
             self.env.parsed_options.worker
             or self.env.parsed_options.master
-            or isinstance(environment.runner) == LocalRunner
+            or isinstance(environment.runner, LocalRunner)
         ):
             # swarm generates the run id for its master and workers
             if getattr(environment.parsed_options, "run_id", False):
