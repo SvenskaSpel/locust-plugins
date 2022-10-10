@@ -81,7 +81,7 @@ class Timescale:  # pylint: disable=R0902
             self.env.runner.register_message("get_run_id", self.set_run_id)
 
     def set_run_id(self, environment, msg, **kwargs):
-        logging.info(f'Received run id from master. Using this {datetime.strptime(msg.data, "%Y-%m-%d, %H:%M:%S.%f")}')
+        logging.debug(f'Received run id from master. Using this {datetime.strptime(msg.data, "%Y-%m-%d, %H:%M:%S.%f")}')
         self._run_id = datetime.strptime(msg.data, "%Y-%m-%d, %H:%M:%S.%f").astimezone(tz=timezone.utc)
 
     @contextmanager
@@ -146,15 +146,14 @@ class Timescale:  # pylint: disable=R0902
             elif hasattr(self, "_run_id"):
                 pass
             else:
-                logging.info(
+                logging.debug(
                     "You are running distributed, but without swarm. run_id:s in Timescale will not match exactly between load gens"
                 )
                 self._run_id = datetime.now(timezone.utc)
                 logging.info(f"Run id is {self._run_id}")
         else:
-            # non-swarm runs need to generate the run id here
             self._run_id = datetime.now(timezone.utc)
-            logging.info(f"Run id is {self._run_id}")
+            logging.debug(f"Run id is {self._run_id}")
         if not self.env.parsed_options.worker:
             logging.info(
                 f"Follow test run here: {self.env.parsed_options.grafana_url}&var-testplan={self._testplan}&from={int(self._run_id.timestamp()*1000)}&to=now"
