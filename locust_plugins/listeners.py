@@ -5,7 +5,6 @@ from locust.exception import (
     CatchResponseError,
     InterruptTaskSet,
 )  # need to do this first to make sure monkey patching is done
-from locust.runners import LocalRunner
 import locust.env
 import gevent
 from gevent.lock import Semaphore
@@ -23,7 +22,6 @@ import socket
 import sys
 from datetime import datetime, timezone, timedelta
 import greenlet
-from dateutil import parser
 from typing import Callable, List
 
 
