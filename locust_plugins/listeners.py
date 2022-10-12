@@ -5,7 +5,6 @@ from locust.exception import (
     CatchResponseError,
     InterruptTaskSet,
 )  # need to do this first to make sure monkey patching is done
-from locust.runners import LocalRunner
 import locust.env
 import gevent
 from gevent.lock import Semaphore
@@ -23,7 +22,6 @@ import socket
 import sys
 from datetime import datetime, timezone, timedelta
 import greenlet
-from dateutil import parser
 from typing import Callable, List
 
 
@@ -135,26 +133,8 @@ class Timescale:  # pylint: disable=R0902
             sys.exit(1)
         self.set_gitrepo()
 
-        if (
-            self.env.parsed_options.worker
-            or self.env.parsed_options.master
-            or isinstance(environment.runner, LocalRunner)
-        ):
-            # swarm generates the run id for its master and workers
-            if getattr(environment.parsed_options, "run_id", False):
-                self._run_id = parser.parse(environment.parsed_options.run_id)
-            elif hasattr(self, "_run_id"):
-                pass
-            else:
-                logging.debug(
-                    "You are running distributed, but without swarm. run_id:s in Timescale will not match exactly between load gens"
-                )
-                self._run_id = datetime.now(timezone.utc)
-                logging.info(f"Run id is {self._run_id}")
-        else:
-            self._run_id = datetime.now(timezone.utc)
-            logging.debug(f"Run id is {self._run_id}")
         if not self.env.parsed_options.worker:
+            self._run_id = datetime.now(timezone.utc)
             logging.info(
                 f"Follow test run here: {self.env.parsed_options.grafana_url}&var-testplan={self._testplan}&from={int(self._run_id.timestamp()*1000)}&to=now"
             )
@@ -163,7 +143,8 @@ class Timescale:  # pylint: disable=R0902
                 .astimezone(tz=self._run_id.astimezone().tzinfo)
                 .strftime("%Y-%m-%d, %H:%M:%S.%f")
             )
-            environment.runner.send_message("get_run_id", msg)
+            if environment.runner is not None:
+                environment.runner.send_message("get_run_id", msg)
             self.log_start_testrun()
             self._user_count_logger = gevent.spawn(self._log_user_count)
 
