@@ -143,7 +143,8 @@ class Timescale:  # pylint: disable=R0902
                 .astimezone(tz=self._run_id.astimezone().tzinfo)
                 .strftime("%Y-%m-%d, %H:%M:%S.%f")
             )
-            environment.runner.send_message("get_run_id", msg)
+            if environment.runner is not None:
+                environment.runner.send_message("get_run_id", msg)
             self.log_start_testrun()
             self._user_count_logger = gevent.spawn(self._log_user_count)
 
