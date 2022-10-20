@@ -306,4 +306,5 @@ def rendering(
     stdout, _stderr = p.communicate()
     assert not p.returncode, "Black failed to format the output - perhaps your template is broken?"
 
-    return stdout
+    # for some reason the subprocess returns an extra newline, get rid of that
+    return stdout[:-1]
