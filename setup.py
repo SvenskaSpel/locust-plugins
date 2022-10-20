@@ -47,6 +47,7 @@ setup(
         "paho-mqtt>=1.5.0",
         "python-autoviv",
         "typing-extensions",
+        "setuptools_scm",
     ],
     scripts=["bin/locust-compose"],
     use_scm_version={
@@ -58,5 +59,4 @@ setup(
             "har2locust = har2locust.main:cli",
         ]
     },
-    setup_requires=["setuptools_scm"],
 )
