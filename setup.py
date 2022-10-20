@@ -53,5 +53,10 @@ setup(
         "write_to": "locust_plugins/_version.py",
         "local_scheme": "no-local-version",
     },
+    entry_points={
+        "console_scripts": [
+            "har2locust = har2locust.main:cli",
+        ]
+    },
     setup_requires=["setuptools_scm"],
 )

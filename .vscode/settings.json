@@ -11,7 +11,15 @@
         "**/.eggs": true,
         "**/.metals": true,
         "**/.mypy_cache": true,
-        "**/.tox": true
+        "**/.tox": true,
+        "**/project/": true,
+        "har2locust/tests/.pytest_cache/**/*": true,
+        ".pytest_cache/**/*": true,
+        "**/.python-version": true,
+        "**/_version.py": true,
+        "examples/screenshot_*": true,
+        "**/output.txt": true,
+        "**/.pytest_cache": true
     },
     "python.linting.pylintEnabled": true,
     "python.linting.pylintArgs": [

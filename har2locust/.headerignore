@@ -1,0 +1,6 @@
+^cookie
+^content-length
+^:
+^sec-
+^upgrade-insecure-requests
+^referer

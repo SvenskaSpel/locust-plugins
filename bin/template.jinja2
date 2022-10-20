@@ -1,0 +1,3 @@
+{% for person in persons -%}
+    {{ person.name }} {{ person.age }}
+{% endfor %}
