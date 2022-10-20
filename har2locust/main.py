@@ -6,7 +6,7 @@ import subprocess
 
 import re
 import jinja2
-
+from typing import List
 from setuptools_scm import get_version
 
 
@@ -107,8 +107,8 @@ def main(
 def preprocessing(
     har: dict,
     resource_type=["xhr", "document", "other"],
-    url_filters: list[re.Pattern] = [],
-    header_filters: list[re.Pattern] = [],
+    url_filters: List[re.Pattern] = [],
+    header_filters: List[re.Pattern] = [],
 ) -> dict:
     """Scan the har dict for common headers and cookies and group them into
     session headers and session cookies.
