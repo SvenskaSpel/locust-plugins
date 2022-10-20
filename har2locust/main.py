@@ -55,9 +55,9 @@ def cli():
 
 def main(
     har_file: str,
-    resource_type: str = ["xhr", "document", "other"],
-    template_dir: str = pathlib.Path(__file__).parents[0],
-    template_name: str = "locust.jinja2",
+    resource_type=["xhr", "document", "other"],
+    template_dir=pathlib.Path(__file__).parents[0],
+    template_name="locust.jinja2",
 ):
     """Load .har file and produce .py
 
@@ -183,10 +183,10 @@ def preprocessing(
     if unsupported := set(resource_type) - supported_resource_type:
         raise NotImplementedError(f"{unsupported} resource types are not supported")
 
-    log_version = har["log"]["version"]
-    logging.debug(f'log version is "{log_version}"')
-    if log_version != "1.2":
-        logging.warning("this script it is only tested on " 'log version "1.2" and not on "{log_version}"')
+    har_version = har["log"]["version"]
+    logging.debug(f'log version is "{har_version}"')
+    if har_version != "1.2":
+        logging.warning(f"Untested har version {har_version}")
 
     pages = har["log"]["pages"]
     logging.debug(f"found {len(pages)} pages")
@@ -287,7 +287,7 @@ def rendering(
     """
     # check for the correctness of the har structure
     if set(har) != {"session", "requests", "responses", "resources_types"}:
-        raise ValueError("har dict has wrong format. " "Must be first preprocessed with preprocessing(har).")
+        raise ValueError("har dict has wrong format. Must be first preprocessed with preprocessing(har).")
 
     env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir))
     template = env.get_template(template_name)
