@@ -42,4 +42,3 @@ def on_locust_init(environment, **_kwargs):
 
 if __name__ == "__main__":
     run_single_user(MyUser)
-

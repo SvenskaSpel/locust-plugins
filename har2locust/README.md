@@ -3,6 +3,9 @@
 This is a fork of [har2py](https://github.com/S1M0N38/har2py), modified to generate a locustfile 
 instead of a basic Python file.
 
+Warning: It is currently in early beta. It mostly works, but there may be changes to behaviour 
+and interface without notice. If you encounter an issue, PRs are very welcome.
+
 ---
 
 When browsing the web with the Developer Tools open you can record the Network

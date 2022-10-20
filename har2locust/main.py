@@ -186,10 +186,7 @@ def preprocessing(
     log_version = har["log"]["version"]
     logging.debug(f'log version is "{log_version}"')
     if log_version != "1.2":
-        logging.warning(
-            "this script it is only tested on "
-            'log version "1.2" and not on "{log_version}"'
-        )
+        logging.warning("this script it is only tested on " 'log version "1.2" and not on "{log_version}"')
 
     pages = har["log"]["pages"]
     logging.debug(f"found {len(pages)} pages")
@@ -201,8 +198,7 @@ def preprocessing(
     entries = [
         e
         for e in har["log"]["entries"]
-        if e["_resourceType"] in resource_type
-        and not any(re.search(r, e["request"]["url"]) for r in url_filters)
+        if e["_resourceType"] in resource_type and not any(re.search(r, e["request"]["url"]) for r in url_filters)
     ]
     logging.debug(f"resource type allowed {resource_type}")
     logging.debug(f"{len(entries)} entries filter by resource_type")
@@ -291,10 +287,7 @@ def rendering(
     """
     # check for the correctness of the har structure
     if set(har) != {"session", "requests", "responses", "resources_types"}:
-        raise ValueError(
-            "har dict has wrong format. "
-            "Must be first preprocessed with preprocessing(har)."
-        )
+        raise ValueError("har dict has wrong format. " "Must be first preprocessed with preprocessing(har).")
 
     env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir))
     template = env.get_template(template_name)
@@ -307,14 +300,10 @@ def rendering(
         resources_types=har["resources_types"],
     )
 
-    p = subprocess.Popen(
-        ["black", "-q", "-"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True
-    )
+    p = subprocess.Popen(["black", "-q", "-"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
     assert p.stdin  # keep linter happy
     p.stdin.write(py)
     stdout, _stderr = p.communicate()
-    assert (
-        not p.returncode
-    ), "Black failed to format the output - perhaps your template is broken?"
+    assert not p.returncode, "Black failed to format the output - perhaps your template is broken?"
 
     return stdout
