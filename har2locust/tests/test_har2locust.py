@@ -36,7 +36,10 @@ def test_rendering_without_preprocess():
 
 
 def test_rendering_syntax_error():
-    with pytest.raises(SyntaxError, match="cannot parse har"):
+    with pytest.raises(
+        AssertionError,
+        match="Black failed to format the output - perhaps your template is broken?",
+    ):
         rendering(
             preprocessing(har),
             template_dir=pathlib.Path(__file__).parents[0],

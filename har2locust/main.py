@@ -313,6 +313,8 @@ def rendering(
     assert p.stdin  # keep linter happy
     p.stdin.write(py)
     stdout, _stderr = p.communicate()
-    assert not p.returncode, "Black failed to format"
+    assert (
+        not p.returncode
+    ), "Black failed to format the output - perhaps your template is broken?"
 
     return stdout
