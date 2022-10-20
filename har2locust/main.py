@@ -1,5 +1,4 @@
 import argparse
-import ast
 import json
 import logging
 import pathlib
@@ -211,7 +210,7 @@ def preprocessing(
     # organize request variable in a useful format
     # [[{'name': key, 'value': value}, ...], ...] list of list of dict ->
     # [{(key, value), ...}, ...] list of set of tuple
-    urls, methods, headers_req, cookies_req, params, post_datas = [], [], [], [], [], []
+    urls, methods, headers_req, cookies_req, post_datas = [], [], [], [], []
     headers_res, cookies_res = [], []
     for e in entries:
         req = e["request"]
@@ -225,7 +224,6 @@ def preprocessing(
             }
         )
         cookies_req.append({(c["name"], c["value"]) for c in req["cookies"]})
-        # params.append({(p["name"], p["value"]) for p in req["queryString"]})
         post_datas.append(req["postData"]["text"] if "postData" in req else None)
         res = e["response"]
         headers_res.append({(h["name"], h["value"]) for h in res["headers"]})
@@ -308,17 +306,6 @@ def rendering(
         responses=har["responses"],
         resources_types=har["resources_types"],
     )
-
-    # test if the generated code is python valid code
-    try:
-        ast.parse(py)
-    except SyntaxError:
-        raise SyntaxError(
-            "cannot parse har into valid python code. "
-            "Please check the correctness of the jinja2 template"
-        )
-
-    logging.debug("successfully generate valid python code")
 
     p = subprocess.Popen(
         ["black", "-q", "-"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True
