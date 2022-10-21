@@ -1,22 +1,20 @@
 # har2locust
 
-This is a fork of [har2py](https://github.com/S1M0N38/har2py), modified to generate a locustfile 
-instead of a basic Python file.
-
-Warning: It is currently in early beta. It mostly works, but there may be changes to behaviour 
-and interface without notice. If you encounter an issue, PRs are very welcome.
-
----
-
 When browsing the web with the Developer Tools open you can record the Network
 Activities (requests perform by your browser & responses you get from servers).
 Then you can export all these data into an [HAR](https://en.wikipedia.org/wiki/HAR_(file_format))
 file (Http ARchive). With **har2locust** you can convert HAR file into valid python
 code that reproduce the requests perform by your browser.
 
+har2locust builds upon [har2py](https://github.com/S1M0N38/har2py), modified to generate a locustfile 
+instead of a basic Python file.
+
+Note: It is currently in early beta. It mostly works, but there may be changes to behaviour 
+and interface without notice. If you encounter an issue, PRs are very welcome.
+
 ## Installation
 
-Just a simple pip install, i.e. `python3 -m pip install har2locust`
+har2locust is installed together with locust-plugins (`pip install locust-plugins`)
 
 ## Usage
 
