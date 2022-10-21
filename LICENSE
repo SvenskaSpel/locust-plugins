@@ -1,5 +1,7 @@
 Copyright 2019 Svenska Spel AB
 
+Note: har2locust is based on har2py, originally created by S1M0N38, released under the MIT license. 
+See https://github.com/SvenskaSpel/locust-plugins/blob/master/har2locust/LICENSE
 
                                  Apache License
                            Version 2.0, January 2004

@@ -16,14 +16,13 @@ setup(
         "Operating System :: POSIX :: Linux",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Intended Audience :: Developers",
         "Intended Audience :: System Administrators",
     ],
-    python_requires=">=3.7, <4",
+    python_requires=">=3.8, <4",
     keywords="",
     author="Lars Holmberg",
     url="https://github.com/SvenskaSpel/locust-plugins",
@@ -47,11 +46,16 @@ setup(
         "paho-mqtt>=1.5.0",
         "python-autoviv",
         "typing-extensions",
+        "setuptools_scm",
     ],
     scripts=["bin/locust-compose"],
     use_scm_version={
         "write_to": "locust_plugins/_version.py",
         "local_scheme": "no-local-version",
     },
-    setup_requires=["setuptools_scm"],
+    entry_points={
+        "console_scripts": [
+            "har2locust = har2locust.main:cli",
+        ]
+    },
 )
