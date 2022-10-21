@@ -23,7 +23,7 @@ def cli():
         action="store",
         default="locust",
         type=str,
-        help=("jinja2 template used to generate py code. " "Default to locust. "),
+        help=("jinja2 template used to generate locustfile. " "Default to locust. "),
     )
     parser.add_argument(
         "-f",
@@ -92,6 +92,9 @@ def main(
         with open(headerignore_file) as f:
             header_filters = f.readlines()
             header_filters = [line.rstrip() for line in header_filters]
+
+    # always filter these, because they will be added by locust automatically
+    header_filters.extend(["^cookie", "^content-length", "^:"])
 
     har = preprocessing(
         har,

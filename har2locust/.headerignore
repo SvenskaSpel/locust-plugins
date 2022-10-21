@@ -1,6 +1,7 @@
-^cookie
-^content-length
-^:
+# these are ignored by default, no need to include them in your ignore file
+# ^cookie
+# ^content-length
+# ^:
 ^sec-
 ^upgrade-insecure-requests
 ^referer
