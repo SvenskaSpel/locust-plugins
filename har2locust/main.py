@@ -7,7 +7,7 @@ import subprocess
 import re
 import jinja2
 from typing import List
-from locust_plugins import _version  # pylint: disable=no-name-in-module
+from setuptools_scm import get_version
 
 
 def cli():
@@ -39,11 +39,17 @@ def cli():
         ),
     )
 
+    try:
+        version = get_version(root="..", relative_to=__file__)
+    except LookupError:
+        # meh. probably we are running in a github action.
+        version = "unknown"
+
     parser.add_argument(
         "--version",
         "-V",
         action="version",
-        version=f"%(prog)s {_version.version}",
+        version=f"%(prog)s {version}",
     )
     args = parser.parse_args()
 
