@@ -16,8 +16,10 @@ jobs:
           - { name: "3.8", python: "3.8", os: ubuntu-latest, tox: py38 }
 
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}
       - name: Update pip
@@ -44,11 +46,11 @@ jobs:
     if: startsWith(github.event.ref, 'refs/tags') && github.repository_owner == 'SvenskaSpel'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: "3.x"
       - name: Install dependencies
