@@ -2,3 +2,4 @@ include LICENSE
 include requirements.txt
 recursive-include locust_plugins/dashboards/ *
 include locust_plugins/py.typed
+include har2locust/locust.jinja2
