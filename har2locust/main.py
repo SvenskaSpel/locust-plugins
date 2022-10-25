@@ -80,11 +80,11 @@ def main(
             Default to 'locust.jinja2'.
     """
 
-    har_file = pathlib.Path(har_file)
+    har_path = pathlib.Path(har_file)
 
-    with open(har_file, encoding="utf8", errors="ignore") as f:
+    with open(har_path, encoding="utf8", errors="ignore") as f:
         har = json.load(f)
-    logging.debug(f"load {har_file}")
+    logging.debug(f"load {har_path}")
 
     urlignore_file = pathlib.Path(".urlignore")
     url_filters = []
@@ -93,10 +93,10 @@ def main(
             url_filters = f.readlines()
             url_filters = [line.rstrip() for line in url_filters]
 
-    headerignore_file = pathlib.Path(".headerignore")
+    headerignore_path = pathlib.Path(".headerignore")
     header_filters = []
-    if headerignore_file.is_file():
-        with open(headerignore_file) as f:
+    if headerignore_path.is_file():
+        with open(headerignore_path) as f:
             header_filters = f.readlines()
             header_filters = [line.rstrip() for line in header_filters]
 
