@@ -61,5 +61,5 @@ def test_main(har_file, py_file):
         cwd=os.path.join(os.path.dirname(__file__), "../"),
     )
     stdout, stderr = proc.communicate()
-    assert proc.returncode == 0, f"Bad return code {proc.returncode}, stderr: {stderr}"
     assert stdout.strip() == expected_output.strip()
+    assert proc.returncode == 0, f"Bad return code {proc.returncode}, stderr: {stderr}"
