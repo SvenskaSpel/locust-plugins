@@ -7,7 +7,7 @@ import subprocess
 import re
 import jinja2
 from typing import List
-from locust_plugins import _version  # pylint: disable=no-name-in-module
+from locust_plugins import _version
 
 
 def cli():
