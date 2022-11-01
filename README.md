@@ -77,6 +77,9 @@ locust -f any-locustfile-that-imports-locust_plugins.py --help
 
 Have a look at the [example locustfiles](examples/) to learn how to use the plugins.
 
+# har2locust
+
+[har2locust](https://github.com/SvenskaSpel/har2locust) can be used to generate RestUser locustfiles directly from HAR-files (browser recordings). It is installed separately.
 
 # locust-swarm
 
