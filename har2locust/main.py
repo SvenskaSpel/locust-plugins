@@ -1,4 +1,4 @@
-import configargparse
+import argparse
 import json
 import logging
 import pathlib
@@ -11,16 +11,7 @@ from setuptools_scm import get_version
 
 
 def cli():
-    parser = configargparse.ArgumentParser(
-        default_config_files=[
-            "~/.locust.conf",
-            "locust.conf",
-            "~/.swarm.conf",
-            "swarm.conf",
-        ],
-        auto_env_var_prefix="LOCUST_",
-        description="A tool for generating locustfiles from browser recordings",
-    )
+    parser = argparse.ArgumentParser()
     parser.add_argument(
         "input",
         action="store",
