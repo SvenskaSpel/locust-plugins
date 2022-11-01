@@ -14,4 +14,3 @@ env
 _version.py
 examples/screenshot_*
 output.txt
-.pytest_cache

@@ -77,9 +77,6 @@ locust -f any-locustfile-that-imports-locust_plugins.py --help
 
 Have a look at the [example locustfiles](examples/) to learn how to use the plugins.
 
-# har2locust
-
-[har2locust](har2locust/) is distributed as part of this package. It is a separate command-line tool, used to automatically convert browser recordings (HAR files) to locustfiles.
 
 # locust-swarm
 
