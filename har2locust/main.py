@@ -40,7 +40,7 @@ def cli():
     )
 
     try:
-        version = get_version(root="..", relative_to=__file__, local_scheme="no-local-version")
+        version = get_version(root="..", relative_to=__file__)
     except LookupError:
         # meh. probably we are running in a github action.
         version = "unknown"
