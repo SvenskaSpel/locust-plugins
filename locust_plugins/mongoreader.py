@@ -21,7 +21,9 @@ class User(dict):
         self.coll = coll
         with dblock:
             data = self.coll.find_one_and_update(
-                query, {"$set": {"last_login": datetime.now(tz=timezone.utc), "logged_in": True}}, sort=[("last_login", 1)]
+                query,
+                {"$set": {"last_login": datetime.now(tz=timezone.utc), "logged_in": True}},
+                sort=[("last_login", 1)],
             )
         if not data:
             raise NoUserException(f"Didnt get any user from db ({self.coll}) using query {query}")
