@@ -7,14 +7,14 @@ from locust.user.task import DefaultTaskSet
 from locust import events
 from locust.exception import StopUser
 from locust.env import Environment
+from locust.argument_parser import LocustArgumentParser
 from locust.runners import Runner, WorkerRunner
 import logging
 from functools import wraps
-import configargparse
 
 
 @events.init_command_line_parser.add_listener
-def add_checks_arguments(parser: configargparse.ArgumentParser):
+def add_arguments(parser: LocustArgumentParser):
     checks = parser.add_argument_group(
         "locust-plugins - Checks",
         "Sets locust's exit code to 3 if any of these thresholds were not met",
