@@ -1,5 +1,4 @@
 from .wait_time import constant_ips, constant_total_ips
-from .debug import run_single_user
 from .listeners import Timescale
 import locust
 from locust import TaskSet
