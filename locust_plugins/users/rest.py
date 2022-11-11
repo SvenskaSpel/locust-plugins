@@ -72,6 +72,7 @@ class RestUser(FastHttpUser):
                     short_resp = resp.text[:200] if resp.text else resp.text
                     resp.failure(f"{e.__class__.__name__}: {e} at {', '.join(error_lines)}. Response was {short_resp}")
 
+    # some web api:s use a timestamp as part of their url (to break thru caches). this is a convenience method for that.
     @contextmanager
     def rest_(self, method, url, name=None, **kwargs) -> ResponseContextManager:
         with self.rest(method, f"{url}&_={int(time.time()*1000)}", name=name, **kwargs) as resp:
