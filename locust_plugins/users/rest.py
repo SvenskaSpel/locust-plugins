@@ -6,6 +6,7 @@ import re
 from json.decoder import JSONDecodeError
 import autoviv
 from typing import Generator, Optional
+import time
 
 
 class RestResponseContextManager(ResponseContextManager):
@@ -70,3 +71,8 @@ class RestUser(FastHttpUser):
                         error_lines.append(filename + ":" + m.group(2) + m.group(3))
                     short_resp = resp.text[:200] if resp.text else resp.text
                     resp.failure(f"{e.__class__.__name__}: {e} at {', '.join(error_lines)}. Response was {short_resp}")
+
+    @contextmanager
+    def rest_(self, method, url, name=None, **kwargs) -> ResponseContextManager:
+        with self.rest(method, f"{url}&_={int(time.time()*1000)}", name=name, **kwargs) as resp:
+            yield resp
