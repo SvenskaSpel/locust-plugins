@@ -1,6 +1,5 @@
-from locust_plugins import run_single_user
 from locust_plugins.users import KafkaUser
-from locust import task
+from locust import task, run_single_user
 import os
 
 
