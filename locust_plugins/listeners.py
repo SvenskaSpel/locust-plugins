@@ -129,6 +129,7 @@ class Timescale:  # pylint: disable=R0902
         try:
             self.dbconn = self._dbconn()
         except psycopg2.OperationalError as e:
+            logging.error(e)
             sys.exit(1)
         self.set_gitrepo()
 
