@@ -75,7 +75,8 @@ class Timescale:  # pylint: disable=R0902
         events.spawning_complete.add_listener(self.spawning_complete)
         atexit.register(self.log_stop_test_run)
 
-        self.env.runner.register_message("run_id", self.set_run_id)
+        if self.env.runner is not None:
+            self.env.runner.register_message("run_id", self.set_run_id)
 
     def set_run_id(self, environment, msg, **kwargs):
         logging.debug(f'Received run id from master. Using this {datetime.strptime(msg.data, "%Y-%m-%d, %H:%M:%S.%f")}')
@@ -128,7 +129,6 @@ class Timescale:  # pylint: disable=R0902
         try:
             self.dbconn = self._dbconn()
         except psycopg2.OperationalError as e:
-            logging.error(e)
             sys.exit(1)
         self.set_gitrepo()
 
