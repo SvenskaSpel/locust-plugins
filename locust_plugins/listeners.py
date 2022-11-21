@@ -75,8 +75,7 @@ class Timescale:  # pylint: disable=R0902
         events.spawning_complete.add_listener(self.spawning_complete)
         atexit.register(self.log_stop_test_run)
 
-        if self.env.parsed_options.worker:
-            self.env.runner.register_message("get_run_id", self.set_run_id)
+        self.env.runner.register_message("run_id", self.set_run_id)
 
     def set_run_id(self, environment, msg, **kwargs):
         logging.debug(f'Received run id from master. Using this {datetime.strptime(msg.data, "%Y-%m-%d, %H:%M:%S.%f")}')
@@ -144,7 +143,7 @@ class Timescale:  # pylint: disable=R0902
                 .strftime("%Y-%m-%d, %H:%M:%S.%f")
             )
             if environment.runner is not None:
-                environment.runner.send_message("get_run_id", msg)
+                environment.runner.send_message("run_id", msg)
             self.log_start_testrun()
             self._user_count_logger = gevent.spawn(self._log_user_count)
 

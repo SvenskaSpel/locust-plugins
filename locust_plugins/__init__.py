@@ -1,8 +1,7 @@
 from .wait_time import constant_ips, constant_total_ips
 from .listeners import Timescale
 import locust
-from locust import TaskSet
-from locust.user.task import DefaultTaskSet
+from locust.user.task import DefaultTaskSet, TaskSet
 from locust import events
 from locust.exception import StopUser
 from locust.env import Environment
