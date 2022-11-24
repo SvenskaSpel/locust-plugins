@@ -15,5 +15,5 @@ class TestUserWithResources(HttpUserWithResources):
         self.client.get("/", resource_filter=".*[^(js)]$")
 
     @task
-    def include_resources_false(self):
+    def include_no_resources(self):
         self.client.get("/index.html", include_resources=False)
