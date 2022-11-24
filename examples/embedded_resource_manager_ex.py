@@ -11,7 +11,7 @@ class TestUserWithResources(HttpUserWithResources):
         self.client.get("/cart.html")
 
     @task
-    def include_resources_true(self):
+    def include_resources_with_specific_filter(self):
         self.client.get("/", resource_filter=".*[^(js)]$")
 
     @task
