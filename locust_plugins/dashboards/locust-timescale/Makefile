@@ -8,7 +8,7 @@ push:
 	docker push $(IMAGE_NAME)
 
 run:
-	docker run -p 3000:3000 $(IMAGE_NAME)
+	@echo no this doesnt work any more, use docker-compose file or locust-compose
 
 shell:
 	docker run -p 3000:3000 -it --entrypoint=/bin/bash $(IMAGE_NAME)
