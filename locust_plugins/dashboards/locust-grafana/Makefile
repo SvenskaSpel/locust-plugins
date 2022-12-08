@@ -1,4 +1,4 @@
-TAG=2
+TAG=3
 IMAGE_NAME=cyberw/locust-grafana:$(TAG)
 
 build:

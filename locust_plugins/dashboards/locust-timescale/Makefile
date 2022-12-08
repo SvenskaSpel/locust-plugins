@@ -1,4 +1,4 @@
-TAG=5
+TAG=6
 IMAGE_NAME=cyberw/locust-timescale:$(TAG)
 
 build:

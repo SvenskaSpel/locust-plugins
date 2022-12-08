@@ -2,7 +2,7 @@ version: "3"
 
 services:
   postgres:
-    image: cyberw/locust-timescale:5
+    image: cyberw/locust-timescale:6
     networks:
       - timenet
     expose:
@@ -18,7 +18,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
   grafana:
-    image: cyberw/locust-grafana:2
+    image: cyberw/locust-grafana:3
     environment:
       # these settings are not particularly safe, dont go exposing Grafana externally without changing this.
       - GF_AUTH_DISABLE_LOGIN_FORM=true
