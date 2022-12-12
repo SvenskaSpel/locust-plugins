@@ -5,13 +5,12 @@ from contextlib import contextmanager
 from json.decoder import JSONDecodeError
 from typing import Generator, Optional
 
-import autoviv
 from locust import FastHttpUser
 from locust.clients import ResponseContextManager
 
 
 class RestResponseContextManager(ResponseContextManager):
-    js: autoviv.Dict
+    js: dict
 
 
 class RestUser(FastHttpUser):
@@ -20,8 +19,7 @@ class RestUser(FastHttpUser):
     It extends FastHttpUser by adding the `rest`-method, a wrapper around self.client.request() that:
     * automatically passes catch_response=True
     * automatically sets content-type and accept headers to application/json (unless you have provided your own headers)
-    * automatically checks that the response is valid json, parses it into an autoviv.Dict and saves it in a field called `js` in the response object.
-      (this support safe navication so if your json was {"foo": 42}, resp.js["bar"]["baz"] returns None instead of throwing an exception)
+    * automatically checks that the response is valid json, parses it into an dict and saves it in a field called `js` in the response object.
     * catches any exceptions thrown in your with-block and fails the sample (this probably should have been the default behaviour in Locust)
     """
 
@@ -45,7 +43,7 @@ class RestUser(FastHttpUser):
             else:
                 if resp.text:
                     try:
-                        resp.js = autoviv.loads(resp.text)
+                        resp.js = resp.json()
                     except JSONDecodeError as e:
                         resp.failure(
                             f"Could not parse response as JSON. {resp.text[:250]}, response code {resp.status_code}, error {e}"
@@ -75,6 +73,7 @@ class RestUser(FastHttpUser):
 
     # some web api:s use a timestamp as part of their url (to break thru caches). this is a convenience method for that.
     @contextmanager
-    def rest_(self, method, url, name=None, **kwargs) -> ResponseContextManager:
+    def rest_(self, method, url, name=None, **kwargs) -> Generator[RestResponseContextManager, None, None]:
         with self.rest(method, f"{url}&_={int(time.time()*1000)}", name=name, **kwargs) as resp:
+            resp: RestResponseContextManager  # pylint is stupid
             yield resp
