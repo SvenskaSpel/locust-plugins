@@ -35,28 +35,21 @@ class MyUser(RestUser):
             # assertions are a nice short way of expressiont your expectations about the response. The AssertionError thrown will be caught
             # and fail the request, including the message and the payload in the failure content
             assert resp.js["data"]["foo"] == 1, "Unexpected value of foo in response"
-            # to guard against complete failures (which may make resp.js None), only do the check when error is not already set:
-            assert resp.error or resp.js["data"]["foo"] == 1
-
-        # RestResponse support safe navigation returning None if fields are missing (instead of throwing KeyError or
-        with self.rest("POST", "/post", json={"foo": 1}) as resp:
-            if resp.js["field that doesnt exist"]["status"] != "success":
-                resp.failure(f"Bad or missing status in {resp.text}")
 
         # assertions are a nice short way to validate the response. The AssertionError they raise
         # will be caught by rest() and mark the request as failed
 
         with self.rest("POST", "/post", json={"foo": 1}) as resp:
             # mark the request as failed with the message "Assertion failed"
-            assert resp.js["foo"] == 2
+            assert resp.js["data"]["foo"] == 2
 
         with self.rest("POST", "/post", json={"foo": 1}) as resp:
             # custom failure message
-            assert resp.js["foo"] == 2, "my custom error message"
+            assert resp.js["data"]["foo"] == 2, "my custom error message"
 
         with self.rest("POST", "/post", json={"foo": 1}) as resp:
             # use a trailing comma to append the response text to the custom message
-            assert resp.js["foo"] == 2, "my custom error message with response text,"
+            assert resp.js["data"]["foo"] == 2, "my custom error message with response text,"
 
         # this only works in python 3.8 and up, so it is commented out:
         # if sys.version_info >= (3, 8):
