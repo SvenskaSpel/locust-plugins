@@ -1,12 +1,13 @@
+import re
+import time
+import traceback
 from contextlib import contextmanager
+from json.decoder import JSONDecodeError
+from typing import Generator, Optional
+
+import autoviv
 from locust import FastHttpUser
 from locust.clients import ResponseContextManager
-import traceback
-import re
-from json.decoder import JSONDecodeError
-import autoviv
-from typing import Generator, Optional
-import time
 
 
 class RestResponseContextManager(ResponseContextManager):
