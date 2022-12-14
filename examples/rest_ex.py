@@ -8,6 +8,7 @@ from locust import task, run_single_user, FastHttpUser
 from locust.contrib.fasthttp import RestResponseContextManager
 from locust.user.wait_time import constant
 from typing import Generator
+from locust_plugins import Timescale  # just to get the arguments... # pylint: disable-all
 
 # import sys
 
