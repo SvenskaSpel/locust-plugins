@@ -1,23 +1,18 @@
 """
-RestUser is a convenience class for testing RESTful JSON endpoints.
-It extends FastHttpUser by adding the `rest`-method, a wrapper around self.client.request() that:
-* automatically passes catch_response=True
-* automatically sets content-type and accept headers to application/json (unless you have provided your own headers)
-* automatically checks that the response is valid json, parses it into a RestResponse and saves it in a field called `js` in the response object.
-    (RestResponse support safe navigation so if your json was {"foo": 42}, resp.js["bar"]["baz"] returns None instead of throwing an exception)
-* catches any exceptions thrown in your with-block and fails the sample (this probably should have been the default behaviour in Locust)
+RestUser has been removed, because the base FastHttpUser from locust-core now provides the same functionality
+This file is for testing only.
 """
 
 from contextlib import contextmanager
-from locust import task, run_single_user
-from locust.contrib.fasthttp import ResponseContextManager
+from locust import task, run_single_user, FastHttpUser
+from locust.contrib.fasthttp import RestResponseContextManager
 from locust.user.wait_time import constant
-from locust_plugins.users import RestUser
+from typing import Generator
 
 # import sys
 
 
-class MyUser(RestUser):
+class MyUser(FastHttpUser):
     host = "https://postman-echo.com"
     wait_time = constant(180)  # be nice to postman-echo.com, and dont run this at scale.
 
@@ -86,14 +81,14 @@ class MyUser(RestUser):
 
 # An example of how you might write a common base class for an API that always requires
 # certain headers, or where you always want to check the response in a certain way
-class RestUserThatLooksAtErrors(RestUser):
+class RestUserThatLooksAtErrors(FastHttpUser):
     abstract = True
 
     @contextmanager
-    def rest(self, method, url, **kwargs) -> ResponseContextManager:
+    def rest(self, method, url, **kwargs) -> Generator[RestResponseContextManager, None, None]:
         extra_headers = {"my_header": "my_value"}
         with super().rest(method, url, headers=extra_headers, **kwargs) as resp:
-            resp: ResponseContextManager
+            resp: RestResponseContextManager
             if resp.js and "error" in resp.js and resp.js["error"] is not None:
                 resp.failure(resp.js["error"])
             yield resp
