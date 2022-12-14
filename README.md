@@ -47,8 +47,8 @@ locust -f any-locustfile-that-imports-locust_plugins.py --help
     - Selenium/Webdriver ([example](examples/webdriver_ex.py)) 
     - HTTP users that load html page resources ([example](examples/embedded_resource_manager_ex.py))
     - Kafka ([example](examples/kafka_ex.py))
-    - RestUser ([example](examples/rest_ex.py))
     - MqttUser ([example](examples/mqtt_ex.py))
+    - RestUser has been removed, as it is [now part of locust core](https://docs.locust.io/en/stable/increase-performance.html#rest)!
 
 ## Readers 
 - Provide ways to get test data into your tests
@@ -76,10 +76,6 @@ locust -f any-locustfile-that-imports-locust_plugins.py --help
 # Further examples
 
 Have a look at the [example locustfiles](examples/) to learn how to use the plugins.
-
-# har2locust
-
-[har2locust](https://github.com/SvenskaSpel/har2locust) can be used to generate RestUser locustfiles directly from HAR-files (browser recordings). It is installed separately.
 
 # locust-swarm
 
