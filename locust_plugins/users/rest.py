@@ -22,5 +22,5 @@ class RestUser(FastHttpUser):
     def __init__(self, parent):
         super().__init__(parent)  # keep pylint happy
         raise Exception(
-            "RestUser has been removed. Its functionality is now part of the locust.FastHttpUser, so it is no longer needed!"
+            "RestUser has been removed. Its functionality is now part of locust.FastHttpUser, so it is no longer needed!"
         )
