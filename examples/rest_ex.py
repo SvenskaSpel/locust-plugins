@@ -1,6 +1,10 @@
 """
+***
+
 RestUser has been removed, because the base FastHttpUser from locust-core now provides the same functionality
 This file is for testing only.
+
+***
 """
 
 from contextlib import contextmanager
