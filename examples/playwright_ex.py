@@ -10,6 +10,7 @@
 
 from locust import run_single_user, task
 from locust_plugins.users.playwright import PageWithRetry, PlaywrightUser, PlaywrightScriptUser, pw, event
+import time
 
 
 class ScriptBased(PlaywrightScriptUser):
@@ -37,5 +38,55 @@ class Manual(PlaywrightUser):
             pass
 
 
+class OneMegabitUserThatMeasuresLCP(PlaywrightUser):
+    host = "https://www.google.com"
+
+    @task
+    @pw
+    async def google(self, page: PageWithRetry):
+        # start CDP (chrome dev tools)
+        self.client = await self.browser_context.new_cdp_session(self.page)
+        await self.client.send("Network.enable")
+        await self.client.send(
+            "Network.emulateNetworkConditions",
+            {
+                "offline": False,
+                "downloadThroughput": (1 * 1024 * 1024) / 8,
+                "uploadThroughput": (1 * 1024 * 1024) / 8,
+                "latency": 50,
+            },
+        )
+        self.start_time = time.time()
+        async with event(self, "Load up google"):  # log this as an event
+            await page.goto("/")  # load a page
+
+        await page.wait_for_timeout(1000)  # just in case there is an even larger contentful paint later on
+        lcp = await page.evaluate(
+            """
+        new Promise((resolve) => {
+            new PerformanceObserver((l) => {
+                const entries = l.getEntries()
+                // the last entry is the largest contentful paint
+                const largestPaintEntry = entries.at(-1)
+                resolve(largestPaintEntry.startTime)
+            }).observe({
+                type: 'largest-contentful-paint',
+                buffered: true
+            })
+        })
+        """
+        )
+        self.environment.events.request.fire(
+            request_type="LCP",
+            name=f"LCP",
+            start_time=self.start_time,
+            response_time=lcp,
+            response_length=0,
+            context={**self.context()},
+            url="casino_LCP",
+            exception=None,
+        )
+
+
 if __name__ == "__main__":
-    run_single_user(Manual)
+    run_single_user(OneMegabitUserThatMeasuresLCP)
