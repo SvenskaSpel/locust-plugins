@@ -39,11 +39,11 @@ def sync(async_func):
     Make a synchronous function from an async. When called, it will be executed once for every sub-user (as specified in multiplier)
     """
 
-    def wrapFunc(self: User):
+    def wrapFunc(self: User, *args, **kwargs):
         futures = []
 
         for sub_user in self.sub_users:
-            futures.append(asyncio.run_coroutine_threadsafe(async_func(sub_user), loop))
+            futures.append(asyncio.run_coroutine_threadsafe(async_func(sub_user, *args, **kwargs), loop))
             gevent.sleep(2)
 
         while True:
