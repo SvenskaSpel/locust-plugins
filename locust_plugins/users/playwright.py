@@ -252,7 +252,8 @@ class PlaywrightUser(User):
             gevent.sleep(0.1)
         e = future.exception()
         if e:
-            raise e
+            logging.error(e)
+            sys.exit(1)
         if self.environment.runner is None:  # debug session
             self.multiplier = 1
         self.sub_users = [copy.copy(self) for _ in range(self.multiplier)]
