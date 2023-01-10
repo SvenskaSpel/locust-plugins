@@ -21,6 +21,7 @@ from locust.exception import CatchResponseError, RescheduleTask
 import playwright as pw
 from locust import runners
 import copy
+import traceback
 
 runners.HEARTBEAT_LIVENESS = 10
 
@@ -137,41 +138,47 @@ def pw(func):
             task_start_time = time.time()
             start_perf_counter = time.perf_counter()
             await func(user, user.page)
-            user.environment.events.request.fire(
-                request_type="TASK",
-                name=name,
-                start_time=task_start_time,
-                response_time=(time.perf_counter() - start_perf_counter) * 1000,
-                response_length=0,
-                context={**user.context()},
-                exception=None,
-                # url=user.page.url,
-            )
+            if user.log_tasks:
+                user.environment.events.request.fire(
+                    request_type="TASK",
+                    name=name,
+                    start_time=task_start_time,
+                    response_time=(time.perf_counter() - start_perf_counter) * 1000,
+                    response_length=0,
+                    context={**user.context()},
+                    exception=None,
+                    # url=user.page.url,
+                )
         except RescheduleTask:
             pass  # no need to log anything, because an individual request has already failed
         except Exception as e:
             try:
-                error = CatchResponseError(
+                e = CatchResponseError(
                     re.sub("=======*", "", e.message + user.page.url).replace("\n", "").replace(" logs ", " ")
                 )
             except:
-                error = e  # never mind
+                pass  # never mind
             if not user.error_screenshot_made:
                 user.error_screenshot_made = True  # dont spam screenshots...
                 if user.page:  # in ScriptUser runs we have no reference to the page so...
                     await user.page.screenshot(
                         path="screenshot_" + time.strftime("%Y%m%d_%H%M%S") + ".png", full_page=True
                     )
-            user.environment.events.request.fire(
-                request_type="TASK",
-                name=name,
-                start_time=task_start_time,
-                response_time=(time.perf_counter() - start_perf_counter) * 1000,
-                response_length=0,
-                context={**user.context()},
-                exception=error,
-                url=user.page.url if user.page else None,
-            )
+            if user.log_tasks:
+                user.environment.events.request.fire(
+                    request_type="TASK",
+                    name=name,
+                    start_time=task_start_time,
+                    response_time=(time.perf_counter() - start_perf_counter) * 1000,
+                    response_length=0,
+                    context={**user.context()},
+                    exception=error,
+                    url=user.page.url if user.page else None,
+                )
+            else:
+                user.environment.events.user_error.fire(user_instance=user, exception=e, tb=e.__traceback__)
+                logging.error("%s\n%s", e, traceback.format_exc())
+
         finally:
             await user.page.wait_for_timeout(1000)  # give outstanding interactions some time
             await user.page.close()
@@ -246,6 +253,7 @@ class PlaywrightUser(User):
     error_screenshot_made = False
     multiplier = 1  # how many concurrent Playwright sessions/browsers to run for each Locust User instance. Setting this to ~10 is an efficient way to reduce overhead.
     sub_users = []
+    log_tasks = True  # by default, every task is logged as a request (an unhandled exceptions in the task will mark it as failed)
 
     def __init__(self, parent):
         super().__init__(parent)
