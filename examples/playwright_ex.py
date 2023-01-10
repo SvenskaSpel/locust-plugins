@@ -78,7 +78,7 @@ class OneMegabitUserThatMeasuresLCP(PlaywrightUser):
         )
         self.environment.events.request.fire(
             request_type="LCP",
-            name=f"LCP",
+            name="LCP",
             start_time=self.start_time,
             response_time=lcp,
             response_length=0,
