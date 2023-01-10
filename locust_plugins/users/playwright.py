@@ -122,6 +122,8 @@ def pw(func):
 
     @sync
     async def pwwrapFunc(user: PlaywrightUser):
+        if user.browser_context:
+            await user.browser_context.close()
         user.browser_context = await user.browser.new_context(ignore_https_errors=True, base_url=user.host)
         # await user.browser_context.add_init_script("() => delete window.navigator.serviceWorker")
         user.page = await user.browser_context.new_page()
