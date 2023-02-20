@@ -241,7 +241,6 @@ class WebDriverResponseContextManager:
 
 
 class WebdriverUser(User):
-
     abstract = True
     _first_instance = True
     headless = False  # overwrite this as needed
@@ -285,6 +284,7 @@ class WebdriverUser(User):
     def clear(self):
         for _ in range(3):
             try:
+                # pylint: disable=use-dict-literal
                 self.client.execute("SEND_COMMAND", dict(cmd="Network.clearBrowserCache", params={}))
                 # clearBrowserCookies is better than self.delete_all_cookies(), because it also clears http-only cookies
                 self.client.execute("SEND_COMMAND", dict(cmd="Network.clearBrowserCookies", params={}))
