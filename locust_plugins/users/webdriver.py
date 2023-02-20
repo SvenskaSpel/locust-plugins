@@ -299,6 +299,7 @@ class WebdriverUser(User):
     def clear_cookies(self):
         for _ in range(3):
             try:
+                # pylint: disable=use-dict-literal
                 self.client.execute("SEND_COMMAND", dict(cmd="Network.clearBrowserCookies", params={}))
                 break
             except (InvalidSessionIdException, WebDriverException):
