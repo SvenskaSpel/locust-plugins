@@ -22,21 +22,18 @@ def add_arguments(parser: LocustArgumentParser):
         type=float,
         help="Requests per second",
         env_var="LOCUST_CHECK_RPS",
-        default=0.0,
     )
     checks.add_argument(
         "--check-fail-ratio",
         type=float,
         help="Ratio of failed requests (0.0-1.0)",
         env_var="LOCUST_CHECK_FAIL_RATIO",
-        default=1.0,
     )
     checks.add_argument(
         "--check-avg-response-time",
         type=float,
         help="Average response time",
         env_var="LOCUST_CHECK_AVG_RESPONSE_TIME",
-        default=-1,
     )
     locust_dashboards = parser.add_argument_group(
         "locust-plugins - Locust Dashboards",
@@ -218,25 +215,30 @@ def do_checks(environment, **_kw):
     avg_response_time = stats.avg_response_time
 
     opts = environment.parsed_options
-    check_rps = opts.check_rps
     check_fail_ratio = opts.check_fail_ratio
+    check_rps = opts.check_rps
     check_avg_response_time = opts.check_avg_response_time
 
-    if fail_ratio > check_fail_ratio:
-        logging.info(f"CHECK FAILED: fail ratio was {(fail_ratio*100):.2f}% (threshold {(check_fail_ratio*100):.2f}%)")
-        environment.process_exit_code = 3
-    else:
-        logging.debug(
-            f"CHECK SUCCESSFUL: fail ratio was {(fail_ratio*100):.2f}% (threshold {(check_fail_ratio*100):.2f}%)"
-        )
+    if check_fail_ratio is not None:
+        if fail_ratio > check_fail_ratio:
+            logging.info(
+                f"CHECK FAILED: fail ratio was {(fail_ratio*100):.2f}% (threshold {(check_fail_ratio*100):.2f}%)"
+            )
+            environment.process_exit_code = 3
+        else:
+            logging.debug(
+                f"CHECK SUCCESSFUL: fail ratio was {(fail_ratio*100):.2f}% (threshold {(check_fail_ratio*100):.2f}%)"
+            )
+        opts.exit_code_on_error = 0
 
-    if total_rps < check_rps:
-        logging.info(f"CHECK FAILED: total rps was {total_rps:.1f} (threshold {check_rps:.1f})")
-        environment.process_exit_code = 3
-    else:
-        logging.debug(f"CHECK SUCCESSFUL: total rps was {total_rps:.1f} (threshold {check_rps:.1f})")
+    if check_rps is not None:
+        if total_rps < check_rps:
+            logging.info(f"CHECK FAILED: total rps was {total_rps:.1f} (threshold {check_rps:.1f})")
+            environment.process_exit_code = 3
+        else:
+            logging.debug(f"CHECK SUCCESSFUL: total rps was {total_rps:.1f} (threshold {check_rps:.1f})")
 
-    if check_avg_response_time > 0:
+    if check_avg_response_time is not None:
         if avg_response_time > check_avg_response_time:
             logging.info(
                 f"CHECK FAILED: avg response time was {avg_response_time:.1f} (threshold {check_avg_response_time:.1f})"
