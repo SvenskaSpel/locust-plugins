@@ -18,7 +18,6 @@ class EmbeddedResourceManager:
         bundle_resource_stats,
         cache_resource_links,
     ):
-
         # store resource links for requests
         self.cache_resource_links = cache_resource_links
         self.resource_link_cache = {}
@@ -99,7 +98,6 @@ class EmbeddedResourceManager:
         def wrapper(
             *args, include_resources=self.include_resources, resource_filter=self.resource_filter_pattern, **kwargs
         ):
-
             response = func(*args, **kwargs)
 
             if include_resources:

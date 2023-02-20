@@ -20,7 +20,6 @@ from argparse import ArgumentParser
 
 @events.init_command_line_parser.add_listener
 def _(parser: ArgumentParser):
-
     parser.add_argument(
         "--pool_size",
         type=int,
@@ -129,7 +128,6 @@ class FastHttpPool:
 
 class RequestPool:
     def __init__(self, *, user: HttpUser, size: Optional[int] = None):
-
         """
         Connection pool for the HttpUser, the user will use the connections
         in round robin style for every HTTP request.
