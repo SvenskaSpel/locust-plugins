@@ -172,7 +172,7 @@ def pw(func):
                     response_time=(time.perf_counter() - start_perf_counter) * 1000,
                     response_length=0,
                     context={**user.context()},
-                    exception=error,
+                    exception=e,
                     url=user.page.url if user.page else None,
                 )
             else:
