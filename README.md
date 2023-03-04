@@ -1,6 +1,6 @@
 # Locust Plugins
 
-[![Build Status](https://travis-ci.com/SvenskaSpel/locust-plugins.svg?branch=master)](https://travis-ci.com/SvenskaSpel/locust-plugins)
+[![Build Status](https://github.com/SvenskaSpel/locust-plugins/workflows/Tests/badge.svg)](https://github.com/SvenskaSpel/locust-plugins/actions?query=workflow%3ATests)
 [![license](https://img.shields.io/github/license/SvenskaSpel/locust-plugins.svg)](https://github.com/SvenskaSpel/locust-plugins/blob/master/LICENSE)
 [![PyPI](https://img.shields.io/pypi/v/locust-plugins.svg)](https://pypi.org/project/locust-plugins/)
 [![PyPI](https://img.shields.io/pypi/pyversions/locust-plugins.svg)](https://pypi.org/project/locust-plugins/)
