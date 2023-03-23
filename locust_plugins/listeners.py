@@ -47,19 +47,13 @@ class Timescale:  # pylint: disable=R0902
     dblock = Semaphore()
     first_instance = True
 
-    def __init__(self, env: locust.env.Environment, testplan: str = None):
+    def __init__(self, env: locust.env.Environment):
         if not Timescale.first_instance:
             # we should refactor this into a module as it is much more pythonic
             raise Exception(
                 "You tried to initialize the Timescale listener twice, maybe both in your locustfile and using command line --timescale? Ignoring second initialization."
             )
         Timescale.first_instance = False
-        if testplan:
-            self._testplan = testplan  # legacy
-        elif env.parsed_options.override_plan_name:  # type: ignore[union-attr]
-            self._testplan = env.parsed_options.override_plan_name
-        else:
-            self._testplan = env.parsed_options.locustfile
         self.env = env
         self._samples: List[dict] = []
         self._background = gevent.spawn(self._run)
@@ -126,6 +120,8 @@ class Timescale:  # pylint: disable=R0902
         logging.debug("couldnt figure out which git repo your locustfile is in")
 
     def on_start(self, environment: locust.env.Environment):
+        # set _testplan from here, because when running distributed, override_test_plan is not yet available at init time
+        self._testplan = self.env.parsed_options.override_plan_name or self.env.parsed_options.locustfile
         try:
             self.dbconn = self._dbconn()
         except psycopg2.OperationalError as e:
