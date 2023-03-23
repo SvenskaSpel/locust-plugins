@@ -62,7 +62,7 @@ class Timescale:  # pylint: disable=R0902
         self._finished = False
         self._pid = os.getpid()
         events = self.env.events
-        events.test_start.add_listener(self.on_start)
+        events.test_start.add_listener(self.on_test_start)
         events.request.add_listener(self.on_request)
         events.cpu_warning.add_listener(self.on_cpu_warning)
         events.quit.add_listener(self.on_quit)
@@ -73,8 +73,8 @@ class Timescale:  # pylint: disable=R0902
             self.env.runner.register_message("run_id", self.set_run_id)
 
     def set_run_id(self, environment, msg, **kwargs):
-        logging.debug(f'Received run id from master. Using this {datetime.strptime(msg.data, "%Y-%m-%d, %H:%M:%S.%f")}')
-        self._run_id = datetime.strptime(msg.data, "%Y-%m-%d, %H:%M:%S.%f").astimezone(tz=timezone.utc)
+        logging.debug(f"run id from master: {msg.data}")
+        self._run_id = datetime.strptime(msg.data, "%Y-%m-%d, %H:%M:%S.%f").replace(tzinfo=timezone.utc)
 
     @contextmanager
     def dbcursor(self):
@@ -119,7 +119,7 @@ class Timescale:  # pylint: disable=R0902
             pass  # probably on windows or something
         logging.debug("couldnt figure out which git repo your locustfile is in")
 
-    def on_start(self, environment: locust.env.Environment):
+    def on_test_start(self, environment: locust.env.Environment):
         # set _testplan from here, because when running distributed, override_test_plan is not yet available at init time
         self._testplan = self.env.parsed_options.override_plan_name or self.env.parsed_options.locustfile
         try:
@@ -134,12 +134,9 @@ class Timescale:  # pylint: disable=R0902
             logging.info(
                 f"Follow test run here: {self.env.parsed_options.grafana_url}&var-testplan={self._testplan}&from={int(self._run_id.timestamp()*1000)}&to=now"
             )
-            msg = (
-                self._run_id.replace(tzinfo=timezone.utc)
-                .astimezone(tz=self._run_id.astimezone().tzinfo)
-                .strftime("%Y-%m-%d, %H:%M:%S.%f")
-            )
+            msg = self._run_id.strftime("%Y-%m-%d, %H:%M:%S.%f")
             if environment.runner is not None:
+                logging.debug(f"about to send run_id to workers: {msg}")
                 environment.runner.send_message("run_id", msg)
             self.log_start_testrun()
             self._user_count_logger = gevent.spawn(self._log_user_count)
@@ -311,6 +308,7 @@ class Timescale:  # pylint: disable=R0902
                 )
 
     def log_stop_test_run(self, exit_code=None):
+        logging.debug(f"Test run id {self._run_id} stopping")
         if self.env.parsed_options.worker:
             return  # only run on master or standalone
         if getattr(self, "dbconn", None) is None:
@@ -348,8 +346,8 @@ WHERE id = %s""",
                         [self._run_id] * 7,
                     )
                 except psycopg2.errors.DivisionByZero:  # pylint: disable=no-member
-                    logging.debug(
-                        "Got DivisionByZero error when trying to update testrun into events, most likely because there were no requests logged"
+                    logging.info(
+                        "Got DivisionByZero error when trying to update testrun, most likely because there were no requests logged"
                     )
         except psycopg2.Error as error:
             logging.error(
