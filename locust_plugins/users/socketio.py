@@ -22,7 +22,7 @@ class SocketIOUser(User):
 
     def connect(self, host: str, header=[], **kwargs):
         self.ws = websocket.create_connection(host, header=header, **kwargs)
-        gevent.spawn(self.receive_loop)
+        self.ws_greenlet = gevent.spawn(self.receive_loop)
 
     def on_message(self, message):  # override this method in your subclass for custom handling
         m = self.message_regex.match(message)
