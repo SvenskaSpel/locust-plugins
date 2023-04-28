@@ -9,7 +9,7 @@ from locust.argument_parser import LocustArgumentParser
 from locust.runners import Runner, WorkerRunner
 import logging
 from functools import wraps
-
+import gevent
 
 @events.init_command_line_parser.add_listener
 def add_arguments(parser: LocustArgumentParser):
@@ -188,7 +188,8 @@ def set_up_iteration_limit(environment: Environment, **kwargs):
                         )
                     if runner.user_count == 1:
                         logging.info("Last user stopped, quitting runner")
-                        runner.quit()
+                        # need to trigger this in a separate greenlet, in case test_stop handlers do something async
+                        gevent.spawn_later(0.1, runner.quit)
                     raise StopUser()
                 runner.iterations_started = runner.iterations_started + 1
                 method(self, task)
