@@ -11,6 +11,7 @@ import logging
 from functools import wraps
 import gevent
 
+
 @events.init_command_line_parser.add_listener
 def add_arguments(parser: LocustArgumentParser):
     checks = parser.add_argument_group(
