@@ -51,6 +51,10 @@ class Timescale:  # pylint: disable=R0902
                 "You tried to initialize the Timescale listener twice, maybe both in your locustfile and using command line --timescale? Ignoring second initialization."
             )
         Timescale.first_instance = False
+        # make sure we're ready to receive the run_id message immediately
+        if self.env.runner is not None:
+            self.env.runner.register_message("run_id", self.set_run_id)
+
         self.env = env
         self._samples: List[dict] = []
         self._background = gevent.spawn(self._run)
@@ -67,9 +71,6 @@ class Timescale:  # pylint: disable=R0902
         events.spawning_complete.add_listener(self.spawning_complete)
         events.worker_connect.add_listener(self.on_worker_connect)
         atexit.register(self.log_stop_test_run)
-
-        if self.env.runner is not None:
-            self.env.runner.register_message("run_id", self.set_run_id)
 
     def set_run_id(self, environment, msg, **kwargs):
         logging.debug(f"run id from master: {msg.data}")
