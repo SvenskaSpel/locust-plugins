@@ -236,6 +236,7 @@ class Timescale:  # pylint: disable=R0902
             # (which will be horribly wrong if users spend a lot of time in a with/catch_response-block)
             time = datetime.now(timezone.utc) - timedelta(milliseconds=response_time or 0)
         greenlet_id = getattr(greenlet.getcurrent(), "minimal_ident", 0)  # if we're debugging there is no greenlet
+        assert self._run_id
         sample = {
             "time": time,
             "run_id": self._run_id,
