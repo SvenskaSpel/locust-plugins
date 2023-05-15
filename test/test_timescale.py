@@ -25,6 +25,7 @@ def temporary_file(content, suffix="_locustfile.py", dir=None):
             os.remove(f.name)
 
 
+# note: these tests require a running Timescale DB.
 class TestTimescale(TestCase):
     def test_distributed_timescale_listener(self):
         with temporary_file(
