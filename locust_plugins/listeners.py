@@ -6,6 +6,7 @@ from locust.exception import (
     InterruptTaskSet,
 )  # need to do this first to make sure monkey patching is done
 import locust.env
+from locust.runners import MasterRunner
 import gevent
 from gevent.lock import Semaphore
 import psycogreen.gevent
@@ -56,6 +57,7 @@ class Timescale:  # pylint: disable=R0902
         self._hostname = socket.gethostname()  # pylint: disable=no-member
         self._username = os.getenv("USER", "unknown")
         self._finished = False
+        self._run_id: Optional[str] = None
         self._pid = os.getpid()
         events = self.env.events
         events.test_start.add_listener(self.on_test_start)
