@@ -119,6 +119,6 @@ class TestTimescale(TestCase):
             stdout, stderr = worker2.communicate()
             self.assertNotIn("Unknown message type", stderr)  # init didnt happen/happened after run_id got sent?
             self.assertNotIn("DivisionByZero", stderr)  # rebalancing never happened?
-            self.assertIn("received run_id", stderr)
+            self.assertIn("Received run_id message from master", stderr)
             print(stderr)
             self.assertEqual(0, worker2.returncode)
