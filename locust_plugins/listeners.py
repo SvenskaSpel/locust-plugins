@@ -313,8 +313,6 @@ class Timescale:  # pylint: disable=R0902
     def on_worker_connect(self, client_id):
         # this is needed for workers that connect after test_start has already happened
         if self._run_id:
-            # let init finish on workers, to ensure they have time to register the run_id message handler
-            gevent.sleep(0.1)
             msg = self._run_id.strftime("%Y-%m-%d, %H:%M:%S.%f")
             assert isinstance(self.env.runner, MasterRunner), self.env.runner  # help the linter
             self.env.runner.send_message("run_id", msg, client_id)
