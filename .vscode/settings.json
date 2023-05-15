@@ -19,5 +19,13 @@
         "import sys; sys.path.insert(0, '.')"
     ],
     "editor.formatOnSave": true,
-    "python.linting.enabled": true
+    "python.linting.enabled": true,
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter"
+    },
+    "python.testing.pytestArgs": [
+        "test"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true
 }

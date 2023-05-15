@@ -22,7 +22,7 @@ import socket
 import sys
 from datetime import datetime, timezone, timedelta
 import greenlet
-from typing import Callable, List
+from typing import Callable, List, Optional
 
 
 # pylint: disable=trailing-whitespace # pylint is confused by multiline strings used for SQL
@@ -40,10 +40,6 @@ def print_t(s):
 
 
 class Timescale:  # pylint: disable=R0902
-    """
-    See timescale_listener_ex.py for documentation
-    """
-
     dblock = Semaphore()
     first_instance = True
 
@@ -67,6 +63,7 @@ class Timescale:  # pylint: disable=R0902
         events.cpu_warning.add_listener(self.on_cpu_warning)
         events.quit.add_listener(self.on_quit)
         events.spawning_complete.add_listener(self.spawning_complete)
+        events.worker_connect.add_listener(self.on_worker_connect)
         atexit.register(self.log_stop_test_run)
 
         if self.env.runner is not None:
@@ -75,6 +72,8 @@ class Timescale:  # pylint: disable=R0902
     def set_run_id(self, environment, msg, **kwargs):
         logging.debug(f"run id from master: {msg.data}")
         self._run_id = datetime.strptime(msg.data, "%Y-%m-%d, %H:%M:%S.%f").replace(tzinfo=timezone.utc)
+        self._testplan = self.env.parsed_options.override_plan_name or self.env.parsed_options.locustfile
+        self.set_gitrepo()
 
     @contextmanager
     def dbcursor(self):
@@ -306,6 +305,13 @@ class Timescale:  # pylint: disable=R0902
                 logging.error(
                     "Failed to insert rampup complete event time to Postgresql timescale database: " + repr(error)
                 )
+
+    def on_worker_connect(self, client_id):
+        # this is needed for workers that connect after test_start has already happened
+        if self._run_id:
+            msg = self._run_id.strftime("%Y-%m-%d, %H:%M:%S.%f")
+            assert isinstance(self.env.runner, MasterRunner), self.env.runner  # help the linter
+            self.env.runner.send_message("run_id", msg, client_id)
 
     def log_stop_test_run(self, exit_code=None):
         logging.debug(f"Test run id {self._run_id} stopping")

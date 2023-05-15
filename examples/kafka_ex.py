@@ -27,7 +27,7 @@ class MyUser(KafkaUser):
 #     last_message = next(consumer)
 #     last = someProtobufObject()
 #     last.ParseFromString(last_message.value)
-#     environment.events.request_success.fire(
+#     environment.events.request.fire(
 #         request_type="CONSUME", name="retrans1", response_time=0, response_length=0,
 #     )
 #     control_consumer(environment)
@@ -37,7 +37,7 @@ class MyUser(KafkaUser):
 #     for message in consumer:
 #         with sema:
 #             control_message = someProtobufObject().FromString(message.value)
-#             environment.events.request_success.fire(
+#             environment.events.request.fire(
 #                 request_type="CONSUME",
 #                 name="retrans2",
 #                 response_time=0,

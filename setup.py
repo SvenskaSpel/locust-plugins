@@ -35,7 +35,7 @@ setup(
     zip_safe=False,
     install_requires=[
         "playwright",
-        "locust>=2.14.0",
+        "locust>=2.15.2.dev12",
         "psycogreen",
         "psycopg2-binary",
         "websocket-client",
