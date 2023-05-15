@@ -52,8 +52,8 @@ class Timescale:  # pylint: disable=R0902
             )
         Timescale.first_instance = False
         # make sure we're ready to receive the run_id message immediately
-        if self.env.runner is not None:
-            self.env.runner.register_message("run_id", self.set_run_id)
+        if env.runner is not None:
+            env.runner.register_message("run_id", self.set_run_id)
 
         self.env = env
         self._samples: List[dict] = []
