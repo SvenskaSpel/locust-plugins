@@ -10,6 +10,7 @@ from locust.env import Environment
 import paho.mqtt.client as mqtt
 
 if typing.TYPE_CHECKING:
+    from paho.mqtt.client import MQTTMessageInfo
     from paho.mqtt.properties import Properties
     from paho.mqtt.subscribeoptions import SubscribeOptions
 
@@ -303,7 +304,7 @@ class MqttClient(mqtt.Client):
         qos: int = 0,
         retain: bool = False,
         properties: typing.Optional[Properties] = None,
-    ):
+    ) -> MQTTMessageInfo:
         """Publish a message to the MQTT broker.
 
         This method wraps the underlying paho-mqtt client's method in order to
@@ -334,13 +335,15 @@ class MqttClient(mqtt.Client):
             # store this for use in the on_publish callback
             self._publish_requests[publish_info.mid] = request_context
 
+        return publish_info
+
     def subscribe(
         self,
         topic: str,
         qos: int = 0,
         options: typing.Optional[SubscribeOptions] = None,
         properties: typing.Optional[Properties] = None,
-    ):
+    ) -> typing.Tuple[int, typing.Optional[int]]:
         """Subscribe to a given topic.
 
         This method wraps the underlying paho-mqtt client's method in order to
@@ -368,3 +371,5 @@ class MqttClient(mqtt.Client):
             )
         else:
             self._subscribe_requests[mid] = request_context
+
+        return result, mid
