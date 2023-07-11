@@ -69,45 +69,6 @@ class SubscribeContext(typing.NamedTuple):
     start_time: float
 
 
-class MqttUser(User):
-    abstract = True
-
-    host = "localhost"
-    port = 1883
-    transport = "tcp"
-    ws_path = "/mqtt"
-    tls_context = None
-    client_id = None
-    username = None
-    password = None
-
-    def __init__(self, environment: Environment):
-        super().__init__(environment)
-        self.client: MqttClient = MqttClient(
-            environment=self.environment,
-            transport=self.transport,
-            client_id=self.client_id,
-        )
-
-        if self.tls_context:
-            self.client.tls_set_context(self.tls_context)
-
-        if self.transport == "websockets" and self.ws_path:
-            self.client.ws_set_options(path=self.ws_path)
-
-        if self.username and self.password:
-            self.client.username_pw_set(
-                username=self.username,
-                password=self.password,
-            )
-
-        self.client.connect_async(
-            host=self.host,
-            port=self.port,
-        )
-        self.client.loop_start()
-
-
 class MqttClient(mqtt.Client):
     def __init__(
         self,
@@ -373,3 +334,43 @@ class MqttClient(mqtt.Client):
             self._subscribe_requests[mid] = request_context
 
         return result, mid
+
+
+class MqttUser(User):
+    abstract = True
+
+    host = "localhost"
+    port = 1883
+    transport = "tcp"
+    ws_path = "/mqtt"
+    tls_context = None
+    client_cls: typing.Type[MqttClient] = MqttClient
+    client_id = None
+    username = None
+    password = None
+
+    def __init__(self, environment: Environment):
+        super().__init__(environment)
+        self.client: MqttClient = self.client_cls(
+            environment=self.environment,
+            transport=self.transport,
+            client_id=self.client_id,
+        )
+
+        if self.tls_context:
+            self.client.tls_set_context(self.tls_context)
+
+        if self.transport == "websockets" and self.ws_path:
+            self.client.ws_set_options(path=self.ws_path)
+
+        if self.username and self.password:
+            self.client.username_pw_set(
+                username=self.username,
+                password=self.password,
+            )
+
+        self.client.connect_async(
+            host=self.host,
+            port=self.port,
+        )
+        self.client.loop_start()
