@@ -1,17 +1,19 @@
-try:
-    from playwright.async_api import async_playwright, Playwright, Browser, Page, BrowserContext
-except NotImplementedError as e:
-    raise Exception(
-        "Could not import playwright, probably because gevent monkey patching was done before trio init. Set env var LOCUST_PLAYWRIGHT=1"
-    ) from e
-from contextlib import asynccontextmanager, contextmanager
 import logging
 import os
+import sys
+try:
+    from playwright.async_api import async_playwright, Playwright, Browser, Page, BrowserContext
+except (NotImplementedError, AttributeError) as e:
+    if os.getenv("LOCUST_PLAYWRIGHT", False):
+        raise Exception("Could not import playwright, even though LOCUST_PLAYWRIGHT was set :(") from e
+    else:
+        logging.error("Set env var LOCUST_PLAYWRIGHT=1 to make locust load trio before gevent monkey patching")
+        sys.exit(1)
+from contextlib import asynccontextmanager, contextmanager
 import asyncio
 from locust import User, events, task
 from locust.runners import WorkerRunner
 import gevent
-import sys
 import ast
 import types
 import time
