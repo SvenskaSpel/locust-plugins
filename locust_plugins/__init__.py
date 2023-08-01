@@ -189,6 +189,8 @@ def set_up_iteration_limit(environment: Environment, **kwargs):
                         )
                     if runner.user_count == 1:
                         logging.info("Last user stopped, quitting runner")
+                        if isinstance(runner, WorkerRunner):
+                            runner._send_stats()  # send a final report
                         # need to trigger this in a separate greenlet, in case test_stop handlers do something async
                         gevent.spawn_later(0.1, runner.quit)
                     raise StopUser()
