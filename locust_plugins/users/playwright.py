@@ -3,13 +3,16 @@ import os
 import sys
 
 try:
-    from playwright.async_api import async_playwright, Playwright, Browser, Page, BrowserContext
-except (NotImplementedError, AttributeError) as e:
-    if os.getenv("LOCUST_PLAYWRIGHT", False):
-        raise Exception("Could not import playwright, even though LOCUST_PLAYWRIGHT was set :(") from e
-    else:
-        logging.error("Set env var LOCUST_PLAYWRIGHT=1 to make locust load trio before gevent monkey patching")
-        sys.exit(1)
+    import trio  # pyright: ignore[reportMissingImports]
+except ImportError as e:
+    pass  # good
+else:
+    logging.error(
+        "You have to uninstall trio, because it is incompatible with gevent, and playwright accidentally imports it (via pyee) if it is installed."
+    )
+    sys.exit(1)
+
+from playwright.async_api import async_playwright, Playwright, Browser, Page, BrowserContext
 from contextlib import asynccontextmanager, contextmanager
 import asyncio
 from locust import User, events, task
