@@ -43,7 +43,7 @@ setup(
         "python-dateutil",
         "pymongo",
         "confluent-kafka",
-        "selenium>=4.0.0",
+        # "selenium>=4.0.0", # because this installs trio which is kind of incompatible with playwright, you need to do this manually
         "lxml",
         "opencensus-ext-azure",
         "paho-mqtt>=1.5.0",
