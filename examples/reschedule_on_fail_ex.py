@@ -1,6 +1,7 @@
 # How to use VS Code debugger with Locust
 import locust_plugins.listeners
 from locust import task, HttpUser, events, run_single_user
+import time
 
 
 class MyUser(HttpUser):
@@ -8,6 +9,7 @@ class MyUser(HttpUser):
 
     @task
     def my_task(self):
+        time.sleep(1)
         self.client.get("/fail")
         print("this will never be run")
 

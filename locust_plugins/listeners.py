@@ -272,8 +272,7 @@ class Timescale:  # pylint: disable=R0902
         self._samples.append(sample)
 
     def log_start_testrun(self):
-        cmd = sys.argv
-        del cmd[0]
+        cmd = sys.argv[1:]
         with self.dbcursor() as cur:
             cur.execute(
                 "INSERT INTO testrun (id, testplan, num_clients, rps, description, env, profile_name, username, gitrepo, changeset_guid, arguments) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
