@@ -1,4 +1,4 @@
-from locust_plugins.appinsights_listener import ApplicationInsights
+from locust_plugins.listeners.appinsights import ApplicationInsights
 from locust import HttpUser, task, events, between
 
 

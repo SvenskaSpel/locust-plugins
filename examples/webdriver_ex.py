@@ -5,9 +5,10 @@
 #
 # You can also run selnium server via docker using the following example command:
 # docker run -e SE_NODE_SESSION_TIMEOUT=60 -e SE_NODE_MAX_SESSIONS=5 -p 4444:4444 -p 7900:7900 --shm-size="2g" --rm selenium/standalone-chrome:96.0
+# pylint: disable=import-error # sometimes selenium is not installed
 import time
 from locust import task, constant, events, run_single_user
-from locust_plugins.users import WebdriverUser
+from locust_plugins.users.webdriver import WebdriverUser
 from locust_plugins.listeners import RescheduleTaskOnFail
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys

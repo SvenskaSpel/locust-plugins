@@ -1,4 +1,4 @@
-from locust_plugins.users import HttpUserWithResources
+from locust_plugins.users.resource import HttpUserWithResources
 from locust import task
 
 

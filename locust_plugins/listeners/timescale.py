@@ -1,16 +1,10 @@
 from contextlib import contextmanager
-from locust.exception import (
-    RescheduleTask,
-    StopUser,
-    CatchResponseError,
-    InterruptTaskSet,
-)  # need to do this first to make sure monkey patching is done
+from locust.exception import CatchResponseError  # need to do this first to make sure monkey patching is done
+import json
 import locust.env
 import gevent
 from gevent.lock import Semaphore
 import psycogreen.gevent
-
-import json
 
 psycogreen.gevent.patch_psycopg()
 import psycopg2
@@ -22,7 +16,7 @@ import socket
 import sys
 from datetime import datetime, timezone, timedelta
 import greenlet
-from typing import Callable, List
+from typing import List
 
 
 # pylint: disable=trailing-whitespace # pylint is confused by multiline strings used for SQL
@@ -356,141 +350,3 @@ WHERE id = %s""",
         logging.info(
             f"Report: {self.env.parsed_options.grafana_url}&var-testplan={self._testplan}&from={int(self._run_id.timestamp()*1000)}&to={int((end_time.timestamp()+1)*1000)}\n"
         )
-
-
-class Print:
-    """
-    Print every response (useful when debugging a single locust)
-    """
-
-    def __init__(self, env: locust.env.Environment, include_length=False, include_time=False, include_context=False):
-        env.events.request.add_listener(self.on_request)
-
-        self.include_length = "length\t" if include_length else ""
-        self.include_time = "time                    \t" if include_time else ""
-        self.include_context = "context\t" if include_context else ""
-        print(
-            f"\n{self.include_time}type\t{'name'.ljust(50)}\tresp_ms\t{self.include_length}exception\t{self.include_context}"
-        )
-
-    def on_request(
-        self, request_type, name, response_time, response_length, exception, context: dict, start_time=None, **kwargs
-    ):
-        if exception:
-            if isinstance(exception, CatchResponseError):
-                e = str(exception)
-            else:
-                try:
-                    e = repr(exception)
-                except AttributeError:
-                    e = f"{exception.__class__} (and it has no string representation)"
-            errortext = e[:500].replace("\n", " ")
-        else:
-            errortext = ""
-        if not context:
-            context = ""
-
-        if response_time is None:
-            response_time = -1
-        n = name.ljust(30) if name else ""
-
-        if self.include_time:
-            if start_time:
-                print_t(datetime.fromtimestamp(start_time, tz=timezone.utc))
-            else:
-                print_t(datetime.now())
-
-        print_t(request_type)
-        print_t(n.ljust(50))
-        print_t(str(round(response_time)).ljust(7))
-
-        if self.include_length:
-            print_t(response_length)
-
-        print_t(errortext.ljust(9))
-
-        if self.include_context:
-            print_t(context)
-
-        print()
-
-
-class RescheduleTaskOnFail:
-    def __init__(self, env: locust.env.Environment):
-        # make sure to add this listener LAST, because any failures will throw an exception,
-        # causing other listeners to be skipped
-        env.events.request.add_listener(self.request)
-
-    def request(self, exception, **kwargs):
-        if exception:
-            raise RescheduleTask(exception)
-
-
-class InterruptTaskOnFail:
-    def __init__(self, env: locust.env.Environment):
-        # make sure to add this listener LAST, because any failures will throw an exception,
-        # causing other listeners to be skipped
-        env.events.request.add_listener(self.request)
-
-    def request(self, exception, **kwargs):
-        if exception:
-            raise InterruptTaskSet()
-
-
-class StopUserOnFail:
-    def __init__(self, env: locust.env.Environment):
-        # make sure to add this listener LAST, because any failures will throw an exception,
-        # causing other listeners to be skipped
-        env.events.request.add_listener(self.request)
-
-    def request(self, exception, **kwargs):
-        if exception:
-            raise StopUser()
-
-
-class ExitOnFail:
-    def __init__(self, env: locust.env.Environment):
-        # make sure to add this listener LAST, because any failures will throw an exception,
-        # causing other listeners to be skipped
-        env.events.request.add_listener(self.request)
-
-    def request(self, exception, **kwargs):
-        if exception:
-            gevent.sleep(0.2)  # wait for other listeners output to flush / write to db
-            sys.exit(1)
-
-
-class QuitOnFail:
-    def __init__(self, env: locust.env.Environment, name=None):
-        # make sure to add this listener LAST, because any failures will throw an exception,
-        # causing other listeners to be skipped
-        self.name = name
-        self.env = env
-        env.events.request.add_listener(self.request)
-
-    def request(self, exception, name, **kwargs):
-        if exception and (name == self.name or not self.name):
-            gevent.sleep(0.2)  # wait for other listeners output to flush / write to db
-            self.env.runner.quit()
-
-
-class RunOnFail:
-    def __init__(self, env: locust.env.Environment, function: Callable):
-        # execute the provided function on failure
-        self.function = function
-        env.events.request.add_listener(self.request)
-
-    def request(self, exception, **kwargs):
-        if exception:
-            self.function(exception, **kwargs)
-
-
-class RunOnUserError:
-    def __init__(self, env: locust.env.Environment, function: Callable):
-        # execute the provided function on unhandled exception in a task
-        self.function = function
-        env.events.user_error.add_listener(self.user_error)
-
-    def user_error(self, user_instance, exception, tb, **kwargs):
-        if exception:
-            self.function(user_instance, exception, tb, **kwargs)

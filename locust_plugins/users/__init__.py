@@ -1,9 +1,6 @@
-from .resource import *
-from .socketio import *
-from .webdriver import *
-from .kafka import *
-from .rest import *
-from .mqtt import *
-
-# I'm scared by playwright.py:s side effects, otherwise we could do this:
-# from .playwright import *
+def __getattr__(name: str):
+    if name.endswith("User"):
+        raise ImportError(
+            f"locust_plugins.users no longer re-exports users. Use locust_plugins.users.{name.replace('User', '').lower()}.{name} instead"
+        )
+    raise ImportError(f"cannot import name '{name}' from 'locust_plugins.users'")

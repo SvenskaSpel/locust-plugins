@@ -1,5 +1,4 @@
 from .wait_time import constant_ips, constant_total_ips
-from .listeners import Timescale
 import locust
 from locust.user.task import DefaultTaskSet, TaskSet
 from locust import events
@@ -162,6 +161,8 @@ _timescale_added = False
 @events.init.add_listener
 def on_locust_init(environment, **kwargs):
     if environment.parsed_options.timescale:
+        from .listeners.timescale import Timescale  # pylint: disable=import-outside-toplevel
+
         global _timescale_added
         if not _timescale_added:
             Timescale(env=environment)

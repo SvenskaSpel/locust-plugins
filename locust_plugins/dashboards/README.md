@@ -66,7 +66,7 @@ Follow the link and you will find your fresh (empty) main Locust dashboard.
 You can now run a locust test like this:
 
 ```
-~ locust --timescale --headless -f locustfile_that_imports_locust_plugins.py
+~ locust --timescale --headless
 [2021-12-06 14:44:18,415] myhost/INFO/root: Follow test run here: http://localhost:3000/d/qjIIww4Zz?var-testplan=locustfile.py&from=1638798258415&to=now
 ...
 KeyboardInterrupt

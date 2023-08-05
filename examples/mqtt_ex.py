@@ -4,7 +4,7 @@ import time
 
 from locust import task, TaskSet
 from locust.user.wait_time import between
-from locust_plugins.users import MqttUser
+from locust_plugins.users.mqtt import MqttUser
 
 
 tls_context = ssl.SSLContext(ssl.PROTOCOL_TLS)
