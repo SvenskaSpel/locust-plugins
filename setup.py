@@ -35,7 +35,7 @@ setup(
     zip_safe=False,
     install_requires=[
         "playwright",
-        "locust>=2.16.1.dev7",
+        "locust>=2.16.1",
         "playwright>=1.34.0",
         "psycogreen",
         "psycopg2-binary",
