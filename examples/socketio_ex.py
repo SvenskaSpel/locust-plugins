@@ -1,7 +1,7 @@
 import time
 import json
 from locust import task
-from locust_plugins.users import SocketIOUser
+from locust_plugins.users.socketio import SocketIOUser
 
 
 class MySocketIOUser(SocketIOUser):

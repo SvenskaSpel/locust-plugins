@@ -1,4 +1,5 @@
 # See examples/webdriver_ex.py for more documentation
+# pylint: disable=import-error # sometimes selenium is not installed
 import subprocess
 import time
 from locust import User
