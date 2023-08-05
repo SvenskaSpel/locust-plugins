@@ -12,10 +12,7 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}/examples",
-            "justMyCode": false,
-            "env": {
-                "LOCUST_PLAYWRIGHT": "1"
-            }
+            "justMyCode": false
         }
     ]
 }

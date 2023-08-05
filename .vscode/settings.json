@@ -1,7 +1,8 @@
 {
-    "python.formatting.provider": "black",
+    "python.formatting.provider": "none",
     "files.exclude": {
         "**/env": true,
+        "**/.env": true,
         "**/__pycache__": true,
         "**/locust_plugins.egg-info": true,
         "**/pip-wheel-metadata": true,
@@ -19,5 +20,8 @@
         "import sys; sys.path.insert(0, '.')"
     ],
     "editor.formatOnSave": true,
-    "python.linting.enabled": true
+    "python.linting.enabled": true,
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter"
+    }
 }
