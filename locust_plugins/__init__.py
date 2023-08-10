@@ -163,7 +163,7 @@ _timescale_added = False
 @events.init.add_listener
 def on_locust_init(environment, **kwargs):
     if environment.parsed_options.timescale:
-        from .listeners.timescale import Timescale  # pylint: disable=import-outside-toplevel
+        from .listeners.timescale import Timescale  # pylint: disable=import-outside-toplevel,cyclic-import
 
         global _timescale_added
         if not _timescale_added:
