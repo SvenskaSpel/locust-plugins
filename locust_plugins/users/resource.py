@@ -2,7 +2,12 @@ import logging
 import re
 from locust import HttpUser
 from locust.contrib.fasthttp import FastHttpUser
-from lxml import html, etree
+from locust_plugins import missing_extra
+
+try:
+    from lxml import html, etree
+except ModuleNotFoundError:
+    missing_extra("lxml", "resource")
 
 
 class EmbeddedResourceManager:

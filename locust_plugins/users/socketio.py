@@ -3,8 +3,13 @@ import logging
 import re
 import time
 import gevent
-import websocket
 from locust import User
+from locust_plugins import missing_extra
+
+try:
+    import websocket
+except ModuleNotFoundError:
+    missing_extra("paho", "mqtt")
 
 
 class SocketIOUser(User):

@@ -12,7 +12,13 @@ else:
     )
     sys.exit(1)
 
-from playwright.async_api import async_playwright, Playwright, Browser, Page, BrowserContext
+from locust_plugins import missing_extra
+
+try:
+    from playwright.async_api import async_playwright, Playwright, Browser, Page, BrowserContext
+except ModuleNotFoundError:
+    missing_extra("playwright", "playwright")
+
 from contextlib import asynccontextmanager, contextmanager
 import asyncio
 from locust import User, events, task

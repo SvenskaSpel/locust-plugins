@@ -9,6 +9,8 @@ from locust.runners import Runner, WorkerRunner
 import logging
 from functools import wraps
 import gevent
+import traceback
+import sys
 
 
 @events.init_command_line_parser.add_listener
@@ -161,7 +163,7 @@ _timescale_added = False
 @events.init.add_listener
 def on_locust_init(environment, **kwargs):
     if environment.parsed_options.timescale:
-        from .listeners.timescale import Timescale  # pylint: disable=import-outside-toplevel
+        from .listeners.timescale import Timescale  # pylint: disable=import-outside-toplevel,cyclic-import
 
         global _timescale_added
         if not _timescale_added:
@@ -253,3 +255,11 @@ def do_checks(environment, **_kw):
             logging.debug(
                 f"CHECK SUCCESSFUL: avg response time was {avg_response_time:.1f} (threshold {check_avg_response_time:.1f})"
             )
+
+
+def missing_extra(package, extra):
+    traceback.print_exc()
+    logging.error(
+        f"'{package}' is not installed by default, you need to install it using 'pip install locust-plugins[{extra}]'"
+    )
+    sys.exit(1)

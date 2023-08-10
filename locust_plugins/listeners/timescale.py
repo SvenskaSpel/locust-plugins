@@ -4,16 +4,22 @@ import json
 import locust.env
 import gevent
 from gevent.lock import Semaphore
-import psycogreen.gevent
+import logging
+import os
+import socket
+import sys
+from locust_plugins import missing_extra
+
+try:
+    import psycogreen.gevent
+except ModuleNotFoundError:
+    missing_extra("psychogreen", "dashboards")
 
 psycogreen.gevent.patch_psycopg()
 import psycopg2
 import psycopg2.extras
 import atexit
-import logging
-import os
-import socket
-import sys
+
 from datetime import datetime, timezone, timedelta
 import greenlet
 from typing import List

@@ -4,6 +4,17 @@
 
 from setuptools import find_packages, setup
 
+extras = {
+    "websocket": ["websocket-client"],
+    "playwright": ["playwright>=1.34.0"],
+    "dashboards": ["psycogreen", "psycopg2-binary"],
+    "kafka": ["confluent-kafka"],
+    "mongo": ["pymongo"],
+    "mqtt": ["paho-mqtt>=1.5.0"],
+    "appinsights": ["opencensus-ext-azure"],
+    "resource": ["lxml"],
+}
+
 setup(
     name="locust-plugins",
     description="Useful plugins/extensions for Locust",
@@ -34,21 +45,15 @@ setup(
     package_data={"locust_plugins": ["py.typed"]},
     zip_safe=False,
     install_requires=[
-        "playwright",
         "locust>=2.16.1",
-        "playwright>=1.34.0",
-        "psycogreen",
-        "psycopg2-binary",
-        "websocket-client",
         "python-dateutil",
-        "pymongo",
-        "confluent-kafka",
-        # "selenium>=4.0.0", # because this installs trio which is kind of incompatible with playwright, you need to do this manually
-        "lxml",
-        "opencensus-ext-azure",
-        "paho-mqtt>=1.5.0",
         "typing-extensions",
     ],
+    extras_require={
+        **extras,
+        "all": list(extras.values()),
+        "webdriver": ["selenium>=4.0.0"],  # warning: this installs trio which is incompatible with playwright
+    },
     scripts=["bin/locust-compose"],
     use_scm_version={
         "write_to": "locust_plugins/_version.py",

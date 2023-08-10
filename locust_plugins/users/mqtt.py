@@ -6,8 +6,12 @@ import typing
 
 from locust import User
 from locust.env import Environment
+from locust_plugins import missing_extra
 
-import paho.mqtt.client as mqtt
+try:
+    import paho.mqtt.client as mqtt
+except ModuleNotFoundError:
+    missing_extra("paho", "mqtt")
 
 if typing.TYPE_CHECKING:
     from paho.mqtt.client import MQTTMessageInfo
