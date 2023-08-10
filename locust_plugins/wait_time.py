@@ -1,8 +1,8 @@
+import sys
 import logging
 import time
 from collections import deque, namedtuple
 from locust import events, runners
-from locust import constant_pacing
 from typing import Any
 
 _last_run = 0.0
@@ -57,9 +57,10 @@ def constant_total_ips(ips: float):
     return func
 
 
-# inverted versions of common functions
-def constant_ips(ips: float):
-    return constant_pacing(1.0 / ips)
+def constant_ips(_ips):
+    """this function has been removed, now that it is available in locust.wait_time.constant_throughput"""
+    logging.error("constant_ips has been removed, now that it is available in locust.wait_time.constant_throughput")
+    sys.exit(1)
 
 
 def constant_total_pacing(seconds: float):
