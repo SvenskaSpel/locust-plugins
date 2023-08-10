@@ -6,12 +6,12 @@ from locust import User
 from locust.exception import CatchResponseError, LocustError
 import logging
 import sys
+from locust_plugins import missing_extra
 
 try:
     from selenium import webdriver
 except ModuleNotFoundError:
-    logging.error("You need to install selenium >=4.0.0 manually (because it is incompatible with Playwright)")
-    sys.exit(1)
+    missing_extra("selenium", "webdriver")
 
 from selenium.common.exceptions import (
     TimeoutException,

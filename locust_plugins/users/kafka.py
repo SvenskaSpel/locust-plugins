@@ -1,7 +1,12 @@
 import time
-from confluent_kafka import Producer
-from locust import User
 import functools
+from locust import User
+from locust_plugins import missing_extra
+
+try:
+    from confluent_kafka import Producer
+except ModuleNotFoundError:
+    missing_extra("confluent_kafka", "kafka")
 
 
 class KafkaUser(User):

@@ -1,7 +1,12 @@
 import logging
 import os
 import locust.env
-from opencensus.ext.azure.log_exporter import AzureLogHandler
+from locust_plugins import missing_extra
+
+try:
+    from opencensus.ext.azure.log_exporter import AzureLogHandler
+except ModuleNotFoundError:
+    missing_extra("opencensus", "appinsights")
 
 
 class ApplicationInsights:

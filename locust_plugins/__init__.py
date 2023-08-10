@@ -9,6 +9,8 @@ from locust.runners import Runner, WorkerRunner
 import logging
 from functools import wraps
 import gevent
+import traceback
+import sys
 
 
 @events.init_command_line_parser.add_listener
@@ -253,3 +255,11 @@ def do_checks(environment, **_kw):
             logging.debug(
                 f"CHECK SUCCESSFUL: avg response time was {avg_response_time:.1f} (threshold {check_avg_response_time:.1f})"
             )
+
+
+def missing_extra(package, extra):
+    traceback.print_exc()
+    logging.error(
+        f"'{package}' is not installed by default, you need to install it using 'pip install locust-plugins[{extra}]'"
+    )
+    sys.exit(1)
