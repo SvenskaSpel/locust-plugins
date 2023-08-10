@@ -4,8 +4,6 @@ import subprocess
 import time
 from locust import User
 from locust.exception import CatchResponseError, LocustError
-import logging
-import sys
 from locust_plugins import missing_extra
 
 try:
