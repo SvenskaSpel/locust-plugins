@@ -37,7 +37,6 @@ This is useful to know if your requests are being sent unevenly (like in this ex
 # Setup
 
 * Set up Timescale and Grafana (documented below)
-* `import locust_plugins` in your locustfile (or any of locust_plugins underlying modules)
 * Add `--timescale` to the command line (or set the `LOCUST_TIMESCALE` env var to `1`, or add it to your [.conf](https://docs.locust.io/en/stable/configuration.html#configuration-file) files)
 
 ## docker-compose-based Timescale + Grafana
@@ -89,7 +88,7 @@ For security reasons, the ports for logging to Timescale and accessing Grafana o
 4. Set up Grafana. Edit the variables in [grafana_setup.sh](locust-grafana/grafana_setup.sh) and run it to set up a datasource pointing to your Timescale and import the Locust dashboards from grafana.com (or you can do it manually from [here](https://grafana.com/grafana/dashboards/10878)).
 5. Run your test file as below to push result to dashboard
 ```
-locust -f any-locustfile-that-imports-locust_plugins.py --config=locust.conf --timescale --grafana-url=http://<machineip>:3000/ --pghost=<machineip> --pgport=5432 --pgpassword=password --pguser=postgres
+locust --config=locust.conf --timescale --grafana-url=http://<machineip>:3000/ --pghost=<machineip> --pgport=5432 --pgpassword=password --pguser=postgres
 ```
 
 # Limitations

@@ -20,14 +20,12 @@ Having this separate from "Locust core" allows the plugins to evolve faster (at 
 pip install locust-plugins
 ```
 
-Then just `import locust_plugins` in your locustfile and use whatever plugins you need (see below)
-
 # Configuration
 
 Most settings are configured from code, but some are exposed as command line arguments. You can list them by using Locust's regular --help argument:
 
 ```
-locust -f any-locustfile-that-imports-locust_plugins.py --help
+locust --help
 ```
 
 # Plugins
