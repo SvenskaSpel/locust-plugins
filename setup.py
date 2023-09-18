@@ -46,7 +46,6 @@ setup(
     zip_safe=False,
     install_requires=[
         "locust>=2.16.1",
-        "python-dateutil",
         "typing-extensions",
     ],
     extras_require={
