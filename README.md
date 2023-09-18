@@ -36,6 +36,8 @@ locust --help
     - Jmeter: Writes a jmeter-like output file ([example](examples/jmeter_listener_example.py), [source](locust_plugins/jmeter_listener.py))
     - ApplicationInsights: Writes the test logs to Azure Application Insights ([example](examples/appinsights_listener_ex.py), [source](locust_plugins/appinsights_listener.py))
     - RescheduleTaskOnFail / ExitOnFail / StopUserOnFail: Perform actions when a request fails ([source](locust_plugins/listeners.py))
+- Other listenes:
+    - InfluxDB: Log, view and monitor test executions in Grafana using InfluxDB ([library](https://pypi.org/project/locust-influxdb-listener/), [example](https://github.com/pjcalvo/locust-influxdb-listener/tree/main/example))
 
 ## Users
 - New protocols ([source](locust_plugins/users/))
