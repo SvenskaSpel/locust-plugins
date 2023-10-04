@@ -1,16 +1,11 @@
-import traceback
-import logging
-import sys
 from locust import main, events
 from locust_plugins.listeners.cloudwatch import CloudwatchAdapter, ServiceContext
-
+from locust_plugins import missing_extra
 
 try:
     import boto3
 except ModuleNotFoundError:
-    traceback.print_exc()
-    logging.error("boto3 is not installed by default, you need to install it using 'pip install boto3'")
-    sys.exit(1)
+    missing_extra("boto3", "boto3")
 
 
 @events.init.add_listener

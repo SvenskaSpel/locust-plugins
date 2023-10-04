@@ -13,6 +13,7 @@ extras = {
     "mqtt": ["paho-mqtt>=1.5.0"],
     "appinsights": ["opencensus-ext-azure"],
     "resource": ["lxml"],
+    "boto3":["boto3"],
 }
 
 setup(
