@@ -5,31 +5,26 @@ from locust.env import Environment
 from locust.stats import stats_printer, stats_history
 from locust.log import setup_logging
 from locust_plugins.listeners.cloudwatch import CloudwatchAdapter, ServiceContext
-from locust_plugins import missing_extra
-import logging
 
-try:
-    from moto import mock_cloudwatch
-except ModuleNotFoundError:
-    missing_extra("moto", "moto")
-
-try:
-    import boto3
-except ModuleNotFoundError:
-    missing_extra("boto3", "boto3")
 
 setup_logging("INFO", None)
 
+class CloudwatchMock:
+    def __init__(self):
+        self.call_count = 0
+        self.metrics_dict = {}
+
+
+    def put_metric_data(self, Namespace, MetricData):
+        self.call_count += 1
+        self.metrics_dict[Namespace] = MetricData
+        
+
+
+cw = CloudwatchMock()
+
 def on_locust_init(environment, **_kwargs):
-    cw = _cloudwatch()
     CloudwatchAdapter(cw, environment, _service_context())
-
-
-def _cloudwatch():
-    with mock_cloudwatch():
-        logging.info("Going to initialize cloudwatch")
-        cw = boto3.client("cloudwatch")
-        yield cw
 
 
 def _service_context():
@@ -62,3 +57,4 @@ env.runner.start(1, spawn_rate=10)
 gevent.spawn_later(10, lambda: env.runner.quit())
 
 env.runner.greenlet.join()
+assert cw.call_count == 1
