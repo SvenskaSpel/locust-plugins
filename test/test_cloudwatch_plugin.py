@@ -5,6 +5,7 @@ from locust.env import Environment
 from locust.stats import stats_printer, stats_history
 from locust.log import setup_logging
 from locust_plugins.listeners.cloudwatch import CloudwatchAdapter, ServiceContext
+from unittest import TestCase
 
 
 setup_logging("INFO", None)
@@ -40,21 +41,22 @@ class User(HttpUser):
     def my_task(self):
         self.client.get("/")
 
+class TestCloudwatch(TestCase):
+    def test_basic_flow(self):
+        # setup Environment and Runner
+        env = Environment(user_classes=[User], events=events)
+        runner = env.create_local_runner()
+        env.events.init.fire(environment=env, runner=runner)
 
-# setup Environment and Runner
-env = Environment(user_classes=[User], events=events)
-runner = env.create_local_runner()
-env.events.init.fire(environment=env, runner=runner)
+        # start a greenlet that periodically outputs the current stats
+        gevent.spawn(stats_printer(env.stats))
 
-# start a greenlet that periodically outputs the current stats
-gevent.spawn(stats_printer(env.stats))
+        # start a greenlet that save current stats to history
+        gevent.spawn(stats_history, env.runner)
+        env.runner.start(1, spawn_rate=10)
 
-# start a greenlet that save current stats to history
-gevent.spawn(stats_history, env.runner)
-env.runner.start(1, spawn_rate=10)
+        # in 10 seconds stop the runner
+        gevent.spawn_later(10, lambda: env.runner.quit())
 
-# in 10 seconds stop the runner
-gevent.spawn_later(10, lambda: env.runner.quit())
-
-env.runner.greenlet.join()
-assert cw.call_count == 1
+        env.runner.greenlet.join()
+        self.assertTrue(cw.call_count == 1)
