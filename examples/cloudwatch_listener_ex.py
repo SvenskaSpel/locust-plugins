@@ -10,15 +10,7 @@ except ModuleNotFoundError:
 
 @events.init.add_listener
 def on_locust_init(environment, **_kwargs):
-    CloudwatchAdapter(_cloudwatch(), environment, _service_context())
-
-
-def _cloudwatch():
-    return boto3.client("cloudwatch")
-
-
-def _service_context():
-    return ServiceContext("MyExampleService", "perf")
+    CloudwatchAdapter(boto3.client("cloudwatch"), environment, ServiceContext("MyExampleService", "perf"))
 
 
 if __name__ == "__main__":

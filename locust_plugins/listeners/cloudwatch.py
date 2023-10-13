@@ -1,4 +1,3 @@
-import datetime
 import logging
 from gevent import queue
 
@@ -10,12 +9,13 @@ class RequestResult:
 
     STATUS_FAILURE = "FAILURE"
 
-    def __init__(self, host, request_type, name, response_time, response_length, exception):
-        self.timestamp = datetime.datetime.utcnow()
+    def __init__(self, host, request_type, name, response_time, response_length, exception, start_time, url):
+        self.timestamp = start_time
         self.request_type = request_type
         self.name = name
         self.response_time = response_time
         self.host = host
+        self.url = url
 
         if exception:
             self.status = RequestResult.STATUS_FAILURE
@@ -140,9 +140,21 @@ class CloudwatchAdapter:
         self._post_to_cloudwatch(self._get_cw_metrics_batch(remaining_requests_metrics_size))
         log.info("Clean up on test stop...Done")
 
-    def on_request(self, request_type, name, response_time, response_length, response, context, exception, **kwargs):
+    def on_request(
+        self,
+        request_type,
+        name,
+        response_time,
+        response_length,
+        response,
+        context,
+        exception,
+        start_time,
+        url,
+        **kwargs,
+    ):
         request_result = RequestResult(
-            self.locust_env.host, request_type, name, response_time, response_length, exception
+            self.locust_env.host, request_type, name, response_time, response_length, exception, start_time, url
         )
         self.request_results_q.put(request_result)
 
