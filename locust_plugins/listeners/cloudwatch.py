@@ -178,7 +178,7 @@ class CloudwatchAdapter:
         remaining_requests_metrics_size = self.request_results_q.qsize()
         log.debug(f"Posting remaining metrics for {remaining_requests_metrics_size} requests")
         self._post_to_cloudwatch(self._get_cw_metrics_batch(remaining_requests_metrics_size))
-        log.debug("Clean up on test stop...Done")
+        log.info("Clean up on test stop...Done")
 
     def on_request(
         self,
