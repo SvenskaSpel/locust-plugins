@@ -142,30 +142,6 @@ class RequestResult:
         return f"{self.request_type}-{self.name}"
 
 
-class ServiceContext:
-    """
-    A class which hold the contextual information of a test. Which service the test is conducted on.
-    Which environment (perf, staging etc.) it is running on. Helps to derive the namespace to which
-    the metrics have to be written in cloudwatch.
-    """
-
-    def __init__(self, service, environment="perf"):
-        self._service = service
-        self._environment = environment
-
-    def environment(self):
-        return self._environment
-
-    def service(self):
-        return self._service
-
-    def name(self):
-        return f"{self._environment}-{self._service}"
-
-    def metrics_namespace(self):
-        return f"{self._environment}/{self._service}/loadtests"
-
-
 class CloudwatchAdapter:
     """
     The primary class which does the actual work for pushing metrics to cloudwatch using the provided
@@ -177,19 +153,23 @@ class CloudwatchAdapter:
     REQUESTS_BATCH_SIZE = 10
     CLOUDWATCH_METRICS_BATCH_SIZE = 15  # Keeping it conservative not to breach the CW limit
 
-    def __init__(self, locust_env, service_context, cloudwatch=None):
+    def __init__(self, locust_env, service_name, environment="perf", cloudwatch=None):
         if cloudwatch is None:
             self.cloudwatch = boto3.client("cloudwatch")
         else:
             self.cloudwatch = cloudwatch
         self.locust_env = locust_env
-        self.service_context = service_context
+        self._service = service_name
+        self._environment = environment
         # The queue that hold the metrics locally.
         self.request_results_q = queue.Queue(100)
         events = self.locust_env.events
         events.test_start.add_listener(self.on_test_start)
         events.request.add_listener(self.on_request)
         events.test_stop.add_listener(self.on_test_stop)
+
+    def metrics_namespace(self):
+        return f"{self._environment}/{self._service}/loadtests"
 
     def on_test_start(self, environment, **kwargs):
         log.info("Begin setup")
@@ -249,9 +229,7 @@ class CloudwatchAdapter:
             cw_metrics_batch = cw_metrics_batch[CloudwatchAdapter.CLOUDWATCH_METRICS_BATCH_SIZE :]
             if len(current_batch) > 0:
                 try:
-                    self.cloudwatch.put_metric_data(
-                        Namespace=self.service_context.metrics_namespace(), MetricData=current_batch
-                    )
+                    self.cloudwatch.put_metric_data(Namespace=self.metrics_namespace(), MetricData=current_batch)
                     log.debug(f"Posted {len(current_batch)} metrics to cloudwatch")
                 except Exception as e:
                     print(str(e))

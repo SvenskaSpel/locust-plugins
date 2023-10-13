@@ -4,7 +4,7 @@ from locust import HttpUser, task, between
 from locust.env import Environment
 from locust.stats import stats_printer, stats_history
 from locust.log import setup_logging
-from locust_plugins.listeners.cloudwatch import CloudwatchAdapter, ServiceContext
+from locust_plugins.listeners.cloudwatch import CloudwatchAdapter
 from unittest import TestCase
 
 
@@ -25,11 +25,8 @@ class CloudwatchMock:
 cw = CloudwatchMock()
 
 def on_locust_init(environment, **_kwargs):
-    CloudwatchAdapter(cw, environment, _service_context())
+    CloudwatchAdapter(environment, "MyExampleService", "perf", cw)
 
-
-def _service_context():
-    return ServiceContext("MyExampleService", "perf")
 
 events.init.add_listener(on_locust_init)
 
