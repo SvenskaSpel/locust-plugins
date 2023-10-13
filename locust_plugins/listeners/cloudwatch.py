@@ -172,13 +172,13 @@ class CloudwatchAdapter:
         return f"{self._environment}/{self._service}/loadtests"
 
     def on_test_start(self, environment, **kwargs):
-        log.info("Begin setup")
+        log.debug("Begin setup")
 
     def on_test_stop(self, environment, **kwargs):
         remaining_requests_metrics_size = self.request_results_q.qsize()
-        log.info(f"Posting remaining metrics for {remaining_requests_metrics_size} requests")
+        log.debug(f"Posting remaining metrics for {remaining_requests_metrics_size} requests")
         self._post_to_cloudwatch(self._get_cw_metrics_batch(remaining_requests_metrics_size))
-        log.info("Clean up on test stop...Done")
+        log.debug("Clean up on test stop...Done")
 
     def on_request(
         self,
