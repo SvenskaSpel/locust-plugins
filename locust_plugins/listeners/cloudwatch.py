@@ -1,7 +1,13 @@
 import logging
 from gevent import queue
+from locust_plugins import missing_extra
 
 log = logging.getLogger(__name__)
+
+try:
+    import boto3
+except ModuleNotFoundError:
+    missing_extra("boto3", "boto3")
 
 
 class RequestResult:
@@ -163,15 +169,19 @@ class ServiceContext:
 class CloudwatchAdapter:
     """
     The primary class which does the actual work for pushing metrics to cloudwatch using the provided
-    cloudwatch client (boto3). It does not push all metrics in one go since talking to cloudwatch incurs
+    cloudwatch client (boto3). If it is not provided then the boto3 based client with basic configuration
+    is created. It does not push all metrics in one go since talking to cloudwatch incurs
     cost. So it holds them in locally (in a queue) and then sends them in batches to cloudwatch
     """
 
     REQUESTS_BATCH_SIZE = 10
     CLOUDWATCH_METRICS_BATCH_SIZE = 15  # Keeping it conservative not to breach the CW limit
 
-    def __init__(self, cloudwatch, locust_env, service_context):
-        self.cloudwatch = cloudwatch
+    def __init__(self, locust_env, service_context, cloudwatch=None):
+        if cloudwatch is None:
+            self.cloudwatch = boto3.client("cloudwatch")
+        else:
+            self.cloudwatch = cloudwatch
         self.locust_env = locust_env
         self.service_context = service_context
         # The queue that hold the metrics locally.
