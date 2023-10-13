@@ -13,7 +13,7 @@ extras = {
     "mqtt": ["paho-mqtt>=1.5.0"],
     "appinsights": ["opencensus-ext-azure"],
     "resource": ["lxml"],
-    "boto3":["boto3"],
+    "boto3": ["boto3"],
 }
 
 setup(
@@ -28,7 +28,6 @@ setup(
         "Operating System :: POSIX :: Linux",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
@@ -36,7 +35,7 @@ setup(
         "Intended Audience :: Developers",
         "Intended Audience :: System Administrators",
     ],
-    python_requires=">=3.7, <4",
+    python_requires=">=3.8, <4",
     keywords="",
     author="Lars Holmberg",
     url="https://github.com/SvenskaSpel/locust-plugins",
