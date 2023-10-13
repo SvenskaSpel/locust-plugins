@@ -19,7 +19,6 @@ class CloudwatchMock:
     def put_metric_data(self, Namespace, MetricData):
         self.call_count += 1
         self.metrics_dict[Namespace] = MetricData
-        
 
 
 cw = CloudwatchMock()
@@ -27,8 +26,6 @@ cw = CloudwatchMock()
 def on_locust_init(environment, **_kwargs):
     CloudwatchAdapter(environment, "MyExampleService", "perf", cw)
 
-
-events.init.add_listener(on_locust_init)
 
 class User(HttpUser):
     wait_time = between(1, 3)
@@ -38,10 +35,12 @@ class User(HttpUser):
     def my_task(self):
         self.client.get("/")
 
+
 class TestCloudwatch(TestCase):
     def test_basic_flow(self):
         # setup Environment and Runner
         env = Environment(user_classes=[User], events=events)
+        env.events.init.add_listener(on_locust_init)
         runner = env.create_local_runner()
         env.events.init.fire(environment=env, runner=runner)
 

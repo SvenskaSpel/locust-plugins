@@ -193,6 +193,7 @@ class CloudwatchAdapter:
         url,
         **kwargs,
     ):
+        # pylint: disable=unused-argument
         request_result = RequestResult(
             self.locust_env.host, request_type, name, response_time, response_length, exception, start_time, url
         )
