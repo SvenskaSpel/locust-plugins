@@ -155,7 +155,8 @@ class Timescale:  # pylint: disable=R0902
             )
         except Exception:
             logging.error(
-                f"Could not connect to postgres ({self.env.parsed_options.pguser}@{self.env.parsed_options.pghost}:{self.env.parsed_options.pgport or 5432}). Use standard postgres env vars or --pg* command line options to specify where to report locust samples (https://www.postgresql.org/docs/13/libpq-envars.html)"
+                f"Could not connect to postgres ({self.env.parsed_options.pguser}@{self.env.parsed_options.pghost}:{self.env.parsed_options.pgport or 5432})."
+                + "Use standard postgres env vars or --pg* command line options to specify where to report locust samples (https://www.postgresql.org/docs/13/libpq-envars.html)"
             )
             raise
         conn.autocommit = True
