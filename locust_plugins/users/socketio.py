@@ -88,7 +88,7 @@ class SocketIOUser(User):
             logging.debug(f"WSR: {message}")
             self.on_message(message)
 
-    def send(self, body, name=None, context={}):
+    def send(self, body, name=None, context={}, opcode=websocket.ABNF.OPCODE_TEXT):
         if not name:
             if body == "2":
                 name = "2 heartbeat"
@@ -112,7 +112,7 @@ class SocketIOUser(User):
             context={**self.context(), **context},
         )
         logging.debug(f"WSS: {body}")
-        self.ws.send(body)
+        self.ws.send(body, opcode)
 
     def sleep_with_heartbeat(self, seconds):
         while seconds >= 0:
