@@ -1,4 +1,4 @@
-from typing import Iterator
+from typing import Iterator, Optional, Dict, List, Tuple
 from pymongo import MongoClient
 import pymongo.collection
 from datetime import datetime, timezone
@@ -8,8 +8,57 @@ from contextlib import contextmanager
 import os
 from abc import ABC, abstractmethod
 from gevent.lock import Semaphore
+from locust.runners import Runner, MasterRunner, WorkerRunner
+from locust.env import Environment
+from gevent.event import AsyncResult
 
 dblock = Semaphore()
+
+
+class SimpleMongoReader(Iterator[Dict]):
+    "Read test data from mongo collection file using an iterator"
+
+    def __init__(
+        self,
+        query: Optional[Dict] = None,
+        sort_column=None,
+        sort: List[Tuple[str, int]] = [],
+        uri=None,
+        database=None,
+        collection=None,
+    ):
+        self.query = query
+        self.sort_column = sort_column
+        if self.sort_column:
+            if sort:
+                raise Exception("Dont set both sort column and sort")
+            self.sort = [(self.sort_column, 1)]
+        else:
+            self.sort = sort
+        self.uri = uri or os.environ["LOCUST_MONGO"]
+        self.database = database or os.environ["LOCUST_MONGO_DATABASE"]
+        self.collection = collection or os.environ["LOCUST_MONGO_COLLECTION"]
+        self.coll = MongoClient(self.uri)[self.database][self.collection]
+        self.cursor = self.coll.find(self.query, sort=self.sort)
+
+    def __next__(self):
+        try:
+            with dblock:
+                doc = next(self.cursor)
+            if self.sort_column:
+                self.coll.find_one_and_update(
+                    {"_id": doc["_id"]},
+                    {"$set": {self.sort_column: datetime.now(tz=timezone.utc)}},
+                )
+            return doc
+        except StopIteration:
+            with dblock:
+                # there is a tiny chance the last find_one_and_update has not yet completed
+                # so give it a little extra time so we dont accidentally get data that was just used
+                if "w=0" in self.uri:
+                    time.sleep(0.5)
+                self.cursor = self.coll.find(self.query, sort=self.sort)
+            return next(self.cursor)
 
 
 class NoUserException(Exception):
