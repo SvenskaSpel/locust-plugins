@@ -1,12 +1,11 @@
-import json
 from typing import Dict, Iterator
 
 from gevent.event import AsyncResult
 from locust import User, events
-from locust.exception import StopUser
+
+# from locust.exception import StopUser
 from locust.env import Environment
 from locust.runners import MasterRunner, WorkerRunner
-import bson.objectid
 
 test_data: Dict[int, AsyncResult] = {}
 datasource_iterator: Iterator[Dict]
