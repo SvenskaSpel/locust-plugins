@@ -1,5 +1,6 @@
 from locust_plugins.mongoreader import SimpleMongoReader
-from locust_plugins.csvreader import CSVDictReader
+
+# from locust_plugins.csvreader import CSVDictReader
 from locust_plugins.synchronizer import data_synchronizer, getdata
 from locust import HttpUser, task, events, runners, run_single_user
 import time

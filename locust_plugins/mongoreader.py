@@ -8,9 +8,6 @@ from contextlib import contextmanager
 import os
 from abc import ABC, abstractmethod
 from gevent.lock import Semaphore
-from locust.runners import Runner, MasterRunner, WorkerRunner
-from locust.env import Environment
-from gevent.event import AsyncResult
 
 dblock = Semaphore()
 
