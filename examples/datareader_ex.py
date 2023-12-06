@@ -2,7 +2,7 @@ from locust_plugins.mongoreader import SimpleMongoReader
 
 # from locust_plugins.csvreader import CSVDictReader
 from locust_plugins.synchronizer import data_synchronizer, getdata
-from locust import HttpUser, task, events, runners, run_single_user
+from locust import HttpUser, task, events, run_single_user
 import time
 
 
@@ -21,8 +21,8 @@ class MyUser(HttpUser):
         user = getdata(self)
         self.environment.events.request.fire(
             request_type="fake",
-            # name=user["ssn"],
-            name="fake",
+            name=user["ssn"],
+            # name="fake",
             start_time=start_time,
             response_time=(time.perf_counter() - start_perf_counter) * 1000,
             response_length=0,
