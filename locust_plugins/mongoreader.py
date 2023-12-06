@@ -50,11 +50,7 @@ class SimpleMongoReader(Iterator[Dict]):
             return doc
         except StopIteration:
             with dblock:
-                # there is a tiny chance the last find_one_and_update has not yet completed
-                # so give it a little extra time so we dont accidentally get data that was just used
-                if "w=0" in self.uri:
-                    time.sleep(0.5)
-                self.cursor = self.coll.find(self.query, sort=self.sort)
+                self.cursor.rewind()
             return next(self.cursor)
 
 
