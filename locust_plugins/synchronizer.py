@@ -22,7 +22,6 @@ def data_synchronizer(f: Iterator[dict]):
             def user_request(environment: Environment, msg, **kwargs):
                 data = next(f)
                 # data["_id"] = str(data["_id"])  # this is an ObjectId, msgpack doesnt know how to serialize it
-                print(data)
                 environment.runner.send_message(
                     "user_response",
                     {"payload": data, "user_id": msg.data["user_id"]},
