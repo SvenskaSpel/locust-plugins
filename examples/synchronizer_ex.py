@@ -20,7 +20,7 @@ class MyUser(HttpUser):
     @task
     def my_task(self):
         customer = synchronizer.getdata(self)
-        self.client.get(f"/{customer['ssn']}")
+        self.client.get(f"/?{customer['ssn']}")
 
 
 if __name__ == "__main__":
