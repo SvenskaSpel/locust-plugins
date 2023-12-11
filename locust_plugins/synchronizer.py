@@ -6,14 +6,14 @@ from locust import User, events
 from locust.env import Environment
 from locust.runners import MasterRunner, WorkerRunner
 
-results: Dict[int, AsyncResult] = {}
-iterator: Optional[Iterator[Dict]] = None
+_results: Dict[int, AsyncResult] = {}
+_iterator: Optional[Iterator[Dict]] = None
 
 
 # received on master
 def _synchronizer_request(environment: Environment, msg, **kwargs):
-    assert iterator
-    data = next(iterator)
+    assert _iterator
+    data = next(_iterator)
     environment.runner.send_message(
         "synchronizer_response",
         {"payload": data, "user_id": msg.data["user_id"]},
@@ -23,7 +23,7 @@ def _synchronizer_request(environment: Environment, msg, **kwargs):
 
 # received on worker
 def _synchronizer_response(environment: Environment, msg, **kwargs):
-    results[msg.data["user_id"]].set(msg.data)
+    _results[msg.data["user_id"]].set(msg.data)
 
 
 def register(environment: Environment, reader: Optional[Iterator[dict]]):
@@ -31,8 +31,8 @@ def register(environment: Environment, reader: Optional[Iterator[dict]]):
 
     reader is not used on workers, so you can leave it as None there.
     """
-    global iterator
-    iterator = reader
+    global _iterator
+    _iterator = reader
 
     runner = environment.runner
     if not reader and not isinstance(runner, WorkerRunner):
@@ -49,14 +49,14 @@ def getdata(user: User) -> Dict:
         user (User): current user object (we use the object id of the User to keep track of who's waiting for which data)
     """
     if not user.environment.runner:  # no need to do anything clever if there is no runner
-        return next(iterator)
+        return next(_iterator)
 
-    if id(user) in results:
+    if id(user) in _results:
         logging.warning("This user was already waiting for data. Strange.")
 
-    results[id(user)] = AsyncResult()
+    _results[id(user)] = AsyncResult()
     runner = user.environment.runner
     runner.send_message("synchronizer_request", {"user_id": id(user), "client_id": runner.client_id})
-    data = results[id(user)].get()["payload"]  # this waits for the reply
-    del results[id(user)]
+    data = _results[id(user)].get()["payload"]  # this waits for the reply
+    del _results[id(user)]
     return data
