@@ -1,4 +1,3 @@
-from typing import Iterator
 from locust_plugins.mongoreader import MongoLRUReader
 from locust_plugins.csvreader import CSVDictReader
 from locust_plugins import synchronizer
