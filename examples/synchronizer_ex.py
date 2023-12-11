@@ -10,7 +10,7 @@ csv = True
 if csv:
     reader = CSVDictReader("ssn.tsv", delimiter="\t")
 else:
-    reader = MongoLRUReader({"env": "test", "tb": False, "lb": True}, "last_login")
+    reader = MongoLRUReader({"foo": "bar"}, "last_login")
 synchronizer.register(reader)
 # optionally replace this with lazy initalization of Reader to avoid unnecessarily doing it on workers:
 # synchronizer.register(None, MongoLRUReader, {"env": "test", "tb": False, "lb": True}, "last_login")
