@@ -1,10 +1,10 @@
-from typing import Dict, Iterator, Type, Optional
+from typing import Dict, Iterator, Optional
 import logging
 from gevent.event import AsyncResult
-from locust import User, events
+from locust import User
 
 from locust.env import Environment
-from locust.runners import MasterRunner, WorkerRunner
+from locust.runners import WorkerRunner
 
 _results: Dict[int, AsyncResult] = {}
 _iterator: Optional[Iterator[Dict]] = None
