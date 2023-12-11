@@ -10,43 +10,37 @@ test_data: Dict[int, AsyncResult] = {}
 iterator: Optional[Iterator[Dict]] = None
 
 
-def register(i: Optional[Iterator[dict]], reader_class: Optional[Type[Iterator[Dict]]] = None, *args, **kwargs):
-    """Register synchronizer methods and tie them to use the iterator that you pass.
+def register(environment: Environment, reader: Optional[Iterator[dict]]):
+    """Register synchronizer method handlers and tie them to use the iterator that you pass.
 
-    To avoid unnecessarily instantiating the iterator on workers (where it isnt used),
-    you can pass an iterator class and initialization parameters instead of an object instance.
+    reader is not used on workers, so you can leave it as None there.
     """
     global iterator
-    iterator = i
+    iterator = reader
 
-    @events.test_start.add_listener
-    def test_start(environment, **_kw):
-        global iterator
-        runner = environment.runner
-        if not i and not isinstance(runner, WorkerRunner):
-            assert reader_class
-            logging.debug(f"about to initialize reader class {reader_class}")
-            iterator = reader_class(*args, **kwargs)
-        if runner:
-            # called on master
-            def user_request(environment: Environment, msg, **kwargs):
-                assert iterator  # should have been instantiated by now...
-                data = next(iterator)
-                # data["_id"] = str(data["_id"])  # this is an ObjectId, msgpack doesnt know how to serialize it
-                environment.runner.send_message(
-                    "synchronizer_response",
-                    {"payload": data, "user_id": msg.data["user_id"]},
-                    client_id=msg.data["client_id"],
-                )
+    runner = environment.runner
+    if not reader and not isinstance(runner, WorkerRunner):
+        raise Exception("reader is a mandatory parameter when not on a worker runner")
+    if runner:
+        # called on master
+        def user_request(environment: Environment, msg, **kwargs):
+            assert iterator  # should have been instantiated by now...
+            data = next(iterator)
+            # data["_id"] = str(data["_id"])  # this is an ObjectId, msgpack doesnt know how to serialize it
+            environment.runner.send_message(
+                "synchronizer_response",
+                {"payload": data, "user_id": msg.data["user_id"]},
+                client_id=msg.data["client_id"],
+            )
 
-            # called on worker
-            def user_response(environment: Environment, msg, **kwargs):
-                test_data[msg.data["user_id"]].set(msg.data)
+        # called on worker
+        def user_response(environment: Environment, msg, **kwargs):
+            test_data[msg.data["user_id"]].set(msg.data)
 
-            if not isinstance(runner, WorkerRunner):
-                runner.register_message("synchronizer_request", user_request)
-            if not isinstance(runner, MasterRunner):
-                runner.register_message("synchronizer_response", user_response)
+        if not isinstance(runner, WorkerRunner):
+            runner.register_message("synchronizer_request", user_request)
+        if not isinstance(runner, MasterRunner):
+            runner.register_message("synchronizer_response", user_response)
 
 
 def getdata(u: User) -> Dict:
