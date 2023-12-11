@@ -49,7 +49,7 @@ def register(i: Optional[Iterator[dict]], reader_class: Optional[Type[Iterator[D
                 runner.register_message("synchronizer_response", user_response)
 
 
-def getdata(u: User):
+def getdata(u: User) -> Dict:
     if not u.environment.runner:  # no need to do anything clever if there is no runner
         return next(iterator)
 
