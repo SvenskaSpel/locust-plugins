@@ -26,24 +26,24 @@ def _synchronizer_response(environment: Environment, msg, **kwargs):
     _results[msg.data["user_id"]].set(msg.data)
 
 
-def register(environment: Environment, reader: Optional[Iterator[dict]]):
+def register(environment: Environment, iterator: Optional[Iterator[dict]]):
     """Register synchronizer method handlers and tie them to use the iterator that you pass.
 
-    reader is not used on workers, so you can leave it as None there.
+    iterator is not used on workers, so you can leave it as None there.
     """
     global _iterator
-    _iterator = reader
+    _iterator = iterator
 
     runner = environment.runner
-    if not reader and not isinstance(runner, WorkerRunner):
-        raise Exception("reader is a mandatory parameter when not on a worker runner")
+    if not iterator and not isinstance(runner, WorkerRunner):
+        raise Exception("iterator is a mandatory parameter when not on a worker runner")
     if runner:
         runner.register_message("synchronizer_request", _synchronizer_request)
         runner.register_message("synchronizer_response", _synchronizer_response)
 
 
 def getdata(user: User) -> Dict:
-    """Get the next data dict from reader
+    """Get the next data dict from iterator
 
     Args:
         user (User): current user object (we use the object id of the User to keep track of who's waiting for which data)
