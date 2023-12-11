@@ -3,7 +3,6 @@ import logging
 from gevent.event import AsyncResult
 from locust import User, events
 
-# from locust.exception import StopUser
 from locust.env import Environment
 from locust.runners import MasterRunner, WorkerRunner
 
@@ -51,7 +50,6 @@ def register(i: Optional[Iterator[dict]], reader_class: Optional[Type[Iterator[D
 
 
 def getdata(u: User):
-    # try:
     if not u.environment.runner:  # no need to do anything clever if there is no runner
         return next(iterator)
 
@@ -64,7 +62,3 @@ def getdata(u: User):
     data = test_data[id(u)].get()["payload"]
     del test_data[id(u)]
     return data
-    # except KeyboardInterrupt:
-    #     # probably we're just shutting down but lets try to be as graceful as possible
-    #     logging.debug("Caught SIGINT"
-    #     raise StopUser()
