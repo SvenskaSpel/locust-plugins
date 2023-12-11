@@ -31,7 +31,6 @@ def register(i: Iterator[dict]):
 
             # called on worker
             def user_response(environment: Environment, msg, **kwargs):
-                assert test_data
                 test_data[msg.data["user_id"]].set(msg.data)
 
             if not isinstance(runner, WorkerRunner):
