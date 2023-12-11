@@ -2,7 +2,7 @@ from typing import Iterator
 from locust_plugins.mongoreader import MongoLRUReader
 from locust_plugins.csvreader import CSVDictReader
 from locust_plugins import synchronizer
-from locust import HttpUser, task, events, run_single_user
+from locust import HttpUser, task, run_single_user
 
 
 reader: Iterator
