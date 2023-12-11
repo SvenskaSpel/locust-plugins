@@ -1,52 +1,53 @@
-from typing import Iterator, Optional, Dict, List, Tuple
+from typing import Iterator, Optional, Dict
 from pymongo import MongoClient
-import pymongo.collection
+from pymongo.collection import Collection
+from pymongo.cursor import Cursor
 from datetime import datetime, timezone
 import logging
 import time
 from contextlib import contextmanager
 import os
+from os import environ as env
 from abc import ABC, abstractmethod
 from gevent.lock import Semaphore
 
 dblock = Semaphore()
 
 
-class SimpleMongoReader(Iterator[Dict]):
-    "Read test data from mongo collection file using an iterator"
-
+class MongoLRUReader(Iterator[Dict]):
     def __init__(
         self,
-        query: Optional[Dict] = None,
-        sort_column=None,
-        sort: List[Tuple[str, int]] = [],
-        uri=None,
-        database=None,
-        collection=None,
+        filter: Dict,  # pylint: disable=redefined-builtin
+        timestamp_field: str,
+        coll: Optional[Collection] = None,
     ):
-        self.query = query
-        self.sort_column = sort_column
-        if self.sort_column:
-            if sort:
-                raise Exception("Dont set both sort column and sort")
-            self.sort = [(self.sort_column, 1)]
-        else:
-            self.sort = sort
-        self.uri = uri or os.environ["LOCUST_MONGO"]
-        self.database = database or os.environ["LOCUST_MONGO_DATABASE"]
-        self.collection = collection or os.environ["LOCUST_MONGO_COLLECTION"]
-        self.coll = MongoClient(self.uri)[self.database][self.collection]
-        self.cursor = self.coll.find(self.query, sort=self.sort)
+        """A thread safe iterator to read test data from a mongo collection sorted by least-recently-used.
 
-    def __next__(self):
+        Order is ensured even if Locust is restarted, because the timestamp_field is updated on every iteration step.
+
+        Iteration is quite fast, but the first query can be slow if you dont have an index that covers the filter and sort fields.
+
+        Args:
+            filter (Dict): Query filter statement
+            sort_field (str): Time stamp field, e.g. "last_used"
+            collection (pymongo.collection.Collection, optional): By default, we use LOCUST_MONGO, LOCUST_MONGO_DATABASE and LOCUST_MONGO_COLLECTION env vars to get the collection, but you can also pass a pre-existing Collection.
+
+        """
+        self.timestamp_field = timestamp_field
+        self.coll: Collection = (
+            coll or MongoClient(env["LOCUST_MONGO"])[env["LOCUST_MONGO_DATABASE"]][env["LOCUST_MONGO_COLLECTION"]]
+        )
+        self.cursor: Cursor = self.coll.find(filter, sort=[(self.timestamp_field, 1)])
+        self.cursor._refresh()  # trigger fetch immediately instead of waiting for the first next()
+
+    def __next__(self) -> dict:
         try:
             with dblock:
-                doc = next(self.cursor)
-            if self.sort_column:
-                self.coll.find_one_and_update(
-                    {"_id": doc["_id"]},
-                    {"$set": {self.sort_column: datetime.now(tz=timezone.utc)}},
-                )
+                doc: dict = next(self.cursor)
+            self.coll.find_one_and_update(
+                {"_id": doc["_id"]},
+                {"$set": {self.timestamp_field: datetime.now(tz=timezone.utc)}},
+            )
             return doc
         except StopIteration:
             with dblock:
@@ -54,12 +55,15 @@ class SimpleMongoReader(Iterator[Dict]):
             return next(self.cursor)
 
 
+### Legacy
+
+
 class NoUserException(Exception):
     pass
 
 
 class User(dict):
-    def __init__(self, coll: pymongo.collection.Collection, query: dict):
+    def __init__(self, coll: Collection, query: dict):
         self.coll = coll
         with dblock:
             data = self.coll.find_one_and_update(
@@ -97,6 +101,7 @@ class MongoReader(AbstractReader):
         self.reduced_filters = []
         self.delay_warning = 0
         self.query = {"$and": filters + [{"logged_in": False}]}
+        logging.warning("MongoReader is deprecated, please switch to MongoReaderLRU")
 
     @contextmanager
     def user(self, query: dict = None):
