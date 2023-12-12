@@ -1,7 +1,6 @@
 from typing import Dict, Iterator, Optional
 import logging
 from gevent.event import AsyncResult
-from locust import User
 import greenlet
 from locust.env import Environment
 from locust.runners import WorkerRunner
