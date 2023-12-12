@@ -1,19 +1,20 @@
-from typing import Iterator
 from locust_plugins.mongoreader import MongoLRUReader
 from locust_plugins.csvreader import CSVDictReader
 from locust_plugins import synchronizer
-from locust import HttpUser, task, run_single_user
+from locust import HttpUser, task, run_single_user, events
+from locust.runners import WorkerRunner
 
 
-reader: Iterator
-csv = True
-if csv:
-    reader = CSVDictReader("ssn.tsv", delimiter="\t")
-else:
-    reader = MongoLRUReader({"foo": "bar"}, "last_login")
-synchronizer.register(reader)
-# optionally replace this with lazy initalization of Reader to avoid unnecessarily doing it on workers:
-# synchronizer.register(None, MongoLRUReader, {"env": "test", "tb": False, "lb": True}, "last_login")
+@events.init.add_listener
+def on_locust_init(environment, **_kwargs):
+    reader = None
+    if not isinstance(environment.runner, WorkerRunner):
+        csv = True
+        if csv:
+            reader = CSVDictReader("ssn.tsv", delimiter="\t")
+        else:
+            reader = MongoLRUReader({"foo": "bar"}, "last_login")
+    synchronizer.register(environment, reader)
 
 
 class MyUser(HttpUser):

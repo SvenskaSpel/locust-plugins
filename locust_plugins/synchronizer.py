@@ -1,64 +1,62 @@
-from typing import Dict, Iterator, Type, Optional
+from typing import Dict, Iterator, Optional
 import logging
 from gevent.event import AsyncResult
-from locust import User, events
+from locust import User
 
 from locust.env import Environment
-from locust.runners import MasterRunner, WorkerRunner
+from locust.runners import WorkerRunner
 
-test_data: Dict[int, AsyncResult] = {}
-iterator: Optional[Iterator[Dict]] = None
+_results: Dict[int, AsyncResult] = {}
+_iterator: Optional[Iterator[Dict]] = None
 
 
-def register(i: Optional[Iterator[dict]], reader_class: Optional[Type[Iterator[Dict]]] = None, *args, **kwargs):
-    """Register synchronizer methods and tie them to use the iterator that you pass.
+# received on master
+def _synchronizer_request(environment: Environment, msg, **kwargs):
+    assert _iterator
+    data = next(_iterator)
+    environment.runner.send_message(
+        "synchronizer_response",
+        {"payload": data, "user_id": msg.data["user_id"]},
+        client_id=msg.data["client_id"],
+    )
 
-    To avoid unnecessarily instantiating the iterator on workers (where it isnt used),
-    you can pass an iterator class and initialization parameters instead of an object instance.
+
+# received on worker
+def _synchronizer_response(environment: Environment, msg, **kwargs):
+    _results[msg.data["user_id"]].set(msg.data)
+
+
+def register(environment: Environment, iterator: Optional[Iterator[dict]]):
+    """Register synchronizer method handlers and tie them to use the iterator that you pass.
+
+    iterator is not used on workers, so you can leave it as None there.
     """
-    global iterator
-    iterator = i
+    global _iterator
+    _iterator = iterator
 
-    @events.test_start.add_listener
-    def test_start(environment, **_kw):
-        global iterator
-        runner = environment.runner
-        if not i and not isinstance(runner, WorkerRunner):
-            assert reader_class
-            logging.debug(f"about to initialize reader class {reader_class}")
-            iterator = reader_class(*args, **kwargs)
-        if runner:
-            # called on master
-            def user_request(environment: Environment, msg, **kwargs):
-                assert iterator  # should have been instantiated by now...
-                data = next(iterator)
-                # data["_id"] = str(data["_id"])  # this is an ObjectId, msgpack doesnt know how to serialize it
-                environment.runner.send_message(
-                    "synchronizer_response",
-                    {"payload": data, "user_id": msg.data["user_id"]},
-                    client_id=msg.data["client_id"],
-                )
-
-            # called on worker
-            def user_response(environment: Environment, msg, **kwargs):
-                test_data[msg.data["user_id"]].set(msg.data)
-
-            if not isinstance(runner, WorkerRunner):
-                runner.register_message("synchronizer_request", user_request)
-            if not isinstance(runner, MasterRunner):
-                runner.register_message("synchronizer_response", user_response)
+    runner = environment.runner
+    if not iterator and not isinstance(runner, WorkerRunner):
+        raise Exception("iterator is a mandatory parameter when not on a worker runner")
+    if runner:
+        runner.register_message("synchronizer_request", _synchronizer_request)
+        runner.register_message("synchronizer_response", _synchronizer_response)
 
 
-def getdata(u: User) -> Dict:
-    if not u.environment.runner:  # no need to do anything clever if there is no runner
-        return next(iterator)
+def getdata(user: User) -> Dict:
+    """Get the next data dict from iterator
 
-    if id(u) in test_data:
-        logging.warning("This user was already waiting for data. Not sure how to handle this nicely...")
+    Args:
+        user (User): current user object (we use the object id of the User to keep track of who's waiting for which data)
+    """
+    if not user.environment.runner:  # no need to do anything clever if there is no runner
+        return next(_iterator)
 
-    test_data[id(u)] = AsyncResult()
-    runner = u.environment.runner
-    runner.send_message("synchronizer_request", {"user_id": id(u), "client_id": runner.client_id})
-    data = test_data[id(u)].get()["payload"]
-    del test_data[id(u)]
+    if id(user) in _results:
+        logging.warning("This user was already waiting for data. Strange.")
+
+    _results[id(user)] = AsyncResult()
+    runner = user.environment.runner
+    runner.send_message("synchronizer_request", {"user_id": id(user), "client_id": runner.client_id})
+    data = _results[id(user)].get()["payload"]  # this waits for the reply
+    del _results[id(user)]
     return data
