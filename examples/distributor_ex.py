@@ -1,6 +1,6 @@
 from locust_plugins.mongoreader import MongoLRUReader
 from locust_plugins.csvreader import CSVDictReader
-from locust_plugins import synchronizer
+from locust_plugins import distributor
 from locust import HttpUser, task, run_single_user, events
 from locust.runners import WorkerRunner
 
@@ -14,7 +14,7 @@ def on_locust_init(environment, **_kwargs):
             reader = CSVDictReader("ssn.tsv", delimiter="\t")
         else:
             reader = MongoLRUReader({"foo": "bar"}, "last_login")
-    synchronizer.register(environment, reader)
+    distributor.register(environment, reader)
 
 
 class MyUser(HttpUser):
@@ -22,7 +22,7 @@ class MyUser(HttpUser):
 
     @task
     def my_task(self):
-        customer = synchronizer.getdata(self)
+        customer = distributor.getdata(self)
         self.client.get(f"/?{customer['ssn']}")
 
 
