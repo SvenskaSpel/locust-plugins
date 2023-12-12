@@ -55,8 +55,8 @@ locust --help
 ## Wait time 
 - Custom wait time functions ([example](examples/constant_total_ips_ex.py), [source](locust_plugins/wait_time.py))
 
-## Debug 
-- Support for running a single User in the debugger (moved to [locust core](https://docs.locust.io/en/latest/running-in-debugger.html)!)
+## Distributing test data
+- Support for distributing test data from master to workers while maintaining test data order ([example](examples/distributor_ex.py), [source](locust_plugins/distributor.py))
 
 ## Transaction manager
 - Support for logging transactions (aggregating multiple requests or other actions) ([example](examples/transaction_example.py), [source](locust_plugins/transaction_manager.py))
