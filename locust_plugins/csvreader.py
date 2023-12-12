@@ -2,7 +2,7 @@ import csv
 from typing import Iterator, Dict
 
 
-class CSVReader:
+class CSVReader(Iterator):
     "Read test data from csv file using an iterator"
 
     def __init__(self, file, **kwargs):
