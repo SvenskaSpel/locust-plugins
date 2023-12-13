@@ -46,7 +46,7 @@ setup(
     package_data={"locust_plugins": ["py.typed"]},
     zip_safe=False,
     install_requires=[
-        "locust>=2.16.1",
+        "locust>=2.20.0",
         "typing-extensions",
     ],
     extras_require={
