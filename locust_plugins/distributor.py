@@ -26,13 +26,13 @@ class Distributor:
                 data = next(self.iterator)
                 self.runner.send_message(
                     f"_{name}_response",
-                    {"payload": data, "user_id": msg.data["user_id"]},
+                    {"payload": data, "gid": msg.data["gid"]},
                     client_id=msg.data["client_id"],
                 )
 
             # received on worker
             def _distributor_response(environment: Environment, msg, **kwargs):
-                _results[msg.data["user_id"]].set(msg.data)
+                _results[msg.data["gid"]].set(msg.data)
 
             self.runner.register_message(f"_{name}_request", _distributor_request)
             self.runner.register_message(f"_{name}_response", _distributor_response)
@@ -53,7 +53,7 @@ class Distributor:
             logging.warning("This user was already waiting for data. Strange.")
 
         _results[gid] = AsyncResult()
-        self.runner.send_message(f"_{self.name}_request", {"user_id": gid, "client_id": self.runner.client_id})
+        self.runner.send_message(f"_{self.name}_request", {"gid": gid, "client_id": self.runner.client_id})
         data = _results[gid].get()["payload"]  # this waits for the reply
         del _results[gid]
         return data
