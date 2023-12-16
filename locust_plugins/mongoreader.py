@@ -38,7 +38,9 @@ class MongoLRUReader(Iterator[Dict]):
             coll or MongoClient(env["LOCUST_MONGO"])[env["LOCUST_MONGO_DATABASE"]][env["LOCUST_MONGO_COLLECTION"]]
         )
         self.cursor: Cursor = self.coll.find(filter, sort=[(self.timestamp_field, 1)])
-        self.cursor._refresh()  # trigger fetch immediately instead of waiting for the first next()
+        records_in_buffer = self.cursor._refresh()  # trigger fetch immediately instead of waiting for the first next()
+        if not records_in_buffer:
+            logging.warning(f"No records returned from query {filter}")
 
     def __next__(self) -> dict:
         try:
