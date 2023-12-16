@@ -8,7 +8,7 @@ from locust.runners import WorkerRunner
 _results: Dict[int, AsyncResult] = {}
 
 
-class Distributor:
+class Distributor(Iterator):
     def __init__(self, environment: Environment, iterator: Optional[Iterator], name="distributor"):
         """Register distributor method handlers and tie them to use the iterator that you pass.
 
