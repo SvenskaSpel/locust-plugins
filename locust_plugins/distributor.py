@@ -23,10 +23,10 @@ class Distributor:
         if self.runner:
             # received on master
             def _distributor_request(environment: Environment, msg, **kwargs):
-                data = next(self.iterator)
+                item = next(self.iterator)
                 self.runner.send_message(
                     f"_{name}_response",
-                    {"payload": data, "gid": msg.data["gid"]},
+                    {"item": item, "gid": msg.data["gid"]},
                     client_id=msg.data["client_id"],
                 )
 
@@ -54,6 +54,6 @@ class Distributor:
 
         _results[gid] = AsyncResult()
         self.runner.send_message(f"_{self.name}_request", {"gid": gid, "client_id": self.runner.client_id})
-        data = _results[gid].get()["payload"]  # this waits for the reply
+        item = _results[gid].get()["item"]  # this waits for the reply
         del _results[gid]
-        return data
+        return item
