@@ -14,6 +14,16 @@ from gevent.lock import Semaphore
 dblock = Semaphore()
 
 
+def update_document(document_id: str, values: Dict, coll: Optional[Collection] = None):
+    coll: Collection = (
+        coll or MongoClient(env["LOCUST_MONGO"])[env["LOCUST_MONGO_DATABASE"]][env["LOCUST_MONGO_COLLECTION"]]
+    )
+    coll.update_one(
+        {"_id": document_id},
+        {"$set": values},
+    )
+
+
 class MongoLRUReader(Iterator[Dict]):
     def __init__(
         self,
