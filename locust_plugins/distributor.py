@@ -2,6 +2,7 @@ from typing import Dict, Iterator, Optional
 import logging
 from gevent.event import AsyncResult
 import greenlet
+import gevent
 from locust.env import Environment
 from locust.runners import WorkerRunner
 
@@ -23,12 +24,8 @@ class Distributor(Iterator):
         if self.runner:
             # received on master
             def _distributor_request(environment: Environment, msg, **kwargs):
-                item = next(self.iterator)
-                self.runner.send_message(
-                    f"_{name}_response",
-                    {"item": item, "gid": msg.data["gid"]},
-                    client_id=msg.data["client_id"],
-                )
+                # do this in the background to avoid blocking locust's client_listener loop
+                gevent.spawn(self._master_next_and_send, msg.data["gid"], msg.data["client_id"])
 
             # received on worker
             def _distributor_response(environment: Environment, msg, **kwargs):
@@ -36,6 +33,14 @@ class Distributor(Iterator):
 
             self.runner.register_message(f"_{name}_request", _distributor_request)
             self.runner.register_message(f"_{name}_response", _distributor_response)
+
+    def _master_next_and_send(self, gid, client_id):
+        item = next(self.iterator)
+        self.runner.send_message(
+            f"_{self.name}_response",
+            {"item": item, "gid": gid},
+            client_id=client_id,
+        )
 
     def __next__(self):
         """Get the next data dict from iterator

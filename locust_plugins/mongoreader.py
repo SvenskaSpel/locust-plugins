@@ -46,7 +46,7 @@ class MongoLRUReader(Iterator[Dict]):
         try:
             with dblock:
                 doc: dict = next(self.cursor)
-            self.coll.find_one_and_update(
+            self.coll.update_one(
                 {"_id": doc["_id"]},
                 {"$set": {self.timestamp_field: datetime.now(tz=timezone.utc)}},
             )
