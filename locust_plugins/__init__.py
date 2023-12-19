@@ -1,4 +1,4 @@
-from .wait_time import constant_ips, constant_total_ips
+from .wait_time import constant_total_ips
 import locust
 from locust.user.task import DefaultTaskSet, TaskSet
 from locust import events

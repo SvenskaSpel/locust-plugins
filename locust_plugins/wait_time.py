@@ -57,11 +57,5 @@ def constant_total_ips(ips: float):
     return func
 
 
-def constant_ips(_ips):
-    """this function has been removed, now that it is available in locust.wait_time.constant_throughput"""
-    logging.error("constant_ips has been removed, now that it is available in locust.wait_time.constant_throughput")
-    sys.exit(1)
-
-
 def constant_total_pacing(seconds: float):
     return constant_total_ips(1.0 / seconds)
