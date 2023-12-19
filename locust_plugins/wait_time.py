@@ -1,4 +1,3 @@
-import sys
 import logging
 import time
 from collections import deque, namedtuple
