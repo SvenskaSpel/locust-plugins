@@ -6,7 +6,7 @@ from setuptools import find_packages, setup
 
 extras = {
     "websocket": ["websocket-client"],
-    "playwright": ["playwright>=1.34.0"],
+    "playwright": ["playwright>=1.40.0"],
     "dashboards": ["psycogreen", "psycopg2-binary"],
     "kafka": ["confluent-kafka"],
     "mongo": ["pymongo"],
