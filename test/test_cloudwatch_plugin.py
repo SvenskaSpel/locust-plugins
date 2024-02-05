@@ -10,11 +10,11 @@ from unittest import TestCase
 
 setup_logging("INFO", None)
 
+
 class CloudwatchMock:
     def __init__(self):
         self.call_count = 0
         self.metrics_dict = {}
-
 
     def put_metric_data(self, Namespace, MetricData):
         self.call_count += 1
@@ -22,6 +22,7 @@ class CloudwatchMock:
 
 
 cw = CloudwatchMock()
+
 
 def on_locust_init(environment, **_kwargs):
     CloudwatchAdapter(environment, "MyExampleService", "perf", cw)

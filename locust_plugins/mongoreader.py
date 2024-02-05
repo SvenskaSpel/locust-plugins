@@ -34,9 +34,12 @@ class MongoLRUReader(Iterator[Dict]):
 
         """
         self.timestamp_field = timestamp_field
-        self.coll: Collection = (
-            coll or MongoClient(env["LOCUST_MONGO"])[env["LOCUST_MONGO_DATABASE"]][env["LOCUST_MONGO_COLLECTION"]]
-        )
+        if not coll:
+            self.coll: Collection = MongoClient(env["LOCUST_MONGO"])[env["LOCUST_MONGO_DATABASE"]][
+                env["LOCUST_MONGO_COLLECTION"]
+            ]
+        else:
+            self.coll = coll
         self.cursor: Cursor = self.coll.find(filter, sort=[(self.timestamp_field, 1)])
         records_in_buffer = self.cursor._refresh()  # trigger fetch immediately instead of waiting for the first next()
         if not records_in_buffer:
