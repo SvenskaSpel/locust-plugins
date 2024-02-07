@@ -3,7 +3,7 @@
 # Notes:
 # Dont forget to first install the browsers by running: playwright install
 # Browsers are heavy. Dont expect to be able to do as much load as usual with Locust. Optimize your tests by blocking requests for unnecessary resources.
-# Dont run too many users per worker instance (or you'll get the dreaded "CPU usage over 90%" warning). Instead, scale using more Locust workers. 4-5 users/browsers per workers seems ok. If you are using locust-swarm, increase the --processes-per-loadgen parameter.
+# Dont run too many users per worker instance (or you'll get the dreaded "CPU usage over 90%" warning). Instead, scale using more Locust workers. 4-5 users/browsers per workers seems ok.
 # Some things, such as adding request callbacks (Page.route()), will cause intense communication with the browser will overload Python/Playwright so be careful.
 # It is easy to accidentally make Playwright tests stall for a long time, for example if your page does finish loading completely (triggering the "load" event). Experiment with alternative wait strategies (e.g. wait_until="domcontentloaded" or self.page.wait_for_selector(...))
 
