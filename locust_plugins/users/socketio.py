@@ -9,7 +9,7 @@ from locust_plugins import missing_extra
 try:
     import websocket
 except ModuleNotFoundError:
-    missing_extra("paho", "mqtt")
+    missing_extra("websocket", "websocket")
 
 
 class SocketIOUser(User):
