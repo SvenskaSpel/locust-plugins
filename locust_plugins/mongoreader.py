@@ -34,7 +34,7 @@ class MongoLRUReader(Iterator[Dict]):
 
         """
         self.timestamp_field = timestamp_field
-        if not coll:
+        if coll is None:
             self.coll: Collection = MongoClient(env["LOCUST_MONGO"])[env["LOCUST_MONGO_DATABASE"]][
                 env["LOCUST_MONGO_COLLECTION"]
             ]
