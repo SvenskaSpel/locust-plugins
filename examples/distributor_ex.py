@@ -2,7 +2,6 @@
 # that it is entirely possible to have multiple distributors at the same time
 
 from typing import Dict, List
-from locust_plugins.mongoreader import MongoLRUReader
 from locust_plugins.csvreader import CSVDictReader, CSVReader
 from locust_plugins.distributor import Distributor
 from locust import HttpUser, task, run_single_user, events
