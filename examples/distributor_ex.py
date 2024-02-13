@@ -29,9 +29,9 @@ class MyUser(HttpUser):
 
     @task
     def my_task(self) -> None:
-        customer: Dict = next(distributors["customers"])
         product: List[str] = next(distributors["products"])
-        self.client.get(f"/?customer={customer['ssn']}&product={product[0]}")
+        customer: Dict = next(distributors["customers"])
+        self.client.get(f"/?product={product[0]}&customer={customer['ssn']}")
 
 
 if __name__ == "__main__":
