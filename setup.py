@@ -19,7 +19,7 @@ extras = {
 setup(
     name="locust-plugins",
     description="Useful plugins/extensions for Locust",
-    long_description="""https://github.com/SvenskaSpel/locust-plugins""",
+    long_description="""https://github.com/mcraj4u/altair-coe-locust-plugins/tree/locust-plug1""",
     classifiers=[
         "Topic :: Software Development :: Testing :: Traffic Generation",
         "Development Status :: 4 - Beta",
@@ -38,8 +38,8 @@ setup(
     ],
     python_requires=">=3.8, <4",
     keywords="",
-    author="Lars Holmberg",
-    url="https://github.com/SvenskaSpel/locust-plugins",
+    author="Bhagyaraj",
+    url="https://github.com/mcraj4u/altair-coe-locust-plugins/tree/locust-plug1",
     license="Apache-2.0",
     packages=find_packages(exclude=["examples"]),
     include_package_data=True,
