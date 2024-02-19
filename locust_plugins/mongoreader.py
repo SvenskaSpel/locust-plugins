@@ -1,66 +1,15 @@
-from typing import Iterator, Optional, Dict
+from typing import Iterator
 from pymongo import MongoClient
-from pymongo.collection import Collection
-from pymongo.cursor import Cursor
+import pymongo.collection
 from datetime import datetime, timezone
 import logging
 import time
 from contextlib import contextmanager
 import os
-from os import environ as env
 from abc import ABC, abstractmethod
 from gevent.lock import Semaphore
 
 dblock = Semaphore()
-
-
-class MongoLRUReader(Iterator[Dict]):
-    def __init__(
-        self,
-        filter: Dict,  # pylint: disable=redefined-builtin
-        timestamp_field: str,
-        coll: Optional[Collection] = None,
-    ):
-        """A thread safe iterator to read test data from a mongo collection sorted by least-recently-used.
-
-        Order is ensured even if Locust is restarted, because the timestamp_field is updated on every iteration step.
-
-        Iteration is quite fast, but the first query can be slow if you dont have an index that covers the filter and sort fields.
-
-        Args:
-            filter (Dict): Query filter statement
-            sort_field (str): Time stamp field, e.g. "last_used"
-            collection (pymongo.collection.Collection, optional): By default, we use LOCUST_MONGO, LOCUST_MONGO_DATABASE and LOCUST_MONGO_COLLECTION env vars to get the collection, but you can also pass a pre-existing Collection.
-
-        """
-        self.timestamp_field = timestamp_field
-        if coll is None:
-            self.coll: Collection = MongoClient(env["LOCUST_MONGO"])[env["LOCUST_MONGO_DATABASE"]][
-                env["LOCUST_MONGO_COLLECTION"]
-            ]
-        else:
-            self.coll = coll
-        self.cursor: Cursor = self.coll.find(filter, sort=[(self.timestamp_field, 1)])
-        records_in_buffer = self.cursor._refresh()  # trigger fetch immediately instead of waiting for the first next()
-        if not records_in_buffer:
-            logging.warning(f"No records returned from query {filter}")
-
-    def __next__(self) -> dict:
-        try:
-            with dblock:
-                doc: dict = next(self.cursor)
-            self.coll.update_one(
-                {"_id": doc["_id"]},
-                {"$set": {self.timestamp_field: datetime.now(tz=timezone.utc)}},
-            )
-            return doc
-        except StopIteration:
-            with dblock:
-                self.cursor.rewind()
-            return next(self.cursor)
-
-
-### Legacy
 
 
 class NoUserException(Exception):
@@ -68,7 +17,7 @@ class NoUserException(Exception):
 
 
 class User(dict):
-    def __init__(self, coll: Collection, query: dict):
+    def __init__(self, coll: pymongo.collection.Collection, query: dict):
         self.coll = coll
         with dblock:
             data = self.coll.find_one_and_update(
@@ -106,7 +55,6 @@ class MongoReader(AbstractReader):
         self.reduced_filters = []
         self.delay_warning = 0
         self.query = {"$and": filters + [{"logged_in": False}]}
-        logging.warning("MongoReader is deprecated, please switch to MongoReaderLRU")
 
     @contextmanager
     def user(self, query: dict = None):

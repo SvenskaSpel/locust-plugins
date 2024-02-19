@@ -1,8 +1,7 @@
 import csv
-from typing import Iterator, Dict
 
 
-class CSVReader(Iterator):
+class CSVReader:
     "Read test data from csv file using an iterator"
 
     def __init__(self, file, **kwargs):
@@ -22,8 +21,8 @@ class CSVReader(Iterator):
             return next(self.reader)
 
 
-class CSVDictReader(Iterator[Dict]):
-    "Read test data from csv file using an iterator, returns rows as dicts"
+class CSVDictReader:
+    "Read test data from csv file using an iterator"
 
     def __init__(self, file, **kwargs):
         try:

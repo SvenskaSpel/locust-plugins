@@ -9,7 +9,7 @@ from locust_plugins import missing_extra
 try:
     import websocket
 except ModuleNotFoundError:
-    missing_extra("websocket", "websocket")
+    missing_extra("paho", "mqtt")
 
 
 class SocketIOUser(User):
@@ -88,7 +88,7 @@ class SocketIOUser(User):
             logging.debug(f"WSR: {message}")
             self.on_message(message)
 
-    def send(self, body, name=None, context={}, opcode=websocket.ABNF.OPCODE_TEXT):
+    def send(self, body, name=None, context={}):
         if not name:
             if body == "2":
                 name = "2 heartbeat"
@@ -112,7 +112,7 @@ class SocketIOUser(User):
             context={**self.context(), **context},
         )
         logging.debug(f"WSS: {body}")
-        self.ws.send(body, opcode)
+        self.ws.send(body)
 
     def sleep_with_heartbeat(self, seconds):
         while seconds >= 0:

@@ -27,8 +27,7 @@ class WebdriverClient(webdriver.Remote):
     def __init__(self, user: User):
         self.user = user
         options = Options()
-        if self.user.headless:
-            options.add_argument("--headless")
+        options.headless = self.user.headless
         for arg in [
             "--disable-translate",
             "--disable-extensions",

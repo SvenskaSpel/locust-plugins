@@ -61,7 +61,9 @@ CREATE TABLE public.request (
     testplan character varying(255) NOT NULL,
     pid integer,
     context jsonb,
-    url character varying(255)
+    url character varying(255),
+    prod_name character varying(20),
+    prod_version text
 );
 
 

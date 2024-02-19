@@ -1,4 +1,3 @@
-# See timescale_listener_ex.py for documentation
 from contextlib import contextmanager
 from locust.exception import CatchResponseError  # need to do this first to make sure monkey patching is done
 import json
@@ -200,10 +199,13 @@ class Timescale:  # pylint: disable=R0902
             with self.dbcursor() as cur:
                 psycopg2.extras.execute_values(
                     cur,
-                    """INSERT INTO request(time,run_id,greenlet_id,loadgen,name,request_type,response_time,success,testplan,response_length,exception,pid,url,context) VALUES %s""",
+                    """INSERT INTO request(time,run_id,greenlet_id,loadgen,name,request_type,response_time,success,testplan,response_length,exception,pid,url,context, prod_name, prod_version) VALUES %s""",
                     samples,
-                    template="(%(time)s, %(run_id)s, %(greenlet_id)s, %(loadgen)s, %(name)s, %(request_type)s, %(response_time)s, %(success)s, %(testplan)s, %(response_length)s, %(exception)s, %(pid)s, %(url)s, %(context)s)",
+                    template="(%(time)s, %(run_id)s, %(greenlet_id)s, %(loadgen)s, %(name)s, %(request_type)s, %(response_time)s, %(success)s, %(testplan)s, %(response_length)s, %(exception)s, %(pid)s, %(url)s, %(context)s, %(prod_name)s, %(prod_version)s)",
                 )
+                print(f"MCB:{self.env.parsed_options.pguser}")
+                print(f"MCB:{self.env.parsed_options.prodVersion}")
+                print(f"MCB:{self.env.parsed_options.prodName}")
 
         except psycopg2.Error as error:
             logging.error("Failed to write samples to Postgresql timescale database: " + repr(error))
@@ -250,6 +252,9 @@ class Timescale:  # pylint: disable=R0902
             "testplan": self._testplan,
             "pid": self._pid,
             "context": psycopg2.extras.Json(context, safe_serialize),
+            "prod_name":self.env.parsed_options.prodName,
+            "prod_version":self.env.parsed_options.prodVersion
+
         }
 
         if response_length >= 0:

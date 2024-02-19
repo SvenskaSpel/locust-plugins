@@ -1,3 +1,4 @@
+import sys
 import logging
 import time
 from collections import deque, namedtuple
@@ -54,6 +55,12 @@ def constant_total_ips(ips: float):
         return delay
 
     return func
+
+
+def constant_ips(_ips):
+    """this function has been removed, now that it is available in locust.wait_time.constant_throughput"""
+    logging.error("constant_ips has been removed, now that it is available in locust.wait_time.constant_throughput")
+    sys.exit(1)
 
 
 def constant_total_pacing(seconds: float):

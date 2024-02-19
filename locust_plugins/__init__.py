@@ -1,4 +1,4 @@
-from .wait_time import constant_total_ips
+from .wait_time import constant_ips, constant_total_ips
 import locust
 from locust.user.task import DefaultTaskSet, TaskSet
 from locust import events
@@ -90,6 +90,22 @@ def add_arguments(parser: LocustArgumentParser):
         env_var="PGDATABASE",
         default="",
     )
+    #my db versions
+    locust_dashboards.add_argument(
+        "--prodVersion",
+        type=str,
+        help="This is build version of product",
+        env_var="LOCUST_PROD_VERSION",
+        default="COE-PERF-PROJECTS",
+    )
+    locust_dashboards.add_argument(
+        "--prodName",
+        type=str,
+        help="This is product name what your are testing",
+        env_var="LOCUST_PROD_NAME",
+        default="COE-PERF-PROJECTS-PRODS",
+    )
+    
     run_info = parser.add_argument_group(
         "locust-plugins - Run info",
         "Extra run info for listeners",
@@ -258,6 +274,7 @@ def do_checks(environment, **_kw):
 
 
 def missing_extra(package, extra):
+    traceback.print_exc()
     logging.error(
         f"'{package}' is not installed by default, you need to install it using 'pip install locust-plugins[{extra}]'"
     )
