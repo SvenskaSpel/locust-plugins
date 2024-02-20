@@ -10,20 +10,8 @@ from locust_plugins.users.mqtt import MqttUser
 from locust_plugins.users.mqtt import MqttClient
 
 
-
-tls_context = ssl.SSLContext(ssl.PROTOCOL_TLS)
-tls_context.load_verify_locations(os.environ["LOCUST_MQTT_CAFILE"])
-
 # extend the MqttClient class with your own custom implementation
 class MyMqttClient(MqttClient):
-    def __init__(
-        self,
-        *args,
-        environment: Environment,
-        client_id: typing.Optional[str] = None,
-        **kwargs,
-    ):
-        super().__init__(*args, environment, client_id, **kwargs)
 
     # you can override the event name with your custom implementation
     def _generate_event_name(self, event_type: str, qos: int, topic: str):
