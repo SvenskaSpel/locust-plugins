@@ -117,9 +117,8 @@ class MqttClient(mqtt.Client):
         self._publish_requests: dict[int, PublishedMessageContext] = {}
         self._subscribe_requests: dict[int, SubscribeContext] = {}
 
-    def _generate_event_name(self, event_type: str, qos: int, topic: str){
+    def _generate_event_name(self, event_type: str, qos: int, topic: str):
         return _generate_mqtt_event_name(event_type, qos, topic)
-    }
 
     def _on_publish_cb(
         self,
