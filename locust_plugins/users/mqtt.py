@@ -117,6 +117,10 @@ class MqttClient(mqtt.Client):
         self._publish_requests: dict[int, PublishedMessageContext] = {}
         self._subscribe_requests: dict[int, SubscribeContext] = {}
 
+    def _generate_event_name(self, event_type: str, qos: int, topic: str){
+        return _generate_mqtt_event_name(event_type, qos, topic)
+    }
+
     def _on_publish_cb(
         self,
         client: mqtt.Client,
@@ -143,7 +147,7 @@ class MqttClient(mqtt.Client):
             # fire successful publish event
             self.environment.events.request.fire(
                 request_type=REQUEST_TYPE,
-                name=_generate_mqtt_event_name("publish", request_context.qos, request_context.topic),
+                name=self._generate_event_name("publish", request_context.qos, request_context.topic),
                 response_time=(cb_time - request_context.start_time) * 1000,
                 response_length=request_context.payload_size,
                 exception=None,
@@ -180,7 +184,7 @@ class MqttClient(mqtt.Client):
             if SUBACK_FAILURE in granted_qos:
                 self.environment.events.request.fire(
                     request_type=REQUEST_TYPE,
-                    name=_generate_mqtt_event_name("subscribe", request_context.qos, request_context.topic),
+                    name=self._generate_event_name("subscribe", request_context.qos, request_context.topic),
                     response_time=(cb_time - request_context.start_time) * 1000,
                     response_length=0,
                     exception=AssertionError(f"Broker returned an error response during subscription: {granted_qos}"),
@@ -193,7 +197,7 @@ class MqttClient(mqtt.Client):
                 # fire successful subscribe event
                 self.environment.events.request.fire(
                     request_type=REQUEST_TYPE,
-                    name=_generate_mqtt_event_name("subscribe", request_context.qos, request_context.topic),
+                    name=self._generate_event_name("subscribe", request_context.qos, request_context.topic),
                     response_time=(cb_time - request_context.start_time) * 1000,
                     response_length=0,
                     exception=None,
@@ -287,7 +291,7 @@ class MqttClient(mqtt.Client):
         if publish_info.rc != mqtt.MQTT_ERR_SUCCESS:
             self.environment.events.request.fire(
                 request_type=REQUEST_TYPE,
-                name=_generate_mqtt_event_name("publish", request_context.qos, request_context.topic),
+                name=self._generate_event_name("publish", request_context.qos, request_context.topic),
                 response_time=0,
                 response_length=0,
                 exception=publish_info.rc,
@@ -325,7 +329,7 @@ class MqttClient(mqtt.Client):
         if result != mqtt.MQTT_ERR_SUCCESS:
             self.environment.events.request.fire(
                 request_type=REQUEST_TYPE,
-                name=_generate_mqtt_event_name("subscribe", request_context.qos, request_context.topic),
+                name=self._generate_event_name("subscribe", request_context.qos, request_context.topic),
                 response_time=0,
                 response_length=0,
                 exception=result,
