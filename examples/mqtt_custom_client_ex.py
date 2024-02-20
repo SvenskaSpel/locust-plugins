@@ -1,11 +1,7 @@
-import os
-import ssl
 import time
 import typing
 
 from locust import task, TaskSet
-from locust.env import Environment
-from locust.user.wait_time import between
 from locust_plugins.users.mqtt import MqttUser
 from locust_plugins.users.mqtt import MqttClient
 
