@@ -303,7 +303,7 @@ class PlaywrightUser(User):
                         #
                         # "--enable-profiling",
                         # "--profiling-at-start=renderer",
-                        "--no-sandbox",
+                        # "--no-sandbox", # disabled because it hangs on windows
                         # "--profiling-flush",
                         # maybe even made it worse?
                         # "--disable-gpu-vsync",
