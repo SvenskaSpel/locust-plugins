@@ -284,6 +284,7 @@ class PlaywrightUser(User):
         if self.playwright is None:
             self.playwright = await async_playwright().start()
         if self.browser is None:
+            logging.debug(f"About to start a {self.browser_type} browser")
             if self.browser_type == "firefox":
                 self.browser = await self.playwright.firefox.launch(
                     headless=self.headless or self.headless is None and self.environment.runner is not None,
@@ -334,6 +335,7 @@ class PlaywrightUser(User):
                 )
             else:
                 raise Exception(f"Unknown browser type specified: {self.browser_type}")
+            logging.debug("browser startup finished")
 
 
 class PlaywrightScriptUser(PlaywrightUser):
