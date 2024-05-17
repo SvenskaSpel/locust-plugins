@@ -1,4 +1,3 @@
-# See timescale_listener_ex.py for documentation
 from contextlib import contextmanager
 from locust.exception import CatchResponseError  # need to do this first to make sure monkey patching is done
 import json
@@ -143,6 +142,9 @@ class Timescale:  # pylint: disable=R0902
             self._user_count_logger = gevent.spawn(self._log_user_count)
 
     def _dbconn(self) -> psycopg2.extensions.connection:
+        logging.debug(
+            f"Connecting to Postgres ({self.env.parsed_options.pguser}@{self.env.parsed_options.pghost}:{self.env.parsed_options.pgport or 5432})"
+        )
         try:
             conn = psycopg2.connect(
                 host=self.env.parsed_options.pghost,
