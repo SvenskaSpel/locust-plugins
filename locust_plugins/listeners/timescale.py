@@ -74,7 +74,7 @@ class Timescale:  # pylint: disable=R0902
 
     def set_run_id(self, environment, msg, **kwargs):
         logging.debug(f"run id from master: {msg.data}")
-        self._run_id = datetime.strptime(msg.data, "%Y-%m-%d, %H:%M:%S.%f").replace(tzinfo=timezone.utc)
+        environment._run_id = datetime.strptime(msg.data, "%Y-%m-%d, %H:%M:%S.%f").replace(tzinfo=timezone.utc)
 
     @contextmanager
     def dbcursor(self):
@@ -130,11 +130,11 @@ class Timescale:  # pylint: disable=R0902
         self.set_gitrepo()
 
         if not self.env.parsed_options.worker:
-            self._run_id = datetime.now(timezone.utc)
+            environment._run_id = datetime.now(timezone.utc)
             logging.info(
-                f"Follow test run here: {self.env.parsed_options.grafana_url}&var-testplan={self._testplan}&from={int(self._run_id.timestamp()*1000)}&to=now"
+                f"Follow test run here: {self.env.parsed_options.grafana_url}&var-testplan={self._testplan}&from={int(environment._run_id.timestamp()*1000)}&to=now"
             )
-            msg = self._run_id.strftime("%Y-%m-%d, %H:%M:%S.%f")
+            msg = environment._run_id.strftime("%Y-%m-%d, %H:%M:%S.%f")
             if environment.runner is not None:
                 logging.debug(f"about to send run_id to workers: {msg}")
                 environment.runner.send_message("run_id", msg)
@@ -173,7 +173,7 @@ class Timescale:  # pylint: disable=R0902
                 with self.dbcursor() as cur:
                     cur.execute(
                         """INSERT INTO user_count(time, run_id, testplan, user_count) VALUES (%s, %s, %s, %s)""",
-                        (datetime.now(timezone.utc), self._run_id, self._testplan, self.env.runner.user_count),
+                        (datetime.now(timezone.utc), self.env._run_id, self._testplan, self.env.runner.user_count),
                     )
             except psycopg2.Error as error:
                 logging.error("Failed to write user count to Postgresql: " + repr(error))
@@ -241,7 +241,7 @@ class Timescale:  # pylint: disable=R0902
         greenlet_id = getattr(greenlet.getcurrent(), "minimal_ident", 0)  # if we're debugging there is no greenlet
         sample = {
             "time": time,
-            "run_id": self._run_id,
+            "run_id": self.env._run_id,
             "greenlet_id": greenlet_id,
             "loadgen": self._hostname,
             "name": name,
@@ -278,7 +278,7 @@ class Timescale:  # pylint: disable=R0902
             cur.execute(
                 "INSERT INTO testrun (id, testplan, num_clients, rps, description, env, profile_name, username, gitrepo, changeset_guid, arguments) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
                 (
-                    self._run_id,
+                    self.env._run_id,
                     self._testplan,
                     self.env.parsed_options.num_users or 1,
                     self.env.parsed_options.ips,  # this field is incorrectly called "rps" in db, it should be called something like "target_ips"
@@ -311,7 +311,7 @@ class Timescale:  # pylint: disable=R0902
                 )
 
     def log_stop_test_run(self, exit_code=None):
-        logging.debug(f"Test run id {self._run_id} stopping")
+        logging.debug(f"Test run id {self.env._run_id} stopping")
         if self.env.parsed_options.worker:
             return  # only run on master or standalone
         if getattr(self, "dbconn", None) is None:
@@ -321,7 +321,7 @@ class Timescale:  # pylint: disable=R0902
             with self.dbcursor() as cur:
                 cur.execute(
                     "UPDATE testrun SET end_time = %s, exit_code = %s where id = %s",
-                    (end_time, exit_code, self._run_id),
+                    (end_time, exit_code, self.env._run_id),
                 )
                 cur.execute(
                     "INSERT INTO events (time, text) VALUES (%s, %s)",
@@ -346,7 +346,7 @@ SET (requests, resp_time_avg, rps_avg, fail_ratio) =
  COUNT(*)::numeric AS fails 
  FROM request WHERE run_id = %s AND time > %s AND success = 0) AS ___
 WHERE id = %s""",
-                        [self._run_id] * 7,
+                        [self.env._run_id] * 7,
                     )
                 except psycopg2.errors.DivisionByZero:  # pylint: disable=no-member
                     logging.info(
@@ -358,5 +358,5 @@ WHERE id = %s""",
                 + repr(error)
             )
         logging.info(
-            f"Report: {self.env.parsed_options.grafana_url}&var-testplan={self._testplan}&from={int(self._run_id.timestamp()*1000)}&to={int((end_time.timestamp()+1)*1000)}\n"
+            f"Report: {self.env.parsed_options.grafana_url}&var-testplan={self._testplan}&from={int(self.env._run_id.timestamp()*1000)}&to={int((end_time.timestamp()+1)*1000)}\n"
         )
