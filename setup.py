@@ -10,7 +10,7 @@ extras = {
     "dashboards": ["psycogreen", "psycopg2-binary"],
     "kafka": ["confluent-kafka"],
     "mongo": ["pymongo"],
-    "mqtt": ["paho-mqtt>=1.5.0"],
+    "mqtt": ["paho-mqtt>=2.1.0"],
     "appinsights": ["opencensus-ext-azure"],
     "resource": ["lxml"],
     "boto3": ["boto3"],
