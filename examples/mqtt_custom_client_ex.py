@@ -4,10 +4,16 @@ import typing
 from locust import task, TaskSet
 from locust_plugins.users.mqtt import MqttUser
 from locust_plugins.users.mqtt import MqttClient
+from paho.mqtt.client import Client
+from paho.mqtt.client import MQTTv5
 
 
 # extend the MqttClient class with your own custom implementation
 class MyMqttClient(MqttClient):
+
+    # you can pass the desired MQTT protocol version from the initializer
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, protocol=MQTTv311, **kwargs)
 
     # you can override the event name with your custom implementation
     def _generate_event_name(self, event_type: str, qos: int, topic: str):
