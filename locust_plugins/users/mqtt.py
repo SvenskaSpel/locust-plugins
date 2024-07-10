@@ -215,23 +215,6 @@ class MqttClient(mqtt.Client):
                     },
                 )
 
-    def _on_disconnect_cb_v3x(
-        self,
-        client: mqtt.Client,
-        userdata: typing.Any,
-        rc: int,
-    ):
-        return _on_disconnect_cb(self, client, userdata, rc)
-
-    def _on_disconnect_cb_v5(
-        self,
-        client: mqtt.Client,
-        userdata: typing.Any,
-        reasoncode: ReasonCode,
-        properties: properties
-    ):
-        return _on_disconnect_cb(self, client, userdata, reasoncode)
-
     def _on_disconnect_cb(
         self,
         client: mqtt.Client,
@@ -261,24 +244,22 @@ class MqttClient(mqtt.Client):
                 },
             )
 
-    def _on_connect_cb_v3x(
+    def _on_disconnect_cb_v3x(
         self,
         client: mqtt.Client,
         userdata: typing.Any,
-        flags: dict[str, int],
         rc: int,
     ):
-        return _on_connect_cb(self, client, userdata, flags, rc)
+        return _on_disconnect_cb(self, client, userdata, rc)
 
-    def _on_connect_cb_v5(
+    def _on_disconnect_cb_v5(
         self,
         client: mqtt.Client,
         userdata: typing.Any,
-        flags: dict[str, int],
         reasoncode: ReasonCode,
         properties: properties
     ):
-        return _on_connect_cb(self, client, userdata, flags, reasoncode)
+        return _on_disconnect_cb(self, client, userdata, reasoncode)
 
     def _on_connect_cb(
         self,
@@ -309,6 +290,25 @@ class MqttClient(mqtt.Client):
                     "client_id": self.client_id,
                 },
             )
+
+    def _on_connect_cb_v3x(
+        self,
+        client: mqtt.Client,
+        userdata: typing.Any,
+        flags: dict[str, int],
+        rc: int,
+    ):
+        return _on_connect_cb(self, client, userdata, flags, rc)
+
+    def _on_connect_cb_v5(
+        self,
+        client: mqtt.Client,
+        userdata: typing.Any,
+        flags: dict[str, int],
+        reasoncode: ReasonCode,
+        properties: properties
+    ):
+        return _on_connect_cb(self, client, userdata, flags, reasoncode)
 
     def publish(
         self,
