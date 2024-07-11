@@ -94,7 +94,7 @@ class MqttClient(mqtt.Client):
             environment: the Locust environment with which to associate events.
             client_id: the MQTT Client ID to use in connecting to the broker.
                 If not set, one will be randomly generated.
-            protocol: the MQTT protocol version. 
+            protocol: the MQTT protocol version.
                 defaults to MQTT v3.11.
         """
         # If a client ID is not provided, this class will randomly generate an ID
@@ -125,7 +125,6 @@ class MqttClient(mqtt.Client):
         else:
             self.on_disconnect = self._on_disconnect_cb_v3x
             self.on_connect = self._on_connect_cb_v3x
-
 
         self._publish_requests: dict[int, PublishedMessageContext] = {}
         self._subscribe_requests: dict[int, SubscribeContext] = {}
@@ -258,11 +257,7 @@ class MqttClient(mqtt.Client):
 
     # pylint: disable=unused-argument
     def _on_disconnect_cb_v5(
-        self,
-        client: mqtt.Client,
-        userdata: typing.Any,
-        reasoncode: ReasonCode,
-        properties: Properties
+        self, client: mqtt.Client, userdata: typing.Any, reasoncode: ReasonCode, properties: Properties
     ):
         return self._on_disconnect_cb(client, userdata, reasoncode)
 
@@ -312,7 +307,7 @@ class MqttClient(mqtt.Client):
         userdata: typing.Any,
         flags: dict[str, int],
         reasoncode: ReasonCode,
-        properties: Properties
+        properties: Properties,
     ):
         return self._on_connect_cb(client, userdata, flags, reasoncode)
 
