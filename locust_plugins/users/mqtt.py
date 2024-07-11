@@ -115,6 +115,7 @@ class MqttClient(mqtt.Client):
 
         self.on_publish = self._on_publish_cb
         self.on_subscribe = self._on_subscribe_cb
+
         if (self.protocol == MQTTProtocolVersion.MQTTv5):
             self.on_disconnect = self._on_disconnect_cb_v5
             self.on_connect = self._on_connect_cb_v5
@@ -250,16 +251,16 @@ class MqttClient(mqtt.Client):
         userdata: typing.Any,
         rc: int,
     ):
-        return _on_disconnect_cb(self, client, userdata, rc)
+        return self._on_disconnect_cb(client, userdata, rc)
 
     def _on_disconnect_cb_v5(
         self,
         client: mqtt.Client,
         userdata: typing.Any,
         reasoncode: ReasonCode,
-        properties: properties
+        properties: Properties
     ):
-        return _on_disconnect_cb(self, client, userdata, reasoncode)
+        return self._on_disconnect_cb(client, userdata, reasoncode)
 
     def _on_connect_cb(
         self,
@@ -298,7 +299,7 @@ class MqttClient(mqtt.Client):
         flags: dict[str, int],
         rc: int,
     ):
-        return _on_connect_cb(self, client, userdata, flags, rc)
+        return self._on_connect_cb(client, userdata, flags, rc)
 
     def _on_connect_cb_v5(
         self,
@@ -306,9 +307,9 @@ class MqttClient(mqtt.Client):
         userdata: typing.Any,
         flags: dict[str, int],
         reasoncode: ReasonCode,
-        properties: properties
+        properties: Properties
     ):
-        return _on_connect_cb(self, client, userdata, flags, reasoncode)
+        return self._on_connect_cb(client, userdata, flags, reasoncode)
 
     def publish(
         self,
