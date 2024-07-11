@@ -8,7 +8,6 @@ from locust_plugins.users.mqtt import MqttClient
 
 # extend the MqttClient class with your own custom implementation
 class MyMqttClient(MqttClient):
-
     # you can override the event name with your custom implementation
     def _generate_event_name(self, event_type: str, qos: int, topic: str):
         return f"mqtt:{event_type}:{qos}"

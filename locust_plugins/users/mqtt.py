@@ -14,8 +14,10 @@ except ModuleNotFoundError:
     missing_extra("paho", "mqtt")
 
 if typing.TYPE_CHECKING:
+    from paho.mqtt.enums import MQTTProtocolVersion
     from paho.mqtt.client import MQTTMessageInfo
     from paho.mqtt.properties import Properties
+    from paho.mqtt.reasoncodes import ReasonCode
     from paho.mqtt.subscribeoptions import SubscribeOptions
 
 
@@ -79,6 +81,7 @@ class MqttClient(mqtt.Client):
         *args,
         environment: Environment,
         client_id: typing.Optional[str] = None,
+        protocol: MQTTProtocolVersion = mqtt.MQTTv311,
         **kwargs,
     ):
         """Initializes a paho.mqtt.Client for use in Locust swarms.
@@ -90,6 +93,8 @@ class MqttClient(mqtt.Client):
             environment: the Locust environment with which to associate events.
             client_id: the MQTT Client ID to use in connecting to the broker.
                 If not set, one will be randomly generated.
+            protocol: the MQTT protocol version.
+                defaults to MQTT v3.11.
         """
         # If a client ID is not provided, this class will randomly generate an ID
         # of the form: `locust-[0-9a-zA-Z]{16}` (i.e., `locust-` followed by 16
@@ -107,12 +112,18 @@ class MqttClient(mqtt.Client):
         else:
             self.client_id = client_id
 
-        super().__init__(*args, client_id=self.client_id, **kwargs)
+        super().__init__(*args, client_id=self.client_id, protocol=protocol, **kwargs)
         self.environment = environment
+
         self.on_publish = self._on_publish_cb
         self.on_subscribe = self._on_subscribe_cb
-        self.on_disconnect = self._on_disconnect_cb
-        self.on_connect = self._on_connect_cb
+
+        if self.protocol == mqtt.MQTTv5:
+            self.on_disconnect = self._on_disconnect_cb_v5
+            self.on_connect = self._on_connect_cb_v5
+        else:
+            self.on_disconnect = self._on_disconnect_cb_v3x
+            self.on_connect = self._on_connect_cb_v3x
 
         self._publish_requests: dict[int, PublishedMessageContext] = {}
         self._subscribe_requests: dict[int, SubscribeContext] = {}
@@ -235,6 +246,24 @@ class MqttClient(mqtt.Client):
                 },
             )
 
+    def _on_disconnect_cb_v3x(
+        self,
+        client: mqtt.Client,
+        userdata: typing.Any,
+        rc: int,
+    ):
+        return self._on_disconnect_cb(client, userdata, rc)
+
+    # pylint: disable=unused-argument
+    def _on_disconnect_cb_v5(
+        self,
+        client: mqtt.Client,
+        userdata: typing.Any,
+        reasoncode: ReasonCode,
+        properties: Properties,
+    ):
+        return self._on_disconnect_cb(client, userdata, reasoncode)
+
     def _on_connect_cb(
         self,
         client: mqtt.Client,
@@ -264,6 +293,26 @@ class MqttClient(mqtt.Client):
                     "client_id": self.client_id,
                 },
             )
+
+    def _on_connect_cb_v3x(
+        self,
+        client: mqtt.Client,
+        userdata: typing.Any,
+        flags: dict[str, int],
+        rc: int,
+    ):
+        return self._on_connect_cb(client, userdata, flags, rc)
+
+    # pylint: disable=unused-argument
+    def _on_connect_cb_v5(
+        self,
+        client: mqtt.Client,
+        userdata: typing.Any,
+        flags: dict[str, int],
+        reasoncode: ReasonCode,
+        properties: Properties,
+    ):
+        return self._on_connect_cb(client, userdata, flags, reasoncode)
 
     def publish(
         self,
@@ -355,13 +404,12 @@ class MqttUser(User):
     client_id = None
     username = None
     password = None
+    protocol = mqtt.MQTTv311
 
     def __init__(self, environment: Environment):
         super().__init__(environment)
         self.client: MqttClient = self.client_cls(
-            environment=self.environment,
-            transport=self.transport,
-            client_id=self.client_id,
+            environment=self.environment, transport=self.transport, client_id=self.client_id, protocol=self.protocol
         )
 
         if self.tls_context:
