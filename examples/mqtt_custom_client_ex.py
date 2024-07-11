@@ -4,8 +4,7 @@ import typing
 from locust import task, TaskSet
 from locust_plugins.users.mqtt import MqttUser
 from locust_plugins.users.mqtt import MqttClient
-from paho.mqtt.client import Client
-from paho.mqtt.client import MQTTv5
+from paho.mqtt.client import MQTTv311
 
 
 # extend the MqttClient class with your own custom implementation
