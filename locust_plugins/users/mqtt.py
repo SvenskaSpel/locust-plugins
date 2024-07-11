@@ -76,12 +76,13 @@ class SubscribeContext(typing.NamedTuple):
 
 
 class MqttClient(mqtt.Client):
+
     def __init__(
         self,
         *args,
         environment: Environment,
         client_id: typing.Optional[str] = None,
-        protocol: MQTTProtocolVersion = MQTTProtocolVersion.MQTTv311,
+        protocol: MQTTProtocolVersion = mqtt.MQTTv311,
         **kwargs,
     ):
         """Initializes a paho.mqtt.Client for use in Locust swarms.
@@ -93,6 +94,8 @@ class MqttClient(mqtt.Client):
             environment: the Locust environment with which to associate events.
             client_id: the MQTT Client ID to use in connecting to the broker.
                 If not set, one will be randomly generated.
+            protocol: the MQTT protocol version. 
+                defaults to MQTT v3.11.
         """
         # If a client ID is not provided, this class will randomly generate an ID
         # of the form: `locust-[0-9a-zA-Z]{16}` (i.e., `locust-` followed by 16
@@ -116,7 +119,7 @@ class MqttClient(mqtt.Client):
         self.on_publish = self._on_publish_cb
         self.on_subscribe = self._on_subscribe_cb
 
-        if (self.protocol == MQTTProtocolVersion.MQTTv5):
+        if self.protocol == mqtt.MQTTv5:
             self.on_disconnect = self._on_disconnect_cb_v5
             self.on_connect = self._on_connect_cb_v5
         else:
