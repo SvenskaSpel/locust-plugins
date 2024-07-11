@@ -76,7 +76,6 @@ class SubscribeContext(typing.NamedTuple):
 
 
 class MqttClient(mqtt.Client):
-
     def __init__(
         self,
         *args,
