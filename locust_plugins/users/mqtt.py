@@ -404,13 +404,12 @@ class MqttUser(User):
     client_id = None
     username = None
     password = None
+    protocol = mqtt.MQTTv311
 
     def __init__(self, environment: Environment):
         super().__init__(environment)
         self.client: MqttClient = self.client_cls(
-            environment=self.environment,
-            transport=self.transport,
-            client_id=self.client_id,
+            environment=self.environment, transport=self.transport, client_id=self.client_id, protocol=self.protocol
         )
 
         if self.tls_context:

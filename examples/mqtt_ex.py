@@ -2,11 +2,9 @@ import os
 import ssl
 import time
 
-from paho.mqtt.client import MQTTv311
 from locust import task, TaskSet
 from locust.user.wait_time import between
 from locust_plugins.users.mqtt import MqttUser
-
 
 tls_context = ssl.SSLContext(ssl.PROTOCOL_TLS)
 tls_context.load_verify_locations(os.environ["LOCUST_MQTT_CAFILE"])
@@ -23,6 +21,9 @@ class MyUser(MqttUser):
     # We'll probably want to throttle our publishing a bit: let's limit it to
     # 10-100 messages per second.
     wait_time = between(0.01, 0.1)
+
+    # Uncomment below if you need to set MQTTv5
+    # protocol = paho.mqtt.client.MQTTv5
 
     @task
     class MyTasks(TaskSet):
