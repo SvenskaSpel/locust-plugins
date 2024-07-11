@@ -24,11 +24,6 @@ class MyUser(MqttUser):
     # 10-100 messages per second.
     wait_time = between(0.01, 0.1)
 
-    # you can pass the desired MQTT protocol version from the initializer
-    # useful if you need to use MQTTv5
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, protocol=MQTTv311, **kwargs)
-
     @task
     class MyTasks(TaskSet):
         # Sleep for a while to allow the client time to connect.
