@@ -256,6 +256,7 @@ class MqttClient(mqtt.Client):
     ):
         return self._on_disconnect_cb(client, userdata, rc)
 
+    # pylint: disable=unused-argument
     def _on_disconnect_cb_v5(
         self,
         client: mqtt.Client,
@@ -304,6 +305,7 @@ class MqttClient(mqtt.Client):
     ):
         return self._on_connect_cb(client, userdata, flags, rc)
 
+    # pylint: disable=unused-argument
     def _on_connect_cb_v5(
         self,
         client: mqtt.Client,
