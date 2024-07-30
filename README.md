@@ -46,6 +46,7 @@ locust --help
     - Kafka ([example](examples/kafka_ex.py))
     - MqttUser ([example](examples/mqtt_ex.py))
     - RestUser has been removed, as it is [now part of locust core](https://docs.locust.io/en/stable/increase-performance.html#rest)!
+	- FtpUser ([example_upload](examples/ftp_upload_ex.py), [example_download](examples/ftp_download_ex.py))
 
 ## Readers 
 - Provide ways to get test data into your tests
