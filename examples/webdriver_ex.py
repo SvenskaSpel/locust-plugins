@@ -18,6 +18,26 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 class MyUser(WebdriverUser):
     wait_time = constant(2)
+    # webdriver client options can be customized by overriding the option_args
+    option_args = [
+        "--disable-translate",
+        "--disable-extensions",
+        "--disable-background-networking",
+        "--safebrowsing-disable-auto-update",
+        "--disable-sync",
+        "--metrics-recording-only",
+        "--disable-default-apps",
+        "--no-first-run",
+        "--disable-setuid-sandbox",
+        "--hide-scrollbars",
+        "--no-sandbox",
+        "--no-zygote",
+        "--autoplay-policy=no-user-gesture-required",
+        "--disable-notifications",
+        "--disable-logging",
+        "--disable-permissions-api",
+        "--ignore-certificate-errors",
+    ]
 
     if __name__ == "__main__":
         # wait a bit at the end to make debugging easier
