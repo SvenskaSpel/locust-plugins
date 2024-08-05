@@ -29,25 +29,7 @@ class WebdriverClient(webdriver.Remote):
         options = Options()
         if self.user.headless:
             options.add_argument("--headless")
-        for arg in [
-            "--disable-translate",
-            "--disable-extensions",
-            "--disable-background-networking",
-            "--safebrowsing-disable-auto-update",
-            "--disable-sync",
-            "--metrics-recording-only",
-            "--disable-default-apps",
-            "--no-first-run",
-            "--disable-setuid-sandbox",
-            "--hide-scrollbars",
-            "--no-sandbox",
-            "--no-zygote",
-            "--autoplay-policy=no-user-gesture-required",
-            "--disable-notifications",
-            "--disable-logging",
-            "--disable-permissions-api",
-            "--ignore-certificate-errors",
-        ]:
+        for arg in self.user.option_args:
             options.add_argument(arg)
         # hide infobar about automation
         options.add_experimental_option("excludeSwitches", ["enable-automation"])
@@ -251,8 +233,27 @@ class WebDriverResponseContextManager:
 class WebdriverUser(User):
     abstract = True
     _first_instance = True
-    headless = False  # overwrite this as needed
     command_executor = "http://127.0.0.1:4444"
+    headless = False  # overwrite this as needed
+    option_args = [  # overwrite this as needed
+        "--disable-translate",
+        "--disable-extensions",
+        "--disable-background-networking",
+        "--safebrowsing-disable-auto-update",
+        "--disable-sync",
+        "--metrics-recording-only",
+        "--disable-default-apps",
+        "--no-first-run",
+        "--disable-setuid-sandbox",
+        "--hide-scrollbars",
+        "--no-sandbox",
+        "--no-zygote",
+        "--autoplay-policy=no-user-gesture-required",
+        "--disable-notifications",
+        "--disable-logging",
+        "--disable-permissions-api",
+        "--ignore-certificate-errors",
+    ]
 
     def __init__(self, parent):
         super().__init__(parent)
