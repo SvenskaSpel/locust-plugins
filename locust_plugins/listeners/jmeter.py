@@ -70,7 +70,6 @@ class JmeterListener:
         ]
 
         self.user_count = 0
-        self.testplan = ""
         events = self.env.events
         if self.is_worker_runner:
             events.report_to_master.add_listener(self._report_to_master)
