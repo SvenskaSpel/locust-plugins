@@ -259,6 +259,6 @@ def do_checks(environment, **_kw):
 
 def missing_extra(package, extra):
     logging.error(
-        f"'{package}' is not installed by default, you need to install it using 'pip install locust-plugins[{extra}]'"
+        f"'{package}' is not installed by default, you need to install it using \"pip install 'locust-plugins[{extra}]'\""
     )
     sys.exit(1)
