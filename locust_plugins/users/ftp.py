@@ -46,7 +46,7 @@ class FtpClient:
         exception = None
         response = ""
         try:
-            with (open(local_file_path, 'wb') as local_file):
+            with open(local_file_path, 'wb') as local_file:
                 response = self.connection.retrbinary("RETR " + remote_file_name, local_file.write)
                 response_time = (time.perf_counter() - start_perf_counter) * 1000
         except ftplib.all_errors as e:
