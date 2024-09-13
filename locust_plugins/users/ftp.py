@@ -25,7 +25,7 @@ class FtpClient:
         self.user = None
         self.host = None
 
-    def connect(self, user='anonymous', password='anonymous@', port=21, timeout=5, tls=False, passive_mode=False):
+    def connect(self, user="anonymous", password="anonymous@", port=21, timeout=5, tls=False, passive_mode=False):
         self.user = user
         if tls:
             self.connection = ftplib.FTP_TLS()
@@ -46,7 +46,7 @@ class FtpClient:
         exception = None
         response = ""
         try:
-            with open(local_file_path, 'wb') as local_file:
+            with open(local_file_path, "wb") as local_file:
                 response = self.connection.retrbinary("RETR " + remote_file_name, local_file.write)
                 response_time = (time.perf_counter() - start_perf_counter) * 1000
         except ftplib.all_errors as e:
@@ -54,14 +54,20 @@ class FtpClient:
             response_time = (time.perf_counter() - start_perf_counter) * 1000
 
         if exception:
-            self.environment.events.request.fire(request_type="FTP download", name=remote_file_name,
-                                                 exception=exception,
-                                                 response_time=response_time,
-                                                 response_length=len(str(exception)))
+            self.environment.events.request.fire(
+                request_type="FTP download",
+                name=remote_file_name,
+                exception=exception,
+                response_time=response_time,
+                response_length=len(str(exception)),
+            )
         else:
-            self.environment.events.request.fire(request_type="FTP download", name=remote_file_name,
-                                                 response_time=response_time,
-                                                 response_length=len(response))
+            self.environment.events.request.fire(
+                request_type="FTP download",
+                name=remote_file_name,
+                response_time=response_time,
+                response_length=len(response),
+            )
 
     def upload_file(self, local_file_path):
         local_file_path = os.path.normpath(local_file_path)
@@ -77,14 +83,20 @@ class FtpClient:
         response_time = (time.perf_counter() - start_perf_counter) * 1000
 
         if exception:
-            self.environment.events.request.fire(request_type="FTP upload", name=local_file_path,
-                                                 exception=exception,
-                                                 response_time=response_time,
-                                                 response_length=len(str(exception)))
+            self.environment.events.request.fire(
+                request_type="FTP upload",
+                name=local_file_path,
+                exception=exception,
+                response_time=response_time,
+                response_length=len(str(exception)),
+            )
         else:
-            self.environment.events.request.fire(request_type="FTP upload", name=local_file_path,
-                                                 response_time=response_time,
-                                                 response_length=len(response))
+            self.environment.events.request.fire(
+                request_type="FTP upload",
+                name=local_file_path,
+                response_time=response_time,
+                response_length=len(response),
+            )
 
     def disconnect(self):
         self.connection.close()

@@ -16,4 +16,4 @@ class TestMissingExtras(TestCase):
             with self.assertLogs("root") as cm:
                 with self.assertRaises(SystemExit):
                     importlib.import_module(module)
-            self.assertIn("you need to install it using \"pip install", cm.output[0])
+            self.assertIn('you need to install it using "pip install', cm.output[0])
