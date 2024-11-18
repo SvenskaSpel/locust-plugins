@@ -20,3 +20,6 @@ extension-pkg-whitelist=lxml
 [SIMILARITIES]
 # Minimum lines number of a similarity - set high to avoid issues with examples/transaction*
 min-similarity-lines=25
+
+[DESIGN]
+max-positional-arguments=10
