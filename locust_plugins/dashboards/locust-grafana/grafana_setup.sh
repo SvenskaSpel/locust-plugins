@@ -6,6 +6,7 @@ export GRAFANA_CRED="${GRAFANA_CRED:=admin:admin}"
 export GRAFANA_OVERWRITE="${GRAFANA_OVERWRITE:=false}" # change to true to overwrite pre-existing dashboards (update to latest version from grafana.com)
 export PGHOST="${PGHOST:=postgres}"
 export PGPORT="${PGPORT:=5432}"
+export PGPASSWORD="${PGPASSWORD:=postgres}"
 export DS_NAME="${DS_NAME:=locust_timescale}"
 
 ${BASH_SOURCE%/*}/create_datasource.sh
