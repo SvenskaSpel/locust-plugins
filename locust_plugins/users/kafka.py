@@ -37,7 +37,7 @@ def _on_delivery(environment, identifier, response_length, start_time, start_per
 
 
 class KafkaClient:
-    def __init__(self, *, environment, bootstrap_servers, configs=[]):
+    def __init__(self, *, environment, bootstrap_servers, configs=None):
         self.environment = environment
         self.producer = Producer({"bootstrap.servers": bootstrap_servers}, **configs)
 
