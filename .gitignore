@@ -14,3 +14,4 @@ env
 _version.py
 examples/screenshot_*
 output.txt
+.idea

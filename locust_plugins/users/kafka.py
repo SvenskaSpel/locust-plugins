@@ -13,10 +13,12 @@ class KafkaUser(User):
     abstract = True
     # overload these values in your subclass
     bootstrap_servers: str = None  # type: ignore
+    configs: dict[str, str | int] = None
 
     def __init__(self, environment):
         super().__init__(environment)
-        self.client: KafkaClient = KafkaClient(environment=environment, bootstrap_servers=self.bootstrap_servers)
+        self.client: KafkaClient = KafkaClient(environment=environment, bootstrap_servers=self.bootstrap_servers,
+                                               configs=self.configs)
 
     def on_stop(self):
         self.client.producer.flush(5)
@@ -35,9 +37,9 @@ def _on_delivery(environment, identifier, response_length, start_time, start_per
 
 
 class KafkaClient:
-    def __init__(self, *, environment, bootstrap_servers):
+    def __init__(self, *, environment, bootstrap_servers, configs=[]):
         self.environment = environment
-        self.producer = Producer({"bootstrap.servers": bootstrap_servers})
+        self.producer = Producer({"bootstrap.servers": bootstrap_servers}, **configs)
 
     def send(self, topic: str, value: bytes, key=None, response_length_override=None, name=None, context={}):
         start_perf_counter = time.perf_counter()
