@@ -55,7 +55,7 @@ class FtpClient:
 
         if exception:
             self.environment.events.request.fire(
-                request_type="FTP download",
+                request_type="FTP",
                 name=remote_file_name,
                 exception=exception,
                 response_time=response_time,
@@ -63,7 +63,7 @@ class FtpClient:
             )
         else:
             self.environment.events.request.fire(
-                request_type="FTP download",
+                request_type="FTP",
                 name=remote_file_name,
                 response_time=response_time,
                 response_length=len(response),
@@ -86,7 +86,7 @@ class FtpClient:
 
         if exception:
             self.environment.events.request.fire(
-                request_type="FTP upload",
+                request_type="FTP",
                 name=local_file_path,
                 exception=exception,
                 response_time=response_time,
@@ -94,7 +94,7 @@ class FtpClient:
             )
         else:
             self.environment.events.request.fire(
-                request_type="FTP upload",
+                request_type="FTP",
                 name=local_file_path,
                 response_time=response_time,
                 response_length=len(response),
@@ -103,7 +103,6 @@ class FtpClient:
         return remote_dir_file
 
     def delete_file(self, remote_file_name):
-        timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S%f")
         start_perf_counter = time.perf_counter()
         exception = None
         response = ""
@@ -116,7 +115,7 @@ class FtpClient:
 
         if exception:
             self.environment.events.request.fire(
-                request_type="FTP delete",
+                request_type="FTP",
                 name=remote_file_name,
                 exception=exception,
                 response_time=response_time,
@@ -124,7 +123,7 @@ class FtpClient:
             )
         else:
             self.environment.events.request.fire(
-                request_type="FTP delete",
+                request_type="FTP",
                 name=remote_file_name,
                 response_time=response_time,
                 response_length=len(response),
