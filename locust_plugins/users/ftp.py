@@ -69,6 +69,8 @@ class FtpClient:
                 response_length=len(response),
             )
 
+        return local_file_path
+
     def upload_file(self, local_file_path):
         local_file_path = os.path.normpath(local_file_path)
         timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S%f")
@@ -94,6 +96,36 @@ class FtpClient:
             self.environment.events.request.fire(
                 request_type="FTP upload",
                 name=local_file_path,
+                response_time=response_time,
+                response_length=len(response),
+            )
+
+        return remote_dir_file
+
+    def delete_file(self, remote_file_name):
+        timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S%f")
+        start_perf_counter = time.perf_counter()
+        exception = None
+        response = ""
+        try:
+            response = self.connection.delete(remote_file_name)
+            response_time = (time.perf_counter() - start_perf_counter) * 1000
+        except ftplib.all_errors as e:
+            exception = e
+            response_time = (time.perf_counter() - start_perf_counter) * 1000
+
+        if exception:
+            self.environment.events.request.fire(
+                request_type="FTP delete",
+                name=remote_file_name,
+                exception=exception,
+                response_time=response_time,
+                response_length=len(str(exception)),
+            )
+        else:
+            self.environment.events.request.fire(
+                request_type="FTP delete",
+                name=remote_file_name,
                 response_time=response_time,
                 response_length=len(response),
             )
