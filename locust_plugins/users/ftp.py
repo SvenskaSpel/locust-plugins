@@ -56,6 +56,7 @@ class FtpClient:
         if exception:
             self.environment.events.request.fire(
                 request_type="FTP",
+                request_method="get",
                 name=remote_file_name,
                 exception=exception,
                 response_time=response_time,
@@ -64,6 +65,7 @@ class FtpClient:
         else:
             self.environment.events.request.fire(
                 request_type="FTP",
+                request_method="get",
                 name=remote_file_name,
                 response_time=response_time,
                 response_length=len(response),
@@ -87,6 +89,7 @@ class FtpClient:
         if exception:
             self.environment.events.request.fire(
                 request_type="FTP",
+                request_method="send",
                 name=local_file_path,
                 exception=exception,
                 response_time=response_time,
@@ -95,6 +98,7 @@ class FtpClient:
         else:
             self.environment.events.request.fire(
                 request_type="FTP",
+                request_method="send",
                 name=local_file_path,
                 response_time=response_time,
                 response_length=len(response),
@@ -116,6 +120,7 @@ class FtpClient:
         if exception:
             self.environment.events.request.fire(
                 request_type="FTP",
+                request_method="delete",
                 name=remote_file_name,
                 exception=exception,
                 response_time=response_time,
@@ -124,6 +129,7 @@ class FtpClient:
         else:
             self.environment.events.request.fire(
                 request_type="FTP",
+                request_method="delete",
                 name=remote_file_name,
                 response_time=response_time,
                 response_length=len(response),
