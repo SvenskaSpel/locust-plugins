@@ -55,7 +55,8 @@ class FtpClient:
 
         if exception:
             self.environment.events.request.fire(
-                request_type="FTP download",
+                request_type="FTP",
+                request_method="get",
                 name=remote_file_name,
                 exception=exception,
                 response_time=response_time,
@@ -63,11 +64,14 @@ class FtpClient:
             )
         else:
             self.environment.events.request.fire(
-                request_type="FTP download",
+                request_type="FTP",
+                request_method="get",
                 name=remote_file_name,
                 response_time=response_time,
                 response_length=len(response),
             )
+
+        return local_file_path
 
     def upload_file(self, local_file_path):
         local_file_path = os.path.normpath(local_file_path)
@@ -84,7 +88,8 @@ class FtpClient:
 
         if exception:
             self.environment.events.request.fire(
-                request_type="FTP upload",
+                request_type="FTP",
+                request_method="send",
                 name=local_file_path,
                 exception=exception,
                 response_time=response_time,
@@ -92,8 +97,40 @@ class FtpClient:
             )
         else:
             self.environment.events.request.fire(
-                request_type="FTP upload",
+                request_type="FTP",
+                request_method="send",
                 name=local_file_path,
+                response_time=response_time,
+                response_length=len(response),
+            )
+
+        return remote_dir_file
+
+    def delete_file(self, remote_file_name):
+        start_perf_counter = time.perf_counter()
+        exception = None
+        response = ""
+        try:
+            response = self.connection.delete(remote_file_name)
+            response_time = (time.perf_counter() - start_perf_counter) * 1000
+        except ftplib.all_errors as e:
+            exception = e
+            response_time = (time.perf_counter() - start_perf_counter) * 1000
+
+        if exception:
+            self.environment.events.request.fire(
+                request_type="FTP",
+                request_method="delete",
+                name=remote_file_name,
+                exception=exception,
+                response_time=response_time,
+                response_length=len(str(exception)),
+            )
+        else:
+            self.environment.events.request.fire(
+                request_type="FTP",
+                request_method="delete",
+                name=remote_file_name,
                 response_time=response_time,
                 response_length=len(response),
             )

@@ -3,6 +3,7 @@
 # Author: Marcin Kowalczyk (github.com/kowalpy)
 
 import os
+from time import sleep
 
 from locust import task, between
 from locust_plugins.users.ftp import FtpUser
@@ -27,8 +28,11 @@ class FtpTestUpload(FtpUser):
 
     @task
     def upload_file_2(self):
-        # testing ftp file download
-        self.client.upload_file(os.path.join(local_dir, "example_file_2.txt"))
+        # testing ftp file download, wait 1 second and delete it
+        uploaded_file = self.client.upload_file(os.path.join(local_dir, "example_file_2.txt"))
+        sleep(1)
+        self.client.delete_file(uploaded_file)
+
 
     @task
     def upload_file_incorrect(self):
