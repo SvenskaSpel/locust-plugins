@@ -334,7 +334,7 @@ class MqttClient(mqtt.Client):
             payload_size=len(payload) if payload else 0,
         )
 
-        publish_info = super().publish(topic, payload=payload, qos=qos, retain=retain)
+        publish_info = super().publish(topic, payload=payload, qos=qos, retain=retain, properties=properties)
 
         if publish_info.rc != mqtt.MQTT_ERR_SUCCESS:
             self.environment.events.request.fire(
