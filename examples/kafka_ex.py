@@ -5,6 +5,7 @@ import os
 
 class MyUser(KafkaUser):
     bootstrap_servers = os.environ["LOCUST_KAFKA_SERVERS"]
+    configs = {"compression.type": "gzip"}
 
     @task
     def t(self):
