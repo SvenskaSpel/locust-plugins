@@ -39,7 +39,7 @@ class tn3270Client:
             else:
                 self.emulator = Emulator(visible=False, timeout=self.timeout)
 
-            self.emulator.connect("y:%s:%d" % (self.environment.host, self.port))
+            self.emulator.connect(f"y:{self.environment.host}:{self.port}")
             # Wait briefly for screen to populate
             self.emulator.wait_for_field()
             # Get actual screen content as response
@@ -60,14 +60,14 @@ class tn3270Client:
                 response_length=len(str(exception)),
             )
             raise exception
-        else:
-            self.environment.events.request.fire(
-                request_type="tn3270",
-                request_method="connect",
-                name=f"connect:{self.environment.host}:{port}",
-                response_time=response_time,
-                response_length=len(response),
-            )
+
+        self.environment.events.request.fire(
+            request_type="tn3270",
+            request_method="connect",
+            name=f"connect:{self.environment.host}:{port}",
+            response_time=response_time,
+            response_length=len(response),
+        )
 
     def string_wait(self, string):
         try:
@@ -108,15 +108,15 @@ class tn3270Client:
                 response_length=len(str(exception)),
             )
             raise exception
-        else:
-            self.environment.events.request.fire(
-                request_type="tn3270",
-                request_method="command",
-                name=f"send_command:{command[:30]}",
-                response_time=response_time,
-                response_length=len(response),
-            )
-            return response
+
+        self.environment.events.request.fire(
+            request_type="tn3270",
+            request_method="command",
+            name=f"send_command:{command[:30]}",
+            response_time=response_time,
+            response_length=len(response),
+        )
+        return response
 
     def wait_for_field(self):
         try:
@@ -156,15 +156,15 @@ class tn3270Client:
                 response_length=len(str(exception)),
             )
             raise exception
-        else:
-            self.environment.events.request.fire(
-                request_type="tn3270",
-                request_method="pf_key",
-                name=f"send_pf{key_number}",
-                response_time=response_time,
-                response_length=len(response),
-            )
-            return response
+
+        self.environment.events.request.fire(
+            request_type="tn3270",
+            request_method="pf_key",
+            name=f"send_pf{key_number}",
+            response_time=response_time,
+            response_length=len(response),
+        )
+        return response
 
     def get_screen_text(self):
         """Get current screen text"""

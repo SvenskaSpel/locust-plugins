@@ -14,6 +14,7 @@ extras = {
     "appinsights": ["opencensus-ext-azure"],
     "resource": ["lxml"],
     "boto3": ["boto3"],
+    "py3270": ["py3270"],
 }
 
 setup(
