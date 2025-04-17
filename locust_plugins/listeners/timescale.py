@@ -284,7 +284,7 @@ class Timescale:  # pylint: disable=R0902
                     self.env.parsed_options.ips,  # this field is incorrectly called "rps" in db, it should be called something like "target_ips"
                     self.env.parsed_options.description,
                     self.env.parsed_options.test_env,
-                    self.env.parsed_options.profile,
+                    self.env.parsed_options.plugins_profile,
                     self._username,
                     self._gitrepo,
                     self.env.parsed_options.test_version,

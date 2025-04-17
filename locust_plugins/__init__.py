@@ -102,10 +102,10 @@ def add_arguments(parser: LocustArgumentParser):
         default="",
     )
     run_info.add_argument(
-        "--profile",
+        "--plugins-profile",
         type=str,
-        help="Load profile (a user-configurable string, like any config value it can be accessed using environment.parsed_options.profile)",
-        env_var="LOCUST_PROFILE",
+        help="Load plugins profile (a user-configurable string, like any config value it can be accessed using environment.parsed_options.plugins_profile)",
+        env_var="PLUGINS_PROFILE",
         default="",
     )
     run_info.add_argument(

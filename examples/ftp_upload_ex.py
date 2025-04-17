@@ -33,7 +33,6 @@ class FtpTestUpload(FtpUser):
         sleep(1)
         self.client.delete_file(uploaded_file)
 
-
     @task
     def upload_file_incorrect(self):
         # testing ftp file download - failure expected
