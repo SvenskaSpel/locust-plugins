@@ -37,7 +37,7 @@ setup(
         "Intended Audience :: Developers",
         "Intended Audience :: System Administrators",
     ],
-    python_requires=">=3.8, <4",
+    python_requires=">=3.10, <4",
     keywords="",
     author="Lars Holmberg",
     url="https://github.com/SvenskaSpel/locust-plugins",
@@ -47,7 +47,7 @@ setup(
     package_data={"locust_plugins": ["py.typed"]},
     zip_safe=False,
     install_requires=[
-        "locust>=2.20.0",
+        "locust>=2.35.0",
         "typing-extensions",
     ],
     extras_require={

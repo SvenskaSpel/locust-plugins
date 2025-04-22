@@ -102,13 +102,6 @@ def add_arguments(parser: LocustArgumentParser):
         default="",
     )
     run_info.add_argument(
-        "--profile",
-        type=str,
-        help="Load profile (a user-configurable string, like any config value it can be accessed using environment.parsed_options.profile)",
-        env_var="LOCUST_PROFILE",
-        default="",
-    )
-    run_info.add_argument(
         "--test-version",
         type=str,
         help="Identifier for version of the loadtest/system under test (typically a git hash or GUID)",
