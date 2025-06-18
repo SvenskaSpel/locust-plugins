@@ -94,7 +94,7 @@ class SocketIOUser(User):
                 name = "2 heartbeat"
             else:
                 # hoping this is a subscribe type message, try to detect name
-                m = re.search(r'(\d*)\["([a-z]*)"', body)
+                m = re.search(r'(\d*)\["([\w]*)"', body)
                 assert m is not None
                 code = m.group(1)
                 action = m.group(2)
