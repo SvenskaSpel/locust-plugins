@@ -12,6 +12,6 @@ class TestMissingExtras(TestCase):
             "locust_plugins.users.kafka"
         ]:
             with self.assertLogs("root") as cm:
-                with self.assertRaises(SystemExit):
+                with self.assertRaises(SystemExit, msg=f"importing {module} didnt fail with SystemExit?!"):
                     importlib.import_module(module)
             self.assertIn('you need to install it using "pip install', cm.output[0])
