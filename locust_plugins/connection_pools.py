@@ -51,8 +51,8 @@ class FastHttpPool:
         for _ in range(self.size):
             self._pool.append(
                 FastHttpSession(
-                    environment=user.environment,
                     base_url=user.host,
+                    request_event=user.environment.events.request,
                     network_timeout=user.network_timeout,
                     connection_timeout=user.connection_timeout,
                     max_redirects=user.max_redirects,
@@ -227,8 +227,8 @@ class ForceNewFastHTTPObj:
 
         self.request_name = None
         self.session_info = {
-            "environment": user.environment,
             "base_url": user.host,
+            "request_event": user.environment.events.request,
             "network_timeout": user.network_timeout,
             "connection_timeout": user.connection_timeout,
             "max_redirects": user.max_redirects,
