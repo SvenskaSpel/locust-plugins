@@ -9,7 +9,6 @@ class TestMissingExtras(TestCase):
             "locust_plugins.listeners.timescale",
             "locust_plugins.listeners.appinsights",
             "locust_plugins.users.playwright",
-            "locust_plugins.users.socketio",
             "locust_plugins.users.kafka"
         ]:
             with self.assertLogs("root") as cm:
