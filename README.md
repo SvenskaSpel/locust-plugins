@@ -44,7 +44,7 @@ locust --help
     - HTTP users that load html page resources ([example](examples/embedded_resource_manager_ex.py))
     - Kafka ([example](examples/kafka_ex.py))
 	- FtpUser ([example_upload](examples/ftp_upload_ex.py), [example_download](examples/ftp_download_ex.py))
-    - WebSockets/SocketIO has been removed, as it is [now part of locust core](https://docs.locust.io/en/stable/testing-other-systems.html#socketio)!
+    - SocketIOUser has been removed, as it is [now part of locust core](https://docs.locust.io/en/stable/testing-other-systems.html#socketio)!
     - MqttUser has been removed, as it is [now part of locust core](https://docs.locust.io/en/stable/testing-other-systems.html#mqtt)!
     - RestUser has been removed, as it is [now part of locust core](https://docs.locust.io/en/stable/increase-performance.html#rest)!
 
@@ -100,4 +100,3 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-
