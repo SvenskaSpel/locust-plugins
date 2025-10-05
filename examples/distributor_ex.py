@@ -24,7 +24,7 @@ def on_locust_init(environment, **_kwargs):
 
 
 class MyUser(HttpUser):
-    host = "http://www.example.com"
+    host = "https://mock-test-target.eu-north-1.locust.cloud"
 
     @task
     def my_task(self) -> None:
