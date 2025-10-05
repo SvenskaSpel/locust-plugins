@@ -40,14 +40,13 @@ locust --help
 ## Users
 - New protocols ([source](locust_plugins/users/))
     - Playwright ([example](examples/playwright_ex.py))
-    - WebSockets/SocketIO ([example](examples/socketio_ex.py))
     - Selenium/Webdriver ([example](examples/webdriver_ex.py)) 
     - HTTP users that load html page resources ([example](examples/embedded_resource_manager_ex.py))
     - Kafka ([example](examples/kafka_ex.py))
+	- FtpUser ([example_upload](examples/ftp_upload_ex.py), [example_download](examples/ftp_download_ex.py))
+    - WebSockets/SocketIO has been removed, as it is [now part of locust core](https://docs.locust.io/en/stable/testing-other-systems.html#socketio)!
     - MqttUser has been removed, as it is [now part of locust core](https://docs.locust.io/en/stable/testing-other-systems.html#mqtt)!
     - RestUser has been removed, as it is [now part of locust core](https://docs.locust.io/en/stable/increase-performance.html#rest)!
-    - FtpUser ([example_upload](examples/ftp_upload_ex.py), [example_download](examples/ftp_download_ex.py))
-    - Tn3270User ([example](examples/tn3270_ex.py))
 
 ## Readers 
 - Provide ways to get test data into your tests
