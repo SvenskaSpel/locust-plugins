@@ -116,11 +116,21 @@ class JmeterListener:
         self.results_file.write(self.row_delimiter.join(self.csv_results) + self.row_delimiter)
         self.results_file.close()
 
+    def _parse_status_code(self, **kw):
+        response = kw.get("response")
+        if "status_code" in kw:
+            status_code = kw["status_code"]
+        elif response and hasattr(response, "status_code"):
+            status_code = response.status_code
+        else:
+            status_code = 0
+        return status_code
+
     def add_result(self, success, _request_type, name, response_time, response_length, exception, **kw):
         timestamp = datetime.fromtimestamp(time()).strftime(self.timestamp_format)
         response_message = "OK" if success == "true" else "KO"
         # check to see if the additional fields have been populated. If not, set to a default value
-        status_code = kw["status_code"] if "status_code" in kw else "0"
+        status_code = self._parse_status_code(**kw)
         thread_name = self.testplan
         data_type = kw["data_type"] if "data_type" in kw else "unknown"
         bytes_sent = kw["bytes_sent"] if "bytes_sent" in kw else "0"
