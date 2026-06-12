@@ -166,12 +166,14 @@ def on_locust_init(environment, **kwargs):
 
 
 @events.init.add_listener
-def set_up_iteration_limit(environment: Environment, **kwargs):
+def set_up_limits(environment: Environment, **kwargs):
     options = environment.parsed_options
     runner: Runner = environment.runner
     locust.stats.CONSOLE_STATS_INTERVAL_SEC = environment.parsed_options.console_stats_interval
     if options.iterations:
-        logging.debug(f"Iteration limit set to {options.iterations}")
+        runner.iterations_started = 0
+        runner.iteration_target_reached = False
+        logging.debug(f"Iteration limit set to {environment.parsed_options.iterations}")
 
         def iteration_limit_wrapper(method):
             @wraps(method)
@@ -201,20 +203,9 @@ def set_up_iteration_limit(environment: Environment, **kwargs):
         TaskSet.execute_task = iteration_limit_wrapper(TaskSet.execute_task)
         DefaultTaskSet.execute_task = iteration_limit_wrapper(DefaultTaskSet.execute_task)
 
-
-@events.test_start.add_listener
-def set_up_ips(environment: Environment, **kwargs):
-    if environment.parsed_options.ips:
+    if options.ips:
         for user_class in environment.runner.user_classes:
-            user_class.wait_time = constant_total_ips(environment.parsed_options.ips)
-
-
-@events.test_start.add_listener
-def reset_iteration_limit(environment: Environment, **kwargs):
-    if environment.parsed_options.iterations:
-        environment.runner.iterations_started = 0
-        environment.runner.iteration_target_reached = False
-        logging.debug(f"Iteration limit set to {environment.parsed_options.iterations}")
+            user_class.wait_time = constant_total_ips(options.ips)
 
 
 @events.quitting.add_listener
