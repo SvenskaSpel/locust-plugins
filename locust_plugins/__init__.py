@@ -165,7 +165,7 @@ def on_locust_init(environment, **kwargs):
             _timescale_added = True
 
 
-@events.init.add_listener
+@events.test_start.add_listener
 def set_up_limits(environment: Environment, **kwargs):
     options = environment.parsed_options
     runner: Runner = environment.runner
