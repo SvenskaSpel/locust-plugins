@@ -11,6 +11,7 @@ from functools import wraps
 import gevent
 import traceback
 import sys
+import types
 
 
 @events.init_command_line_parser.add_listener
@@ -164,14 +165,12 @@ def on_locust_init(environment, **kwargs):
             _timescale_added = True
 
 
-@events.test_start.add_listener
+@events.init.add_listener
 def set_up_iteration_limit(environment: Environment, **kwargs):
     options = environment.parsed_options
+    runner: Runner = environment.runner
     locust.stats.CONSOLE_STATS_INTERVAL_SEC = environment.parsed_options.console_stats_interval
     if options.iterations:
-        runner: Runner = environment.runner
-        runner.iterations_started = 0
-        runner.iteration_target_reached = False
         logging.debug(f"Iteration limit set to {options.iterations}")
 
         def iteration_limit_wrapper(method):
@@ -190,7 +189,10 @@ def set_up_iteration_limit(environment: Environment, **kwargs):
                         # need to trigger this in a separate greenlet, in case test_stop handlers do something async
                         gevent.spawn_later(0.1, runner.quit)
                     raise StopUser()
-                runner.iterations_started = runner.iterations_started + 1
+
+                if isinstance(task, types.FunctionType):
+                    # execute_task can be called with a task or an entire TaskSet. In the latter case, we don't want to count it as an iteration.
+                    runner.iterations_started = runner.iterations_started + 1
                 method(self, task)
 
             return wrapped
@@ -199,10 +201,18 @@ def set_up_iteration_limit(environment: Environment, **kwargs):
         TaskSet.execute_task = iteration_limit_wrapper(TaskSet.execute_task)
         DefaultTaskSet.execute_task = iteration_limit_wrapper(DefaultTaskSet.execute_task)
 
-    if options.ips:
+@events.test_start.add_listener
+def set_up_ips(environment: Environment, **kwargs):
+    if environment.parsed_options.ips:
         for user_class in environment.runner.user_classes:
-            user_class.wait_time = constant_total_ips(options.ips)
+            user_class.wait_time = constant_total_ips(environment.parsed_options.ips)
 
+@events.test_start.add_listener
+def reset_iteration_limit(environment: Environment, **kwargs):
+    if environment.parsed_options.iterations:
+        environment.runner.iterations_started = 0
+        environment.runner.iteration_target_reached = False
+        logging.debug(f"Iteration limit set to {environment.parsed_options.iterations}")
 
 @events.quitting.add_listener
 def do_checks(environment, **_kw):
