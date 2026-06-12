@@ -178,7 +178,7 @@ def set_up_limits(environment: Environment, **kwargs):
         def iteration_limit_wrapper(method):
             @wraps(method)
             def wrapped(self, task):
-                if runner.iterations_started == options.iterations:
+                if runner.iterations_started >= options.iterations:
                     if not runner.iteration_target_reached:
                         runner.iteration_target_reached = True
                         logging.info(
